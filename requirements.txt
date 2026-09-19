@@ -1,0 +1,6 @@
+# FlowGPU runtime dependencies.
+# The simulator core needs only the standard library; these are for config
+# files, figures and tabular export.
+PyYAML>=6.0
+matplotlib>=3.6
+numpy>=1.23
