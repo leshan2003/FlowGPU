@@ -1,35 +1,31 @@
 # FlowGPU
 
 A Python simulator for **many-core dataflow / brain-inspired chips + GPUs**
-running large-model inference, built to test a specific claim.
+running large-model inference.
 
-## The claim under test
+## The question
 
-At the 2026 中国算力大会, Lynxi (灵汐科技), China Mobile (Suzhou) Software, CETC
-Nanhu, Iluvatar CoreX (天数智芯), Tsinghua and Peking University announced a
-**GPU + brain-inspired-chip heterogeneous hybrid inference system**
-([announcement](https://mp.weixin.qq.com/s/Fi4AgXUpkPAkdOyXKRUUyg)).  Its
-architecture is a **PD+A split**:
+Decode-phase LLM inference on a GPU is bounded by HBM bandwidth, not FLOPS.
+Every token step re-streams the active weight shard out of DRAM, so at batch
+*B* the arithmetic intensity is ~*B* and tensor cores run at a fraction of a
+percent of peak. That observation motivates a recurring class of proposal:
 
-> Prefill 阶段及 Attention 计算模块交由国产GPU承载，FFN（MOE专家）延时敏感模块
-> 交由类脑芯片处理
->
-> *(Prefill and the attention modules go on the domestic GPU; the FFN / MoE
-> experts, which are latency-sensitive, go on the brain-inspired chip.)*
+> Keep the parts that need capacity and dynamic scheduling on the GPU, and
+> move the parts that are pure weight-streaming — the FFN and MoE experts —
+> onto hardware that holds its weights in distributed on-chip SRAM.
 
-and its headline result is:
-
-> 数据显示（3台天数较早型号的GPU服务器+3台类脑机柜），运行 Deepseek V4 Flash
-> 模型，相较同等投入规模的纯 GPU 集群，**推理输出和推理能效均提升 1 倍以上**，
-> 业务运营成本下降 40% 以上。
->
-> *(3 Iluvatar GPU servers + 3 brain-chip cabinets running DeepSeek V4 Flash:
-> more than 2x inference output **and** 2x energy efficiency versus a pure-GPU
-> cluster of equivalent investment; >40% lower operating cost.)*
+The usual concrete form is a **PD+A split**: *P*refill and *D*ecode-phase
+*A*ttention stay on the GPU, the experts go to the dataflow chip. Designs in
+this family are commonly pitched as delivering **more than 2× inference
+throughput and more than 2× energy efficiency** against a pure-GPU cluster of
+equivalent investment.
 
 FlowGPU exists to work out, quantitatively, **whether and when that can be
 true** — and, where it cannot, what the hardware would have to look like for
-it to become true.
+it to become true. It is deliberately not tied to any one vendor's part: the
+device zoo spans 17 GPUs and 17 dataflow/neuromorphic chips, and the placement
+rule is a first-class configurable object, so PD+A is one hypothesis among
+several rather than a built-in assumption.
 
 ## What it models
 
@@ -111,12 +107,14 @@ Every device carries a `source` and a `confidence` tag
 `flowgpu devices` and in every system report.  Two things in this study are
 **projections, not specs**, and are named `*_proj`:
 
-* `lynxi_hp300_proj` — Lynxi publishes neuron and synapse counts for KA200,
-  not SRAM bytes or memory bandwidth, and has not published a successor.  The
-  projected part is the simulator author's construction, sized to make the
-  announced rack physically coherent.
-* `deepseek_v4_flash_proj` — no config for "DeepSeek V4 Flash" has been
-  published.
+* `lynxi_hp300_proj` — a hypothetical next-generation brain-inspired part.
+  Vendors in this space tend to publish neuron and synapse counts rather than
+  SRAM bytes and memory bandwidth, so the numbers here are the simulator
+  author's construction, sized so that a datacentre-scale deployment of such a
+  chip is physically coherent. Its SRAM density and power are swept in
+  `scripts/run_breakeven.py` precisely because they are assumptions.
+* `deepseek_v4_flash_proj` — a hypothetical small-active sibling of the
+  V3/V4 MoE line, for which no configuration has been published.
 
 For that reason the study is run **twice**: once with the projected parts
 (`configs/experiments/pd_a_reference.yaml`) and once with nothing projected at
@@ -130,12 +128,12 @@ Full detail in [`docs/FINDINGS.md`](docs/FINDINGS.md); the short version:
 
 | Claim | Verdict |
 |---|---|
-| **低时延** — lower per-token latency | **Supported.** 1.26–1.58x lower TPOT at batch 1. |
-| **>2x inference output** at equal investment | **Achievable — but not with the announced split.** A layer-split placement on published Graphcore IPUs reaches **2.56x** SLO-constrained capacity. The announced PD+A split reaches **0.83x**. |
+| **Lower per-token latency** | **Supported.** 1.26–1.58x lower TPOT at batch 1. |
+| **>2x inference output** at equal investment | **Achievable — but not with the PD+A split.** A layer-split placement on published Graphcore IPUs reaches **2.56x** SLO-constrained capacity; PD+A itself reaches **0.83x**. |
 | **>2x energy efficiency** | **Not reproduced in any configuration.** Best case **0.44x** (2.3x *worse*); the 2.56x throughput arm costs 0.21x efficiency. Held across SRAM densities 0.5–32 MB/core, chip TDPs 20–250 W, and bridge bandwidths 0.1–19 TB/s. |
 | **>40% lower operating cost** | **Not reproduced.** Best tokens/s per unit capex was 1.31x the pure-GPU baseline. |
 
-The most actionable result is one the announcement does not claim:
+The most actionable result is about the split itself:
 
 > **Pinning *all* prefill to the GPU is what breaks the throughput case.**
 > Under PD+A the dataflow pool does **1.6% of the work while drawing 28% of
