@@ -44,7 +44,7 @@ def main():
         print(f"- **`{n}`** — {d.extra.get('source','')}"
               + (f"  \n  {d.notes}" if d.notes else ""))
 
-    print("\n## Many-core dataflow / brain-inspired chips\n")
+    print("\n## Brain-inspired many-core dataflow chips\n")
     print("| device | vendor | arch | nm | yr | cores | SRAM/core | SRAM total | "
           "SRAM BW | bf16 | NoC bisect | chip-to-chip | board-to-board | DRAM | TDP | conf |")
     print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")

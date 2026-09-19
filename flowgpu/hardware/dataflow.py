@@ -1,4 +1,4 @@
-"""Many-core dataflow / brain-inspired chip model.
+"""Brain-inspired many-core dataflow chip model.
 
 Covers the whole spectrum the study needs:
 

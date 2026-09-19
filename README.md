@@ -1,7 +1,7 @@
 # FlowGPU
 
-A Python simulator for **many-core dataflow / brain-inspired chips + GPUs**
-running large-model inference.
+A Python simulator for **brain-inspired many-core dataflow + GPU**
+large-model inference.
 
 ## The question
 

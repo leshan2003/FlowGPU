@@ -1,5 +1,5 @@
-"""FlowGPU -- a simulator for heterogeneous many-core dataflow / brain-inspired
-chip + GPU large-model inference."""
+"""FlowGPU -- a simulator for heterogeneous brain-inspired many-core dataflow
++ GPU large-model inference."""
 
 __version__ = "0.1.0"
 

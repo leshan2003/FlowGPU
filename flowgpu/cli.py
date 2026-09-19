@@ -141,7 +141,7 @@ def _devices() -> int:
                      f"{d.energy.tdp:.0f}", f"{d.process_nm:g}", d.year,
                      d.extra.get("confidence", "")])
     print()
-    print("Many-core dataflow / brain-inspired chips")
+    print("Brain-inspired many-core dataflow chips")
     print(table(rows, ["name", "vendor", "arch", "cores", "SRAM/core",
                        "SRAM tot", "SRAM BW", "peak bf16", "NoC bisect",
                        "chip2chip", "TDP W", "nm", "yr", "conf"]))

@@ -62,7 +62,7 @@ quoted with 2:4 structured sparsity have been halved.
 - **`mthreads_s5000`** — press  
   announced specs; 1000 TFLOPS FP8 vendor figure is sparse
 
-## Many-core dataflow / brain-inspired chips
+## Brain-inspired many-core dataflow chips
 
 | device | vendor | arch | nm | yr | cores | SRAM/core | SRAM total | SRAM BW | bf16 | NoC bisect | chip-to-chip | board-to-board | DRAM | TDP | conf |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
