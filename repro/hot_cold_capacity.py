@@ -63,18 +63,20 @@ def build(brain_chips: int, hot_frac: float = 0.0, hot_traffic: float = 0.0):
 
 
 ARMS = [
-    # label                                     chips  hf     p    policy  mb
-    ("A   pd_a     @1024 all pinned   mb1", 1024, 0.00, 0.00, "pd_a", 1),
-    ("A'mb2 pd_a   @1024 all pinned   mb2", 1024, 0.00, 0.00, "pd_a", 2),
-    ("A'  pd_a     @ 512 naive cut    mb1", 512, 0.00, 0.00, "pd_a", 1),
-    ("B   pd_a     @ 256 cold->DRAM   mb1", 256, 0.10, 0.90, "pd_a", 1),
-    ("C   hot_cold @ 256 cold->HBM    mb1", 256, 0.10, 0.90, "hot_cold", 1),
-    ("Cmb2 hot_cold@ 256 cold->HBM    mb2", 256, 0.10, 0.90, "hot_cold", 2),
-    ("C'  hot_cold @ 128 cold->HBM    mb1", 128, 0.10, 0.90, "hot_cold", 1),
-    ("C'mb2 hot_cold@128 cold->HBM    mb2", 128, 0.10, 0.90, "hot_cold", 2),
-    ("D   layer_split frac_gpu=.2     mb1", 1024, 0.00, 0.00, "split", 1),
-    ("Dmb2 layer_split frac_gpu=.2    mb2", 1024, 0.00, 0.00, "split", 2),
+    # label                              chips  hot_frac  traffic  policy
+    ("A   pd_a     @1024 all pinned", 1024, 0.00, 0.00, "pd_a"),
+    ("B   pd_a     @ 256 cold->DRAM", 256, 0.10, 0.90, "pd_a"),
+    ("C   hot_cold @ 256 cold->HBM", 256, 0.10, 0.90, "hot_cold"),
+    ("C'  hot_cold @ 128 cold->HBM", 128, 0.10, 0.90, "hot_cold"),
 ]
+
+# `collective_overlap` is scheduler quality, not hardware: how much of the
+# MoE all-to-all a production engine hides behind compute (DualPipe and
+# SGLang two-batch overlap reach ~0.6-0.9; a naive engine is ~0).  The
+# package default is 0.0; the shipped configs use 0.6.  Every number
+# reported before this sweep was taken at a single point on this axis.
+COS = (0.0, 0.6, 0.9)
+MB = 1
 
 
 def make_policy(pol: str):
@@ -100,46 +102,66 @@ def main() -> int:
     print(f"  workload: {wl.n_requests} reqs, prompt {wl.prompt_len},"
           f" output {wl.output_len}, SLO ttft {slo.ttft}s / tpot {slo.tpot}s")
     print("=" * 92)
-    hdr = (f"  {'arm':>30} {'chips':>6} {'TDP kW':>7} {'req/s':>8} "
+    hdr = (f"  {'arm':>28} {'co':>5} {'chips':>6} {'kW':>6} "
            f"{'tok/s':>8} {'TTFT p99':>9} {'TPOT p99':>9} {'J/tok':>7} "
            f"{'s':>5}")
     print(hdr)
     print("  " + "-" * (len(hdr) - 2))
 
-    base = None
-    rows = []
-    for label, chips, hf, p, pol, mb in ARMS:
-        t0 = time.time()
-        m, s = build(chips, hot_frac=hf, hot_traffic=p)
-        policy = make_policy(pol)
-        cap = find_capacity(m, s, policy, wl, slo=slo, target=0.95,
-                            n_requests=48, iters=6,
-                            sim_kwargs=dict(collective_overlap=0.6,
-                                            jitter=True, microbatches=mb),
-                            name=label.strip())
-        el = time.time() - t0
-        b = cap.best
-        ttft = b.ttft_p99 if b else 0.0
-        tp99 = b.tpot_p99 if b else 0.0
-        thr = b.output_throughput if b else 0.0
-        jtok = b.energy_per_output_token if b else 0.0
-        if base is None:
-            base = cap.max_rate
-        rows.append((label, chips, thr, ttft, tp99, jtok))
-        print(f"  {label:>30} {chips:>6} "
-              f"{(chips * 150.0 + GPU_COUNT * 700.0) / 1e3:>7.1f} "
-              f"{cap.max_rate:>8.3f} "
-              f"{thr:>8.1f} "
-              f"{ttft:>8.2f}s {tp99 * 1e3:>8.2f}ms "
-              f"{jtok:>7.2f} {el:>5.0f}")
+    got = {}
+    for label, chips, hf, p, pol in ARMS:
+        for co in COS:
+            t0 = time.time()
+            m, s = build(chips, hot_frac=hf, hot_traffic=p)
+            cap = find_capacity(m, s, make_policy(pol), wl, slo=slo,
+                                target=0.95, n_requests=48, iters=6,
+                                sim_kwargs=dict(collective_overlap=co,
+                                                jitter=True,
+                                                microbatches=MB),
+                                name=f"{label.strip()} co={co}")
+            el = time.time() - t0
+            b = cap.best
+            rec = dict(
+                thr=b.output_throughput if b else 0.0,
+                ttft=b.ttft_p99 if b else 0.0,
+                tp99=b.tpot_p99 if b else 0.0,
+                jtok=b.energy_per_output_token if b else 0.0,
+            )
+            got[(label, co)] = rec
+            print(f"  {label:>28} {co:>5.2f} {chips:>6} "
+                  f"{(chips * 150.0 + GPU_COUNT * 700.0) / 1e3:>6.1f} "
+                  f"{rec['thr']:>8.1f} {rec['ttft']:>8.2f}s "
+                  f"{rec['tp99'] * 1e3:>8.2f}ms {rec['jtok']:>7.2f} "
+                  f"{el:>5.0f}")
+        print()
 
+    # ---- the matrix the whole exercise is for ------------------------
+    print("  throughput (tok/s), rows = arm, cols = collective_overlap")
     print()
-    if rows:
-        b_thr, b_j = rows[0][2], rows[0][5]
-        print("  relative to A (pd_a @1024 all pinned, mb1):")
-        for label, chips, thr, ttft, tp99, jtok in rows:
-            print(f"    {label:>30}  chips {chips/1024:>6.0%} of A   "
-                  f"throughput {thr/b_thr:>6.0%}   J/tok {jtok/b_j:>6.0%}")
+    head = f"  {'arm':>28} " + "".join(f"{('co=' + str(c)):>12}" for c in COS)
+    print(head)
+    print("  " + "-" * (len(head) - 2))
+    base_thr = got[(ARMS[0][0], COS[-1])]["thr"] or 1.0
+    for label, chips, hf, p, pol in ARMS:
+        row = "".join(f"{got[(label, c)]['thr']:>12.1f}" for c in COS)
+        print(f"  {label:>28}{row}")
+    print()
+    print("  same, normalised to A at co=0.9")
+    print()
+    print(head)
+    print("  " + "-" * (len(head) - 2))
+    for label, chips, hf, p, pol in ARMS:
+        row = "".join(f"{got[(label, c)]['thr'] / base_thr:>11.0%} "
+                      for c in COS)
+        print(f"  {label:>28}{row}")
+    print()
+    print("  energy per output token (J), lower is better")
+    print()
+    print(head)
+    print("  " + "-" * (len(head) - 2))
+    for label, chips, hf, p, pol in ARMS:
+        row = "".join(f"{got[(label, c)]['jtok']:>12.2f}" for c in COS)
+        print(f"  {label:>28}{row}")
     return 0
 
 
