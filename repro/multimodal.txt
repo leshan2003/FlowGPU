@@ -1,0 +1,37 @@
+﻿==========================================================================
+DIFFUSION: FLUX.1-dev, 1024x1024, 28 steps, CFG
+  The same 12 B of weights is read once per step.  On a GPU that
+  is 28 full HBM sweeps; on SRAM-resident hardware it is zero.
+==========================================================================
+system               latency  items/s       W  energy/item  TFLOP/s    bound
+----------------  ----------  -------  ------  -----------  -------  -------
+8x H100           905.901 ms    1.104   2,779     2.518 kJ  4,599.8  compute
+1x H100              6.701 s    0.149     796     5.331 kJ    621.8  compute
+16x IPU GC200        4.063 s    0.246   2,113     8.586 kJ  1,025.5  network
+32x Groq LPU        45.855 s    0.022   2,594   118.969 kJ     90.9  compute
+256x Lynxi(proj)     1.390 s    0.719  11,323    15.743 kJ  2,997.2  compute
+
+==========================================================================
+CNN: ResNet-50 inference, batch 64
+==========================================================================
+system             latency     items/s    W  energy/item  TFLOP/s    bound
+--------------  ----------  ----------  ---  -----------  -------  -------
+1x H100         770.198 us  83,095.569  852    10.258 mJ    681.4   memory
+1x Jetson Orin    7.875 ms   8,126.625   38     4.669 mJ     66.6   memory
+1x IPU GC200      3.828 ms  16,718.635  326    19.515 mJ    137.1  compute
+1x Lynxi KA200   24.151 ms   2,649.968   15     5.775 mJ     21.7  compute
+1x Groq LPU      16.760 ms   3,818.583  302    79.068 mJ     31.3  compute
+
+==========================================================================
+VLM: Qwen2.5-VL-7B prefill, 1 image (1024px) + 256 text tokens
+  The split under test: ViT encoder on the dataflow chip, LLM
+  decoder on the GPU -- each on the hardware that suits it.
+==========================================================================
+system                         latency  items/s      W  energy/item  TFLOP/s    bound
+---------------------------  ---------  -------  -----  -----------  -------  -------
+4x H100 (all GPU)            18.372 ms   54.430  1,526     28.032 J  1,697.0  compute
+16x IPU (all dataflow)       36.101 ms   27.700  2,091     75.488 J    863.6  network
+4x H100 + 16x IPU, ViT->IPU  31.171 ms   32.081  3,248    101.234 J  1,000.2  network
+4x H100 + 16x IPU, FFN->IPU  18.372 ms   54.430  3,390     62.278 J  1,697.0  compute
+
+[saved] results/multimodal.json

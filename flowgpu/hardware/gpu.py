@@ -160,18 +160,25 @@ class GPUDevice(Device):
         bm = {}
         hbm = (self.level("hbm") or self.main_memory).name
         l2 = res.act_level
+        shards = max(1, shards)
 
         # weights: split by residency plan, sharded across TP ranks
-        wb = op.weight_bytes / max(1, shards)
+        # Expert weights are indivisible (see DataflowDevice._byte_map), so a
+        # cold-expert GEMM reads whole experts off one device's HBM.
+        groups = max(1.0, float(op.meta.get("groups", 1)))
+        if groups > 1.0 and shards > 1:
+            wb = math.ceil(groups / shards) * (op.weight_bytes / groups)
+        else:
+            wb = op.weight_bytes / shards
         for lvl, frac in res.weight_level_frac.items():
             bm[lvl] = bm.get(lvl, 0.0) + wb * frac
 
         # KV cache state: always HBM (too big for L2), sharded by heads
-        st = (op.state_read_bytes + op.state_write_bytes) / max(1, shards)
+        st = (op.state_read_bytes + op.state_write_bytes) / shards
         bm[hbm] = bm.get(hbm, 0.0) + st
 
         # activations: mostly L2-resident, misses go to HBM
-        ab = op.act_bytes / max(1, shards)
+        ab = op.act_bytes / shards
         bm[l2] = bm.get(l2, 0.0) + ab * self.l2_act_hit
         bm[hbm] = bm.get(hbm, 0.0) + ab * (1.0 - self.l2_act_hit)
         return bm

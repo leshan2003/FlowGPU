@@ -1,0 +1,376 @@
+﻿################ grounded_published_hardware ################
+
+SYSTEM: h100x32
+
+pool    device  kind   n         parallel    mem/dev     peak/dev  TDP/dev  pool TDP  spec conf
+----  --------  ----  --  ---------------  ---------  -----------  -------  --------  ---------
+gpu   h100_sxm   gpu  32  tp8/pp1/ep4/dp1  80.000 GB  1.98 PFLOPS    700 W  22.40 kW     vendor
+
+total devices 32   total memory 2.500 TB   system TDP 24.40 kW (PUE 1.0)
+
+=== h100_only ===
+model=deepseek_v3  system=h100x32  placement=all_gpu  tp=8 ep=4 mb=1
+
+LATENCY
+metric      mean       p50       p90        p99
+------  --------  --------  --------  ---------
+TTFT     1.688 s   1.438 s   3.315 s    5.440 s
+TPOT    6.149 ms  5.615 ms  7.969 ms  11.846 ms
+E2E      3.349 s   3.022 s   5.498 s    7.681 s
+
+THROUGHPUT & POWER
+metric                                    value
+-------------------------------------  --------
+output tokens/s                           553.1
+total tokens/s                           9371.1
+requests/s                                1.953
+avg power (W)                            6437.0
+energy / output token (J)               11.6379
+output tokens / joule                     0.086
+tokens/s per kW                            85.9
+SLO attainment (TTFT<5.0s, TPOT<50ms)     97.9%
+goodput (req/s)                           1.912
+wall time                              98.313 s
+
+TIME ATTRIBUTION (device-seconds on the critical path)
+bound           time   share
+----------  --------  ------
+collective  37.918 s   39.1%
+memory      32.974 s   34.0%
+latency     15.281 s   15.8%
+compute     10.849 s   11.2%
+
+role          time   share
+------  ----------  ------
+moe       51.306 s   52.9%
+attn      39.001 s   40.2%
+norm       5.152 s    5.3%
+ffn        1.342 s    1.4%
+lmhead  179.690 ms    0.2%
+embed    41.882 ms    0.0%
+
+POOL UTILISATION
+pool      busy    util      energy   share
+----  --------  ------  ----------  ------
+gpu   97.023 s   98.7%  436.218 kJ   68.9%
+
+ENERGY BREAKDOWN
+source          energy   share
+----------  ----------  ------
+static      291.369 kJ   46.0%
+host        196.626 kJ   31.1%
+mem:hbm      91.629 kJ   14.5%
+compute      46.487 kJ    7.3%
+idle          6.357 kJ    1.0%
+collective   245.531 J    0.0%
+mem:l2       130.477 J    0.0%
+
+MEMORY / TRAFFIC
+metric                              value
+----------------------------  -----------
+KV capacity (tokens)           28,298,115
+peak KV in use (tokens)            78,277
+bytes crossed between pools           0 B
+prefill tokens                    866,921
+decode tokens                      54,378
+prefill iters / decode iters  148 / 16730
+
+pool     weights
+----  ----------
+gpu   644.00 GiB
+
+SYSTEM: h100x16 + groq3456
+
+pool        device      kind     n            parallel     mem/dev       peak/dev  TDP/dev   pool TDP  spec conf
+-----  -----------  --------  ----  ------------------  ----------  -------------  -------  ---------  ---------
+gpu       h100_sxm       gpu    16     tp8/pp1/ep2/dp1   80.000 GB    1.98 PFLOPS    700 W   11.20 kW     vendor
+brain  groq_lpu_v1  dataflow  3456  tp1/pp1/ep3456/dp1  230.000 MB  750.00 TFLOPS    275 W  950.40 kW      paper
+
+total devices 3472   total memory 2.008 TB   system TDP 1049.00 kW (PUE 1.0)
+
+bridge               fabric    usable BW  latency     energy
+-------------  ------------  -----------  -------  ---------
+gpu <-> brain  pcie5_x16x16  819.20 GB/s  1.20 us  12.0 pJ/B
+
+=== h100_groq_pd_a ===
+model=deepseek_v3  system=h100x16 + groq3456  placement=pd_a  tp=8 ep=3456 mb=2
+
+LATENCY
+metric      mean       p50       p90        p99
+------  --------  --------  --------  ---------
+TTFT     2.096 s   1.645 s   4.092 s    7.548 s
+TPOT    7.439 ms  6.644 ms  9.533 ms  17.055 ms
+E2E      4.075 s   3.792 s   6.491 s   10.254 s
+
+THROUGHPUT & POWER
+metric                                    value
+-------------------------------------  --------
+output tokens/s                           552.9
+total tokens/s                           9368.0
+requests/s                                1.952
+avg power (W)                          248509.7
+energy / output token (J)              449.4426
+output tokens / joule                     0.002
+tokens/s per kW                             2.2
+SLO attainment (TTFT<5.0s, TPOT<50ms)     94.3%
+goodput (req/s)                           1.840
+wall time                              98.345 s
+
+TIME ATTRIBUTION (device-seconds on the critical path)
+bound              time   share
+-------------  --------  ------
+collective     37.530 s   33.1%
+compute        26.904 s   23.7%
+memory         23.685 s   20.9%
+latency        12.834 s   11.3%
+pipeline_fill   8.117 s    7.2%
+bridge          4.219 s    3.7%
+
+role          time   share
+------  ----------  ------
+attn      72.519 s   71.8%
+moe       22.067 s   21.9%
+norm       4.445 s    4.4%
+ffn        1.310 s    1.3%
+lmhead  542.201 ms    0.5%
+embed    69.830 ms    0.1%
+
+POOL UTILISATION
+pool       busy    util        energy   share
+-----  --------  ------  ------------  ------
+gpu    88.939 s   90.4%    243.570 kJ    1.0%
+brain  12.015 s   12.2%  15600.831 kJ   63.8%
+
+ENERGY BREAKDOWN
+source            energy   share
+----------  ------------  ------
+idle        14791.965 kJ   60.5%
+host         8595.388 kJ   35.2%
+static        941.304 kJ    3.9%
+compute        46.045 kJ    0.2%
+mem:hbm        30.064 kJ    0.1%
+collective     27.168 kJ    0.1%
+mem:sram        7.714 kJ    0.0%
+mem:l2         130.860 J    0.0%
+noc             10.091 J    0.0%
+bridge           1.234 J    0.0%
+
+MEMORY / TRAFFIC
+metric                              value
+----------------------------  -----------
+KV capacity (tokens)           18,589,116
+peak KV in use (tokens)           104,556
+bytes crossed between pools     95.771 GB
+prefill tokens                    866,921
+decode tokens                      54,378
+prefill iters / decode iters  141 / 13984
+
+pool      weights
+-----  ----------
+gpu     31.42 GiB
+brain  612.59 GiB
+
+SYSTEM: h100x16 + ipu768
+
+pool      device      kind    n           parallel    mem/dev       peak/dev  TDP/dev   pool TDP  spec conf
+-----  ---------  --------  ---  -----------------  ---------  -------------  -------  ---------  ---------
+gpu     h100_sxm       gpu   16    tp8/pp1/ep2/dp1  80.000 GB    1.98 PFLOPS    700 W   11.20 kW     vendor
+brain  ipu_gc200  dataflow  768  tp1/pp1/ep768/dp1  64.000 GB  250.00 TFLOPS    300 W  230.40 kW     vendor
+
+total devices 784   total memory 49.250 TB   system TDP 290.60 kW (PUE 1.0)
+
+bridge               fabric    usable BW  latency     energy
+-------------  ------------  -----------  -------  ---------
+gpu <-> brain  pcie5_x16x16  819.20 GB/s  1.20 us  12.0 pJ/B
+
+=== h100_ipu_pd_a ===
+model=deepseek_v3  system=h100x16 + ipu768  placement=pd_a  tp=8 ep=768 mb=2
+
+LATENCY
+metric      mean       p50        p90        p99
+------  --------  --------  ---------  ---------
+TTFT     2.641 s   2.255 s    5.093 s    8.651 s
+TPOT    9.489 ms  8.476 ms  13.141 ms  20.439 ms
+E2E      5.161 s   4.679 s    8.723 s   13.533 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                            541.3
+total tokens/s                            9170.1
+requests/s                                 1.911
+avg power (W)                            86243.9
+energy / output token (J)               159.3418
+output tokens / joule                      0.006
+tokens/s per kW                              6.3
+SLO attainment (TTFT<5.0s, TPOT<50ms)      87.5%
+goodput (req/s)                            1.672
+wall time                              100.467 s
+
+TIME ATTRIBUTION (device-seconds on the critical path)
+bound              time   share
+-------------  --------  ------
+collective     45.171 s   32.8%
+memory         37.747 s   27.4%
+compute        20.763 s   15.1%
+pipeline_fill  19.329 s   14.0%
+latency        11.146 s    8.1%
+bridge          3.669 s    2.7%
+network        9.584 ms    0.0%
+
+role          time   share
+------  ----------  ------
+attn      63.940 s   55.7%
+moe       45.960 s   40.0%
+norm       3.941 s    3.4%
+lmhead  471.097 ms    0.4%
+ffn     463.507 ms    0.4%
+embed    60.695 ms    0.1%
+
+POOL UTILISATION
+pool       busy    util       energy   share
+-----  --------  ------  -----------  ------
+gpu    79.740 s   79.4%   251.723 kJ    2.9%
+brain  35.097 s   34.9%  3490.072 kJ   40.3%
+
+ENERGY BREAKDOWN
+source           energy   share
+----------  -----------  ------
+host        4922.895 kJ   56.8%
+idle        2762.097 kJ   31.9%
+static       840.269 kJ    9.7%
+compute       45.671 kJ    0.5%
+mem:dram      36.912 kJ    0.4%
+mem:hbm       26.434 kJ    0.3%
+collective    22.095 kJ    0.3%
+mem:sram       8.091 kJ    0.1%
+mem:l2        130.606 J    0.0%
+noc            95.091 J    0.0%
+bridge          1.129 J    0.0%
+
+MEMORY / TRAFFIC
+metric                              value
+----------------------------  -----------
+KV capacity (tokens)           18,589,116
+peak KV in use (tokens)           124,547
+bytes crossed between pools     87.607 GB
+prefill tokens                    866,921
+decode tokens                      54,378
+prefill iters / decode iters  136 / 12139
+
+pool      weights
+-----  ----------
+gpu     31.42 GiB
+brain  612.59 GiB
+
+SYSTEM: h100x16 + ipu768
+
+pool      device      kind    n           parallel    mem/dev       peak/dev  TDP/dev   pool TDP  spec conf
+-----  ---------  --------  ---  -----------------  ---------  -------------  -------  ---------  ---------
+gpu     h100_sxm       gpu   16    tp8/pp1/ep2/dp1  80.000 GB    1.98 PFLOPS    700 W   11.20 kW     vendor
+brain  ipu_gc200  dataflow  768  tp1/pp1/ep768/dp1  64.000 GB  250.00 TFLOPS    300 W  230.40 kW     vendor
+
+total devices 784   total memory 49.250 TB   system TDP 290.60 kW (PUE 1.0)
+
+bridge               fabric    usable BW  latency     energy
+-------------  ------------  -----------  -------  ---------
+gpu <-> brain  pcie5_x16x16  819.20 GB/s  1.20 us  12.0 pJ/B
+
+=== h100_ipu_layer_split ===
+model=deepseek_v3  system=h100x16 + ipu768  placement=layer_split@0.20  tp=8 ep=2 mb=2
+
+LATENCY
+metric        mean         p50       p90       p99
+------  ----------  ----------  --------  --------
+TTFT    779.572 ms  652.943 ms   1.581 s   2.897 s
+TPOT      3.421 ms    2.896 ms  4.646 ms  9.295 ms
+E2E        1.680 s     1.538 s   2.804 s   4.508 s
+
+THROUGHPUT & POWER
+metric                                    value
+-------------------------------------  --------
+output tokens/s                           563.8
+total tokens/s                           9552.5
+requests/s                                1.991
+avg power (W)                           87976.5
+energy / output token (J)              156.0375
+output tokens / joule                     0.006
+tokens/s per kW                             6.4
+SLO attainment (TTFT<5.0s, TPOT<50ms)    100.0%
+goodput (req/s)                           1.991
+wall time                              96.446 s
+
+TIME ATTRIBUTION (device-seconds on the critical path)
+bound               time   share
+-------------  ---------  ------
+compute         33.093 s   27.4%
+collective      32.800 s   27.1%
+memory          24.331 s   20.1%
+pipeline_fill   15.391 s   12.7%
+latency          8.188 s    6.8%
+network          7.107 s    5.9%
+bridge         75.980 ms    0.1%
+
+role          time   share
+------  ----------  ------
+attn      49.814 s   47.2%
+moe       47.120 s   44.7%
+ffn        4.637 s    4.4%
+norm       3.772 s    3.6%
+embed   134.731 ms    0.1%
+lmhead   41.353 ms    0.0%
+
+POOL UTILISATION
+pool       busy    util       energy   share
+-----  --------  ------  -----------  ------
+gpu    57.502 s   59.6%   230.961 kJ    2.7%
+brain  48.017 s   49.8%  3528.179 kJ   41.6%
+
+ENERGY BREAKDOWN
+source           energy   share
+----------  -----------  ------
+host        4725.867 kJ   55.7%
+idle        2104.432 kJ   24.8%
+static      1524.761 kJ   18.0%
+compute       53.196 kJ    0.6%
+mem:hbm       31.266 kJ    0.4%
+mem:sram      22.203 kJ    0.3%
+mem:dram      11.599 kJ    0.1%
+noc           11.552 kJ    0.1%
+collective    103.420 J    0.0%
+mem:l2         27.376 J    0.0%
+bridge       106.285 mJ    0.0%
+
+MEMORY / TRAFFIC
+metric                              value
+----------------------------  -----------
+KV capacity (tokens)           17,500,008
+peak KV in use (tokens)            52,646
+bytes crossed between pools      8.249 GB
+prefill tokens                    866,921
+decode tokens                      54,378
+prefill iters / decode iters  170 / 27057
+
+pool      weights
+-----  ----------
+gpu    102.70 GiB
+brain  541.31 GiB
+
+COMPARISON (baseline = h100_only)
+
+metric            h100_only     h100_groq_pd_a      h100_ipu_pd_a  h100_ipu_layer_split
+----------------  ---------  -----------------  -----------------  --------------------
+TTFT p50            1.438 s    1.645 s (0.87x)    2.255 s (0.64x)    652.943 ms (2.20x)
+TTFT p99            5.440 s    7.548 s (0.72x)    8.651 s (0.63x)       2.897 s (1.88x)
+TPOT mean          6.149 ms   7.439 ms (0.83x)   9.489 ms (0.65x)      3.421 ms (1.80x)
+TPOT p99          11.846 ms  17.055 ms (0.69x)  20.439 ms (0.58x)      9.295 ms (1.27x)
+E2E p50             3.022 s    3.792 s (0.80x)    4.679 s (0.65x)       1.538 s (1.96x)
+output tok/s          553.1      552.9 (1.00x)      541.3 (0.98x)         563.8 (1.02x)
+total tok/s         9,371.1    9,368.0 (1.00x)    9,170.1 (0.98x)       9,552.5 (1.02x)
+avg power (W)         6,437    248,510 (0.03x)     86,244 (0.07x)        87,977 (0.07x)
+J / output token    11.6379   449.4426 (0.03x)   159.3418 (0.07x)      156.0375 (0.07x)
+tok/s per kW           85.9        2.2 (0.03x)        6.3 (0.07x)           6.4 (0.07x)
+SLO attainment        97.9%      94.3% (0.96x)      87.5% (0.89x)        100.0% (1.02x)
+goodput req/s         1.912      1.840 (0.96x)      1.672 (0.87x)         1.991 (1.04x)
+
+[saved] results\repro_grounded.json

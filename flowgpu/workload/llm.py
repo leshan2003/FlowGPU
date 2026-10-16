@@ -229,23 +229,60 @@ def _moe_block(g: Graph, s: ModelSpec, l: int, T: int, ep_world: int = 1):
     n_touch = experts_touched(E, k, T)
     shared = s.n_shared_experts
 
-    expert_w = [_w(f"{pre}.expert_pool", n_touch * 3 * d * de, dtype=wb)]
-    if shared:
-        expert_w.append(_w(f"{pre}.shared_expert", shared * 3 * d * de,
-                           dtype=wb))
+    # Hot/cold tiering: when ``hot_frac`` is set, the expert stack is split
+    # into a pinned set and a spilled set, so the placement policy can send
+    # them to two different pools.  ``hot_traffic`` is the share of
+    # token->expert assignments landing on the pinned set; it defaults to
+    # ``hot_frac``, i.e. no routing skew at all.
+    #
+    # This is deliberately *not* a routing-skew model: it does not say which
+    # experts are hot or why.  A real skew model still has to be measured.
+    hot_frac = float(s.extra.get("hot_frac", 0.0) or 0.0)
+    split = 0.0 < hot_frac < 1.0
+    if split:
+        hot_traffic = min(1.0, max(hot_frac, float(
+            s.extra.get("hot_traffic", hot_frac))))
+        E_hot = max(1, int(round(E * hot_frac)))
+        E_cold = max(0, E - E_hot)
+        k_hot, k_cold = k * hot_traffic, k * (1.0 - hot_traffic)
+        parts = [("moe_hot", E_hot, experts_touched(E_hot, k_hot, T),
+                  k_hot, shared, "hot_expert"),
+                 ("moe_cold", E_cold,
+                  experts_touched(E_cold, k_cold, T) if E_cold else 0.0,
+                  k_cold, 0, "cold_expert")]
+    else:
+        parts = [("moe_experts", E, n_touch, k, shared, "expert_pool")]
 
-    # per-expert GEMM shape drives the efficiency model: M is tokens/expert
-    m_per_expert = max(1, int(round(T * k / max(E, 1))))
-    flops = T * k * 6.0 * d * de + T * shared * 6.0 * d * de
-    g.add(Op(f"{pre}.moe_experts", GEMM, flops=flops,
-             inputs=[_a(f"{pre}.h", T, d, dtype=ab)],
-             outputs=[_a(f"{pre}.y", T, d, dtype=ab)],
-             weights=expert_w,
-             m=m_per_expert, n=de, k=d, layer=l, role=R_MOE,
-             meta=dict(experts_touched=n_touch, top_k=k, n_experts=E,
-                       tokens_per_expert=T * k / max(E, 1),
-                       shared_experts=shared, tokens=T,
-                       groups=n_touch + shared, ep=ep_world)))
+    for name, n_experts, n_touched, k_used, n_shared, tag in parts:
+        if n_experts <= 0:
+            continue
+        w = [_w(f"{pre}.{tag}_pool", n_touched * 3 * d * de, dtype=wb)]
+        if n_shared:
+            w.append(_w(f"{pre}.shared_expert", n_shared * 3 * d * de,
+                        dtype=wb))
+        # per-expert GEMM shape drives the efficiency model:
+        # M is tokens/expert
+        m_per_expert = max(1, int(round(T * k_used / max(n_experts, 1))))
+        flops = (T * k_used + T * n_shared) * 6.0 * d * de
+        g.add(Op(f"{pre}.{name}", GEMM, flops=flops,
+                 inputs=[_a(f"{pre}.h", T, d, dtype=ab)],
+                 outputs=[_a(f"{pre}.y_{name}", T, d, dtype=ab)],
+                 weights=w,
+                 m=m_per_expert, n=de, k=d, layer=l, role=R_MOE,
+                 meta=dict(experts_touched=n_touched, top_k=k_used,
+                           n_experts=n_experts,
+                           tokens_per_expert=T * k_used / max(n_experts, 1),
+                           shared_experts=n_shared, tokens=T,
+                           groups=n_touched + n_shared, ep=ep_world)))
+
+    if split:
+        # the two halves may land on different pools, so downstream needs one
+        # tensor to consume
+        g.add(Op(f"{pre}.moe_combine", ELEMENTWISE, flops=2.0 * T * d,
+                 inputs=[_a(f"{pre}.y_moe_hot", T, d, dtype=ab),
+                         _a(f"{pre}.y_moe_cold", T, d, dtype=ab)],
+                 outputs=[_a(f"{pre}.y", T, d, dtype=ab)],
+                 m=T, n=d, k=1, layer=l, role=R_MOE))
 
     if ep_world > 1:
         comb = T * k * d * cb
@@ -260,6 +297,7 @@ def _moe_block(g: Graph, s: ModelSpec, l: int, T: int, ep_world: int = 1):
 # =========================================================================
 def _build(s: ModelSpec, batch: int, q_len: int, kv_len: int, stage: str,
            ep_world: int = 1, tp_world: int = 1,
+           ffn_tp_world: int = 0,
            mla_absorbed: bool = True, include_embed: bool = True,
            include_lmhead: bool = True) -> Graph:
     T = batch * q_len
@@ -294,7 +332,14 @@ def _build(s: ModelSpec, batch: int, q_len: int, kv_len: int, stage: str,
         else:
             _ffn_block(g, s, l, T)
             role_tail = R_FFN
-        if tp_world > 1:
+        # The tail all-reduce exists to undo *tensor* parallelism.  Whether it
+        # is needed depends on the pool the FFN/MoE actually lands on, not on
+        # the attention pool -- a MoE block running expert-parallel on a
+        # ``tp=1`` pool produces a complete hidden state and needs no
+        # all-reduce at all.  ``ffn_tp_world`` lets the caller say so; 0 means
+        # "same as the attention side" (the behaviour when the whole model is
+        # on one pool).
+        if (ffn_tp_world or tp_world) > 1:
             g.add(Op(f"L{l}.ar_ffn", ALLREDUCE, flops=0.0,
                      inputs=[_a(f"L{l}.y", T, d, dtype=ab)],
                      outputs=[_a(f"L{l}.y_r", T, d, dtype=ab)],

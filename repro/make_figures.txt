@@ -1,0 +1,14 @@
+﻿running regimes.yaml ...
+building roofline ...
+plotting break-even ...
+plotting capacity curves ...
+
+wrote:
+  docs\figures\regimes_bars.png
+  docs\figures\regimes_time.png
+  docs\figures\regimes_energy.png
+  docs\figures\roofline.png
+  docs\figures\breakeven_sram_per_core.png
+  docs\figures\breakeven_tdp.png
+  docs\figures\breakeven_bridge_lanes.png
+  docs\figures\capacity_curves.png

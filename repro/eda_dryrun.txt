@@ -1,0 +1,3 @@
+﻿[eda] RTL   : C:\Users\18474\Desktop\清华大学\类脑计算2\项目\FlowGPU-main\eda/rtl
+[eda] host  : @:/home/user/flowgpu_eda
+[eda] local-only: RTL and TCL scripts are ready to submit

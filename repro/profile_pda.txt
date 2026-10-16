@@ -1,0 +1,33 @@
+﻿arm=pd_a model=deepseek_v4_flash_proj devs=280 n_requests=24
+one probe: 2.91 s  att=1.000 tok/s=386.7 wall=31.4s
+         7067350 function calls (6402694 primitive calls) in 2.850 seconds
+
+   Ordered by: internal time
+   List reduced from 163 to 22 due to restriction <22>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+571788/12    0.521    0.000    1.176    0.098 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:128(deepcopy)
+  1675736    0.164    0.000    0.164    0.000 {method 'get' of 'dict' objects}
+       38    0.152    0.004    1.125    0.030 .\flowgpu\sim\executor.py:122(execute)
+ 35208/12    0.141    0.000    1.175    0.098 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:226(_deepcopy_dict)
+    16102    0.124    0.000    0.638    0.000 .\flowgpu\hardware\gpu.py:180(cost_op)
+   183982    0.101    0.000    0.370    0.000 {built-in method builtins.sum}
+    16102    0.088    0.000    0.130    0.000 .\flowgpu\hardware\gpu.py:75(efficiency)
+   161337    0.079    0.000    0.200    0.000 .\flowgpu\workload\graph.py:71(nbytes)
+ 27696/12    0.078    0.000    1.176    0.098 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:258(_reconstruct)
+   371347    0.071    0.000    0.074    0.000 {built-in method builtins.max}
+   777816    0.063    0.000    0.063    0.000 {built-in method builtins.id}
+    16102    0.059    0.000    0.233    0.000 .\flowgpu\hardware\gpu.py:158(_byte_map)
+   173525    0.058    0.000    0.078    0.000 .\flowgpu\units.py:195(dtype_bytes)
+       39    0.056    0.001    0.290    0.007 .\flowgpu\mapping\placement.py:104(annotate)
+   205854    0.053    0.000    0.073    0.000 .\flowgpu\sim\executor.py:82(_bump)
+   161337    0.048    0.000    0.048    0.000 .\flowgpu\workload\graph.py:64(numel)
+    20184    0.047    0.000    0.103    0.000 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:209(_deepcopy_tuple)
+    92916    0.044    0.000    0.062    0.000 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:242(_keep_alive)
+     1794    0.038    0.000    0.085    0.000 .\flowgpu\workload\llm.py:200(_moe_block)
+     1872    0.037    0.000    0.078    0.000 .\flowgpu\workload\llm.py:56(_attention_block)
+   100120    0.033    0.000    0.033    0.000 .\flowgpu\hardware\base.py:196(level)
+   458688    0.033    0.000    0.033    0.000 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:182(_deepcopy_atomic)
+
+
+

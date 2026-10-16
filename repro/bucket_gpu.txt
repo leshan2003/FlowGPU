@@ -1,0 +1,7 @@
+﻿arm=pure_gpu_equal_capex  (arrival 1.0 req/s, 64 requests, jitter on)
+bucket  wall(s)  tok/s   TPOT_mean  TPOT_p99  att    keys
+     1     2.74    447.2    18.708    63.319   90.6%  164
+     2     2.72    447.8    18.690    63.214   90.6%  125
+     4     2.12    444.9    18.692    63.465   87.5%  102
+     8     1.99    442.0    23.142    91.798   84.4%  95
+    16     1.99    430.0    24.914    93.448   71.9%  88

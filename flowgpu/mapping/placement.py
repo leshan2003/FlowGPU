@@ -185,6 +185,49 @@ def ffn_offload(gpu: str = "gpu", brain: str = "brain",
         notes="decode FFN/MoE offloaded, everything else on GPU")
 
 
+def hot_cold(gpu: str = "gpu", brain: str = "brain",
+             crossing_dtype: str | None = None) -> PlacementPolicy:
+    """``pd_a`` plus a cold-expert tier on the GPU.
+
+    Requires the graph to have been built with ``hot_frac`` set, so that
+    ``_moe_block`` emitted ``L*.moe_hot`` and ``L*.moe_cold`` instead of a
+    single ``L*.moe_experts``.  The pinned half rides the brain chip; the
+    spilled half is computed on the GPU, whose HBM is 17x the bandwidth of
+    the brain pool's own DRAM -- and whose activations are already resident,
+    because attention already ran there.
+
+    Prefill is left on the GPU exactly as in :func:`pd_a`, so the split
+    only bites during decode.
+    """
+    return PlacementPolicy(
+        name="hot_cold",
+        rules=[
+            Rule(pool=gpu, stage="prefill", note="prefill -> GPU"),
+            Rule(pool=gpu, name=r"moe_cold", note="cold experts -> GPU HBM"),
+            # The two expert halves live on different pools, so the combine
+            # goes wherever the activation already is (the GPU ran attention
+            # and the cold half) -- that keeps the split at 2 crossings per
+            # layer, the same as pd_a, instead of 4.
+            Rule(pool=gpu, name=r"moe_combine", note="combine -> GPU"),
+            # `a2a_combine` is the expert-parallel fan-in.  It is priced
+            # within 3 us either way (5.35 us on the GPU's IB vs 8.47 us on
+            # the brain's RoCE at world=1024), but keeping it here saves the
+            # two crossings that a brain-side combine would cost, so it wins
+            # narrowly.  `a2a_dispatch` stays on the brain: its input is
+            # already there and it fans out to the expert chips.
+            Rule(pool=gpu, name=r"a2a_combine", note="EP fan-in -> GPU"),
+            Rule(pool=gpu, role=(G.R_ATTN,), note="attention -> GPU"),
+            Rule(pool=gpu, role=(G.R_EMBED, G.R_LMHEAD),
+                 note="embed/head -> GPU"),
+            Rule(pool=brain, role=(G.R_FFN, G.R_MOE),
+                 note="FFN/hot experts -> brain chip"),
+            Rule(pool=brain, role=(G.R_NORM,), name=r"norm_(ffn|moe)",
+                 note="pre-FFN norm -> brain chip"),
+        ],
+        default_pool=gpu, crossing_dtype=crossing_dtype,
+        notes="pd_a with the spilled experts tiered onto the GPU's HBM")
+
+
 def moe_offload(gpu: str = "gpu", brain: str = "brain",
                 crossing_dtype: str | None = None) -> PlacementPolicy:
     """MoE experts to the dataflow pool in *both* phases; rest on the GPU.
@@ -267,6 +310,7 @@ STRATEGIES = {
     "all_dataflow": all_dataflow,
     "pd_a": pd_a,
     "ffn_offload": ffn_offload,
+    "hot_cold": hot_cold,
     "moe_offload": moe_offload,
     "decode_offload": decode_offload,
     "layer_split": layer_split,

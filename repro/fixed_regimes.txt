@@ -1,0 +1,375 @@
+﻿################ workload_regimes ################
+
+SYSTEM: iluvatar40
+
+pool            device  kind   n         parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+----  ----------------  ----  --  ---------------  ---------  -------------  -------  --------  ---------
+gpu   iluvatar_bi_v100   gpu  40  tp8/pp1/ep5/dp1  32.000 GB  295.00 TFLOPS    250 W  10.00 kW    derived
+
+total devices 40   total memory 1.250 TB   system TDP 12.00 kW (PUE 1.0)
+
+=== gpu_summarise ===
+model=deepseek_v4_flash_proj  system=iluvatar40  placement=all_gpu  tp=8 ep=5 mb=1
+
+LATENCY
+metric       mean       p50        p90        p99
+------  ---------  --------  ---------  ---------
+TTFT      2.429 s   2.212 s    4.053 s    4.856 s
+TPOT    15.792 ms  8.449 ms  37.281 ms  84.841 ms
+E2E       6.200 s   5.166 s    9.999 s   21.019 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                            122.5
+total tokens/s                            7880.6
+requests/s                                 0.462
+avg power (W)                             3262.1
+energy / output token (J)                26.6296
+output tokens / joule                      0.038
+tokens/s per kW                             37.6
+SLO attainment (TTFT<8.0s, TPOT<50ms)      94.5%
+goodput (req/s)                            0.437
+wall time                              276.780 s
+
+SYSTEM: iluvatar24 + lynxi256
+
+pool             device      kind    n           parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+-----  ----------------  --------  ---  -----------------  ---------  -------------  -------  --------  ---------
+gpu    iluvatar_bi_v100       gpu   24    tp8/pp1/ep3/dp1  32.000 GB  295.00 TFLOPS    250 W   6.00 kW    derived
+brain  lynxi_hp300_proj  dataflow  256  tp1/pp1/ep256/dp1  64.000 GB  256.00 TFLOPS    150 W  38.40 kW   estimate
+
+total devices 280   total memory 16.750 TB   system TDP 48.00 kW (PUE 1.0)
+
+bridge                        fabric  usable BW  latency    energy
+-------------  ---------------------  ---------  -------  --------
+gpu <-> brain  custom_serdes_800gx24  2.16 TB/s  0.40 us  5.0 pJ/B
+
+NOTE: specs for lynxi_hp300_proj are ESTIMATES or PROJECTIONS, not vendor datasheets.
+
+=== pda_summarise ===
+model=deepseek_v4_flash_proj  system=iluvatar24 + lynxi256  placement=pd_a  tp=8 ep=256 mb=2
+
+LATENCY
+metric       mean        p50        p90         p99
+------  ---------  ---------  ---------  ----------
+TTFT      3.419 s    3.327 s    5.706 s     7.322 s
+TPOT    26.116 ms  14.085 ms  59.829 ms  123.075 ms
+E2E       9.608 s    7.898 s   19.466 s    31.932 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                            122.4
+total tokens/s                            7871.2
+requests/s                                 0.462
+avg power (W)                            11445.5
+energy / output token (J)                93.5452
+output tokens / joule                      0.011
+tokens/s per kW                             10.7
+SLO attainment (TTFT<8.0s, TPOT<50ms)      85.2%
+goodput (req/s)                            0.393
+wall time                              277.108 s
+
+SYSTEM: iluvatar40
+
+pool            device  kind   n         parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+----  ----------------  ----  --  ---------------  ---------  -------------  -------  --------  ---------
+gpu   iluvatar_bi_v100   gpu  40  tp8/pp1/ep5/dp1  32.000 GB  295.00 TFLOPS    250 W  10.00 kW    derived
+
+total devices 40   total memory 1.250 TB   system TDP 12.00 kW (PUE 1.0)
+
+=== gpu_chat ===
+model=deepseek_v4_flash_proj  system=iluvatar40  placement=all_gpu  tp=8 ep=5 mb=1
+
+LATENCY
+metric        mean         p50       p90       p99
+------  ----------  ----------  --------  --------
+TTFT    814.019 ms  497.420 ms   1.712 s   2.776 s
+TPOT      3.530 ms    3.434 ms  3.778 ms  4.355 ms
+E2E        2.678 s     2.586 s   3.979 s   5.315 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                            245.6
+total tokens/s                            1216.5
+requests/s                                 0.463
+avg power (W)                             3518.1
+energy / output token (J)                14.3257
+output tokens / joule                      0.070
+tokens/s per kW                             69.8
+SLO attainment (TTFT<8.0s, TPOT<50ms)     100.0%
+goodput (req/s)                            0.463
+wall time                              276.378 s
+
+SYSTEM: iluvatar24 + lynxi256
+
+pool             device      kind    n           parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+-----  ----------------  --------  ---  -----------------  ---------  -------------  -------  --------  ---------
+gpu    iluvatar_bi_v100       gpu   24    tp8/pp1/ep3/dp1  32.000 GB  295.00 TFLOPS    250 W   6.00 kW    derived
+brain  lynxi_hp300_proj  dataflow  256  tp1/pp1/ep256/dp1  64.000 GB  256.00 TFLOPS    150 W  38.40 kW   estimate
+
+total devices 280   total memory 16.750 TB   system TDP 48.00 kW (PUE 1.0)
+
+bridge                        fabric  usable BW  latency    energy
+-------------  ---------------------  ---------  -------  --------
+gpu <-> brain  custom_serdes_800gx24  2.16 TB/s  0.40 us  5.0 pJ/B
+
+NOTE: specs for lynxi_hp300_proj are ESTIMATES or PROJECTIONS, not vendor datasheets.
+
+=== pda_chat ===
+model=deepseek_v4_flash_proj  system=iluvatar24 + lynxi256  placement=pd_a  tp=8 ep=256 mb=2
+
+LATENCY
+metric      mean         p50       p90       p99
+------  --------  ----------  --------  --------
+TTFT     1.218 s  920.099 ms   2.600 s   4.151 s
+TPOT    4.452 ms    4.332 ms  4.759 ms  5.432 ms
+E2E      3.566 s     3.409 s   5.392 s   7.844 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                            245.2
+total tokens/s                            1214.8
+requests/s                                 0.462
+avg power (W)                            11455.2
+energy / output token (J)                46.7126
+output tokens / joule                      0.021
+tokens/s per kW                             21.4
+SLO attainment (TTFT<8.0s, TPOT<50ms)     100.0%
+goodput (req/s)                            0.462
+wall time                              276.771 s
+
+SYSTEM: iluvatar40
+
+pool            device  kind   n         parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+----  ----------------  ----  --  ---------------  ---------  -------------  -------  --------  ---------
+gpu   iluvatar_bi_v100   gpu  40  tp8/pp1/ep5/dp1  32.000 GB  295.00 TFLOPS    250 W  10.00 kW    derived
+
+total devices 40   total memory 1.250 TB   system TDP 12.00 kW (PUE 1.0)
+
+=== gpu_reason ===
+model=deepseek_v4_flash_proj  system=iluvatar40  placement=all_gpu  tp=8 ep=5 mb=1
+
+LATENCY
+metric       mean        p50        p90        p99
+------  ---------  ---------  ---------  ---------
+TTFT     49.935 s   42.783 s   95.093 s  117.201 s
+TPOT     9.075 ms   9.910 ms  11.408 ms  12.195 ms
+E2E     125.100 s  128.959 s  173.635 s  200.736 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                           2593.5
+total tokens/s                            2913.5
+requests/s                                 0.305
+avg power (W)                             3729.0
+energy / output token (J)                 1.4378
+output tokens / joule                      0.695
+tokens/s per kW                            695.5
+SLO attainment (TTFT<8.0s, TPOT<50ms)       7.0%
+goodput (req/s)                            0.021
+wall time                              419.112 s
+
+SYSTEM: iluvatar24 + lynxi256
+
+pool             device      kind    n           parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+-----  ----------------  --------  ---  -----------------  ---------  -------------  -------  --------  ---------
+gpu    iluvatar_bi_v100       gpu   24    tp8/pp1/ep3/dp1  32.000 GB  295.00 TFLOPS    250 W   6.00 kW    derived
+brain  lynxi_hp300_proj  dataflow  256  tp1/pp1/ep256/dp1  64.000 GB  256.00 TFLOPS    150 W  38.40 kW   estimate
+
+total devices 280   total memory 16.750 TB   system TDP 48.00 kW (PUE 1.0)
+
+bridge                        fabric  usable BW  latency    energy
+-------------  ---------------------  ---------  -------  --------
+gpu <-> brain  custom_serdes_800gx24  2.16 TB/s  0.40 us  5.0 pJ/B
+
+NOTE: specs for lynxi_hp300_proj are ESTIMATES or PROJECTIONS, not vendor datasheets.
+
+=== pda_reason ===
+model=deepseek_v4_flash_proj  system=iluvatar24 + lynxi256  placement=pd_a  tp=8 ep=256 mb=2
+
+LATENCY
+metric       mean        p50        p90        p99
+------  ---------  ---------  ---------  ---------
+TTFT     55.984 s   53.971 s   97.629 s  117.260 s
+TPOT     8.992 ms   9.615 ms  10.537 ms  10.826 ms
+E2E     130.946 s  137.551 s  182.579 s  219.607 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                           2695.1
+total tokens/s                            3027.8
+requests/s                                 0.317
+avg power (W)                            11231.7
+energy / output token (J)                 4.1674
+output tokens / joule                      0.240
+tokens/s per kW                            240.0
+SLO attainment (TTFT<8.0s, TPOT<50ms)       6.2%
+goodput (req/s)                            0.020
+wall time                              403.301 s
+
+SYSTEM: iluvatar40
+
+pool            device  kind   n         parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+----  ----------------  ----  --  ---------------  ---------  -------------  -------  --------  ---------
+gpu   iluvatar_bi_v100   gpu  40  tp8/pp1/ep5/dp1  32.000 GB  295.00 TFLOPS    250 W  10.00 kW    derived
+
+total devices 40   total memory 1.250 TB   system TDP 12.00 kW (PUE 1.0)
+
+=== gpu_latency ===
+model=deepseek_v4_flash_proj  system=iluvatar40  placement=all_gpu  tp=8 ep=5 mb=1
+
+LATENCY
+metric      mean        p50       p90       p99
+------  --------  ---------  --------  --------
+TTFT     1.610 s  39.985 ms   5.653 s  12.348 s
+TPOT    3.383 ms   3.385 ms  3.393 ms  3.399 ms
+E2E      8.536 s    6.977 s  12.565 s  19.249 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                            101.5
+total tokens/s                             126.9
+requests/s                                 0.050
+avg power (W)                             3886.5
+energy / output token (J)                38.2845
+output tokens / joule                      0.026
+tokens/s per kW                             26.1
+SLO attainment (TTFT<8.0s, TPOT<50ms)      93.8%
+goodput (req/s)                            0.046
+wall time                              322.786 s
+
+SYSTEM: iluvatar24 + lynxi256
+
+pool             device      kind    n           parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+-----  ----------------  --------  ---  -----------------  ---------  -------------  -------  --------  ---------
+gpu    iluvatar_bi_v100       gpu   24    tp8/pp1/ep3/dp1  32.000 GB  295.00 TFLOPS    250 W   6.00 kW    derived
+brain  lynxi_hp300_proj  dataflow  256  tp1/pp1/ep256/dp1  64.000 GB  256.00 TFLOPS    150 W  38.40 kW   estimate
+
+total devices 280   total memory 16.750 TB   system TDP 48.00 kW (PUE 1.0)
+
+bridge                        fabric  usable BW  latency    energy
+-------------  ---------------------  ---------  -------  --------
+gpu <-> brain  custom_serdes_800gx24  2.16 TB/s  0.40 us  5.0 pJ/B
+
+NOTE: specs for lynxi_hp300_proj are ESTIMATES or PROJECTIONS, not vendor datasheets.
+
+=== pda_latency ===
+model=deepseek_v4_flash_proj  system=iluvatar24 + lynxi256  placement=pd_a  tp=8 ep=256 mb=1
+
+LATENCY
+metric        mean        p50       p90       p99
+------  ----------  ---------  --------  --------
+TTFT    774.168 ms  37.472 ms   3.191 s   7.432 s
+TPOT      2.183 ms   2.184 ms  2.189 ms  2.193 ms
+E2E        5.243 s    4.513 s   7.650 s  11.885 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                            103.1
+total tokens/s                             128.9
+requests/s                                 0.050
+avg power (W)                            11736.9
+energy / output token (J)               113.8534
+output tokens / joule                      0.009
+tokens/s per kW                              8.8
+SLO attainment (TTFT<8.0s, TPOT<50ms)     100.0%
+goodput (req/s)                            0.050
+wall time                              317.865 s
+
+SYSTEM: iluvatar8
+
+pool            device  kind  n         parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+----  ----------------  ----  -  ---------------  ---------  -------------  -------  --------  ---------
+gpu   iluvatar_bi_v100   gpu  8  tp8/pp1/ep1/dp1  32.000 GB  295.00 TFLOPS    250 W   2.00 kW    derived
+
+total devices 8   total memory 256.000 GB   system TDP 2.40 kW (PUE 1.0)
+
+=== gpu_minimal_latency ===
+model=deepseek_v4_flash_proj  system=iluvatar8  placement=all_gpu  tp=8 ep=1 mb=1
+
+LATENCY
+metric      mean        p50       p90       p99
+------  --------  ---------  --------  --------
+TTFT     2.575 s  34.694 ms   7.161 s  15.362 s
+TPOT    4.122 ms   4.123 ms  4.135 ms  4.142 ms
+E2E     11.012 s    8.489 s  15.585 s  23.772 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                             99.2
+total tokens/s                             124.0
+requests/s                                 0.048
+avg power (W)                              817.4
+energy / output token (J)                 8.2426
+output tokens / joule                      0.121
+tokens/s per kW                            121.3
+SLO attainment (TTFT<8.0s, TPOT<50ms)      91.7%
+goodput (req/s)                            0.044
+wall time                              247.813 s
+
+SYSTEM: iluvatar2 + lynxi224
+
+pool             device      kind    n           parallel    mem/dev       peak/dev  TDP/dev  pool TDP  spec conf
+-----  ----------------  --------  ---  -----------------  ---------  -------------  -------  --------  ---------
+gpu    iluvatar_bi_v100       gpu    2    tp2/pp1/ep1/dp1  32.000 GB  295.00 TFLOPS    250 W   0.50 kW    derived
+brain  lynxi_hp300_proj  dataflow  224  tp1/pp1/ep224/dp1  64.000 GB  256.00 TFLOPS    150 W  33.60 kW   estimate
+
+total devices 226   total memory 14.062 TB   system TDP 36.60 kW (PUE 1.0)
+
+bridge                        fabric    usable BW  latency    energy
+-------------  ---------------------  -----------  -------  --------
+gpu <-> brain  custom_serdes_1600gx2  360.00 GB/s  0.35 us  4.0 pJ/B
+
+NOTE: specs for lynxi_hp300_proj are ESTIMATES or PROJECTIONS, not vendor datasheets.
+
+=== pda_minimal_latency ===
+model=deepseek_v4_flash_proj  system=iluvatar2 + lynxi224  placement=pd_a  tp=2 ep=224 mb=1
+
+LATENCY
+metric      mean        p50       p90       p99
+------  --------  ---------  --------  --------
+TTFT     2.871 s  88.907 ms   7.700 s  16.405 s
+TPOT    4.336 ms   4.337 ms  4.350 ms  4.357 ms
+E2E     11.747 s    8.988 s  16.562 s  25.253 s
+
+THROUGHPUT & POWER
+metric                                     value
+-------------------------------------  ---------
+output tokens/s                             99.0
+total tokens/s                             123.7
+requests/s                                 0.048
+avg power (W)                             8667.1
+energy / output token (J)                87.5660
+output tokens / joule                      0.011
+tokens/s per kW                             11.4
+SLO attainment (TTFT<8.0s, TPOT<50ms)      91.7%
+goodput (req/s)                            0.044
+wall time                              248.299 s
+
+COMPARISON (baseline = gpu_summarise)
+
+metric            gpu_summarise       pda_summarise            gpu_chat            pda_chat         gpu_reason         pda_reason         gpu_latency         pda_latency  gpu_minimal_latency  pda_minimal_latency
+----------------  -------------  ------------------  ------------------  ------------------  -----------------  -----------------  ------------------  ------------------  -------------------  -------------------
+TTFT p50                2.212 s     3.327 s (0.66x)  497.420 ms (4.45x)  920.099 ms (2.40x)   42.783 s (0.05x)   53.971 s (0.04x)  39.985 ms (55.32x)  37.472 ms (59.03x)   34.694 ms (63.76x)   88.907 ms (24.88x)
+TTFT p99                4.856 s     7.322 s (0.66x)     2.776 s (1.75x)     4.151 s (1.17x)  117.201 s (0.04x)  117.260 s (0.04x)    12.348 s (0.39x)     7.432 s (0.65x)     15.362 s (0.32x)     16.405 s (0.30x)
+TPOT mean             15.792 ms   26.116 ms (0.60x)    3.530 ms (4.47x)    4.452 ms (3.55x)   9.075 ms (1.74x)   8.992 ms (1.76x)    3.383 ms (4.67x)    2.183 ms (7.23x)     4.122 ms (3.83x)     4.336 ms (3.64x)
+TPOT p99              84.841 ms  123.075 ms (0.69x)   4.355 ms (19.48x)   5.432 ms (15.62x)  12.195 ms (6.96x)  10.826 ms (7.84x)   3.399 ms (24.96x)   2.193 ms (38.69x)    4.142 ms (20.48x)    4.357 ms (19.47x)
+E2E p50                 5.166 s     7.898 s (0.65x)     2.586 s (2.00x)     3.409 s (1.52x)  128.959 s (0.04x)  137.551 s (0.04x)     6.977 s (0.74x)     4.513 s (1.14x)      8.489 s (0.61x)      8.988 s (0.57x)
+output tok/s              122.5       122.4 (1.00x)       245.6 (2.00x)       245.2 (2.00x)   2,593.5 (21.17x)   2,695.1 (22.00x)       101.5 (0.83x)       103.1 (0.84x)         99.2 (0.81x)         99.0 (0.81x)
+total tok/s             7,880.6     7,871.2 (1.00x)     1,216.5 (0.15x)     1,214.8 (0.15x)    2,913.5 (0.37x)    3,027.8 (0.38x)       126.9 (0.02x)       128.9 (0.02x)        124.0 (0.02x)        123.7 (0.02x)
+avg power (W)             3,262      11,446 (0.29x)       3,518 (0.93x)      11,455 (0.28x)      3,729 (0.87x)     11,232 (0.29x)       3,886 (0.84x)      11,737 (0.28x)          817 (3.99x)        8,667 (0.38x)
+J / output token        26.6296     93.5452 (0.28x)     14.3257 (1.86x)     46.7126 (0.57x)    1.4378 (18.52x)     4.1674 (6.39x)     38.2845 (0.70x)    113.8534 (0.23x)       8.2426 (3.23x)      87.5660 (0.30x)
+tok/s per kW               37.6        10.7 (0.28x)        69.8 (1.86x)        21.4 (0.57x)     695.5 (18.52x)      240.0 (6.39x)        26.1 (0.70x)         8.8 (0.23x)        121.3 (3.23x)         11.4 (0.30x)
+SLO attainment            94.5%       85.2% (0.90x)      100.0% (1.06x)      100.0% (1.06x)       7.0% (0.07x)       6.2% (0.07x)       93.8% (0.99x)      100.0% (1.06x)        91.7% (0.97x)        91.7% (0.97x)
+goodput req/s             0.437       0.393 (0.90x)       0.463 (1.06x)       0.462 (1.06x)      0.021 (0.05x)      0.020 (0.05x)       0.046 (0.11x)       0.050 (0.12x)        0.044 (0.10x)        0.044 (0.10x)
+
+[saved] results\fixed_regimes.json

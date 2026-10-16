@@ -1,4 +1,4 @@
-"""Request-level serving simulator: TTFT, TPOT, throughput, energy.
+﻿"""Request-level serving simulator: TTFT, TPOT, throughput, energy.
 
 Models a continuous-batching inference server (vLLM/SGLang style):
 
@@ -213,7 +213,7 @@ class ServingSimulator:
                  microbatches: int = 1, jitter: bool = True,
                  tp_world: int | None = None, ep_world: int | None = None,
                  prefill_pool: str | None = None, seed: int = 0,
-                 ctx_bucket: int = 512, batch_bucket: int = 8,
+                 ctx_bucket: int = 512, batch_bucket: int = 1,
                  collective_overlap: float = 0.0, verbose: bool = False):
         self.model = model
         self.system = system
@@ -236,6 +236,12 @@ class ServingSimulator:
             system.pools[attn_pool].parallel.tp if attn_pool else 1)
         self.ep_world = ep_world if ep_world is not None else (
             system.pools[ffn_pool].parallel.ep if ffn_pool else 1)
+        # Whether the FFN/MoE tail needs an all-reduce depends on the *FFN*
+        # pool's tensor parallelism, not the attention pool's: a MoE block
+        # running expert-parallel on a tp=1 pool emits a complete hidden
+        # state, so there is nothing to reduce.
+        self.ffn_tp_world = (system.pools[ffn_pool].parallel.tp
+                             if ffn_pool else 1)
         self.prefill_pool = prefill_pool
         self._plan_memory()
 
@@ -276,7 +282,8 @@ class ServingSimulator:
         s = self.model
         g = llm_builder.build_decode(s, batch=1, ctx=1,
                                      ep_world=self.ep_world,
-                                     tp_world=self.tp_world)
+                                     tp_world=self.tp_world,
+                                     ffn_tp_world=self.ffn_tp_world)
         self.policy.annotate(g, s.n_layers)
 
         w_by_pool = {}
@@ -336,6 +343,16 @@ class ServingSimulator:
         inflate FLOPs by up to 8x.  Prefill therefore uses the exact batch;
         only decode -- where the batch is large and the cost is dominated by
         batch-independent weight streaming -- is bucketed.
+
+        ``batch_bucket`` defaults to 1 (exact).  Bucketing decode is not free:
+        ``step_cost`` returns the cost of the *bucket*, not of the requested
+        batch, and there is no separately measured batch-independent term to
+        correct it with.  Measured on the pure-GPU arm of
+        ``pd_a_reference.yaml`` (arrival 1.0 req/s, 64 requests), a bucket of
+        8 inflated TPOT mean by 24%, inflated TPOT p99 by 45%, and dropped
+        SLO attainment from 90.6% to 84.4% -- enough to move the capacity
+        number the study's headline claim rests on.  Set ``batch_bucket`` > 1
+        only as an explicit speed/accuracy trade.
         """
         c = max(1, int(math.ceil(ctx / self.ctx_bucket)) * self.ctx_bucket)
         if stage == "prefill" or self.batch_bucket <= 1:
@@ -355,11 +372,13 @@ class ServingSimulator:
             g = llm_builder.build_prefill(self.model, b, chunk,
                                           ctx_before=max(0, c - chunk),
                                           ep_world=self.ep_world,
-                                          tp_world=self.tp_world)
+                                          tp_world=self.tp_world,
+                                          ffn_tp_world=self.ffn_tp_world)
         else:
             g = llm_builder.build_decode(self.model, b, c,
                                          ep_world=self.ep_world,
-                                         tp_world=self.tp_world)
+                                         tp_world=self.tp_world,
+                                         ffn_tp_world=self.ffn_tp_world)
         self.policy.annotate(g, self.model.n_layers)
         if self.microbatches > 1 and stage == "decode":
             r = execute_pipelined(g, self.system, self.policy,
@@ -373,14 +392,6 @@ class ServingSimulator:
         # scale from the bucketed batch back to the requested one
         self._cache[key] = r
         return r
-
-    def _scaled(self, r: StepResult, batch: int, bucket_batch: int
-                ) -> tuple:
-        """Linear interpolation between buckets for time and energy."""
-        f = batch / max(1, bucket_batch)
-        # decode time is dominated by weight streaming (batch-independent)
-        # plus a per-token term; interpolate conservatively on energy only
-        return r.time, r.energy * (0.35 + 0.65 * f)
 
     def _jittered(self, t: float) -> float:
         if not self.jitter:
@@ -551,6 +562,13 @@ class ServingSimulator:
                     d[k] *= self.dp
             res.n_prefill_iters *= self.dp
             res.n_decode_iters *= self.dp
+            # busy_by_pool is per-replica busy time, but the idle term below
+            # is charged over the *whole* fleet (pool.count includes every
+            # replica).  Without scaling this, dp replicas look idle at the
+            # same moment the one simulated replica is busy, and the idle
+            # energy is overstated by up to dp x.
+            for k in list(res.busy_by_pool):
+                res.busy_by_pool[k] *= self.dp
         res.device_energy = res.energy
         idle = pmodel.idle_energy(self.system, now, res.busy_by_pool)
         res.idle_energy = sum(idle.values())

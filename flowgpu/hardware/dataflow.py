@@ -276,12 +276,23 @@ class DataflowDevice(Device):
     # ------------------------------------------------------------------
     def _byte_map(self, op: G.Op, res: Residency, shards: int) -> dict:
         bm = {}
-        wb = op.weight_bytes / max(1, shards)
+        shards = max(1, shards)
+        groups = max(1.0, float(op.meta.get("groups", 1)))
+        if groups > 1.0 and shards > 1:
+            # Expert weights are *indivisible*: a chip holds whole experts,
+            # so the busiest chip carries ceil(units/shards) of them and only
+            # ever gets that one chip's bandwidth.  Dividing the total by the
+            # chip count instead would let the access ride the *aggregate*
+            # bandwidth of the pool -- which is not something a single
+            # expert's bytes can do, because they all sit in one place.
+            wb = math.ceil(groups / shards) * (op.weight_bytes / groups)
+        else:
+            wb = op.weight_bytes / shards
         for lvl, frac in res.weight_level_frac.items():
             bm[lvl] = bm.get(lvl, 0.0) + wb * frac
-        st = (op.state_read_bytes + op.state_write_bytes) / max(1, shards)
+        st = (op.state_read_bytes + op.state_write_bytes) / shards
         bm[res.kv_level] = bm.get(res.kv_level, 0.0) + st
-        bm["sram"] = bm.get("sram", 0.0) + op.act_bytes / max(1, shards)
+        bm["sram"] = bm.get("sram", 0.0) + op.act_bytes / shards
         return bm
 
     # ------------------------------------------------------------------
