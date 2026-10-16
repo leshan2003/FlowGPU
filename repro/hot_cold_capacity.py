@@ -91,9 +91,14 @@ def make_policy(pol: str):
 
 
 def main() -> int:
-    wl = WorkloadSpec(n_requests=48, prompt_len=1024, output_len=64,
+    # n_requests must exceed max_running or no queue can ever form and the
+    # capacity search saturates its bracket (see find_capacity's guard).
+    #
+    # `co` is scheduler quality, not hardware: the fraction of the MoE
+    # all-to-all a production engine hides behind compute.  See COS below.
+    wl = WorkloadSpec(n_requests=256, prompt_len=1024, output_len=64,
                       prompt_sigma=0.4, output_sigma=0.5,
-                      max_batch=64, max_running=192, chunk_tokens=8192,
+                      max_batch=64, max_running=64, chunk_tokens=8192,
                       seed=11)
     slo = SLO(ttft=5.0, tpot=0.05)
 
@@ -103,8 +108,8 @@ def main() -> int:
           f" output {wl.output_len}, SLO ttft {slo.ttft}s / tpot {slo.tpot}s")
     print("=" * 92)
     hdr = (f"  {'arm':>28} {'co':>5} {'chips':>6} {'kW':>6} "
-           f"{'tok/s':>8} {'TTFT p99':>9} {'TPOT p99':>9} {'J/tok':>7} "
-           f"{'s':>5}")
+           f"{'req/s':>8} {'tok/s':>8} {'TTFT p99':>9} {'TPOT p99':>9} "
+           f"{'J/tok':>7} {'s':>5}")
     print(hdr)
     print("  " + "-" * (len(hdr) - 2))
 
@@ -114,14 +119,19 @@ def main() -> int:
             t0 = time.time()
             m, s = build(chips, hot_frac=hf, hot_traffic=p)
             cap = find_capacity(m, s, make_policy(pol), wl, slo=slo,
-                                target=0.95, n_requests=48, iters=6,
+                                target=0.95, n_requests=wl.n_requests,
+                                iters=6,
                                 sim_kwargs=dict(collective_overlap=co,
                                                 jitter=True,
                                                 microbatches=MB),
                                 name=f"{label.strip()} co={co}")
+            if cap.warnings:
+                for warning in cap.warnings:
+                    print(f"  !! {label.strip()} co={co}: {warning}")
             el = time.time() - t0
             b = cap.best
             rec = dict(
+                rate=cap.max_rate,
                 thr=b.output_throughput if b else 0.0,
                 ttft=b.ttft_p99 if b else 0.0,
                 tp99=b.tpot_p99 if b else 0.0,
@@ -130,12 +140,22 @@ def main() -> int:
             got[(label, co)] = rec
             print(f"  {label:>28} {co:>5.2f} {chips:>6} "
                   f"{(chips * 150.0 + GPU_COUNT * 700.0) / 1e3:>6.1f} "
-                  f"{rec['thr']:>8.1f} {rec['ttft']:>8.2f}s "
+                  f"{rec['rate']:>8.2f} {rec['thr']:>8.1f} "
+                  f"{rec['ttft']:>8.2f}s "
                   f"{rec['tp99'] * 1e3:>8.2f}ms {rec['jtok']:>7.2f} "
                   f"{el:>5.0f}")
         print()
 
     # ---- the matrix the whole exercise is for ------------------------
+    head = f"  {'arm':>28} " + "".join(f"{('co=' + str(c)):>12}" for c in COS)
+    print("  SLO capacity (req/s), rows = arm, cols = collective_overlap")
+    print()
+    print(head)
+    print("  " + "-" * (len(head) - 2))
+    for label, chips, hf, p, pol in ARMS:
+        row = "".join(f"{got[(label, c)]['rate']:>12.2f}" for c in COS)
+        print(f"  {label:>28}{row}")
+    print()
     print("  throughput (tok/s), rows = arm, cols = collective_overlap")
     print()
     head = f"  {'arm':>28} " + "".join(f"{('co=' + str(c)):>12}" for c in COS)

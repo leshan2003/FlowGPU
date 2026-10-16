@@ -108,10 +108,23 @@ def find_capacity(model, system, policy, workload: WorkloadSpec,
                          capex=getattr(system, "total_capex", 0.0),
                          tdp=system.total_tdp)
 
+    # A queue can only form if there are more requests than the system will
+    # admit at once.  With n_requests <= max_running every request is taken
+    # immediately, so latency does not respond to the arrival rate at all and
+    # the bracket below grows forever, reporting the top of its range as
+    # "capacity".  Say so instead.
+    if n_requests <= workload.max_running:
+        out.warnings.append(
+            f"n_requests ({n_requests}) <= max_running "
+            f"({workload.max_running}): no queue can form, so attainment "
+            f"will not fall with the arrival rate and the reported capacity "
+            f"is bounded by the probe range, not by the system.  Raise "
+            f"n_requests above max_running.")
+
     # --- bracket: grow hi until the SLO breaks --------------------------
     if hi <= 0:
         hi = max(lo * 2, 0.5)
-        for _ in range(12):
+        for _ in range(16):
             p = _probe(make_sim, hi, slo, n_requests)
             out.points.append(p)
             if verbose:
