@@ -1,4 +1,4 @@
-# repro/ -- local reproduction and diagnostic workspace
+﻿# repro/ -- local reproduction and diagnostic workspace
 
 Not part of the package. A workbench for "run it, poke at it, tune it", plus
 the raw console output every conclusion in here is drawn from, so a reader can
@@ -103,37 +103,90 @@ production engine hides behind compute (DualPipe and SGLang two-batch overlap
 reach ~0.6-0.9; a naive engine is ~0). The package default is 0.0 and the
 shipped configs use 0.6.
 
+SLO capacity, req/s:
+
+| Arm | co=0.0 | co=0.6 | co=0.9 |
+|---|---|---|---|
+| A pd_a @1024 | 14.00 | 82.00 | 232.00 |
+| B pd_a @256 cold->DRAM | 4.12 | 6.00 | 5.62 |
+| C hot_cold @256 cold->HBM | 40.00 | 86.00 | 188.00 |
+| C' hot_cold @128 cold->HBM | 14.50 | 84.00 | 176.00 |
+
 Throughput, tok/s:
 
 | Arm | co=0.0 | co=0.6 | co=0.9 |
 |---|---|---|---|
-| A pd_a @1024 | 1070.0 | 1598.4 | 2122.3 |
-| B pd_a @256 cold->DRAM | 314.9 | 642.1 | 712.7 |
-| C hot_cold @256 cold->HBM | 1140.5 | 1594.8 | 1991.5 |
-| C' hot_cold @128 cold->HBM | 1116.4 | 1547.7 | 1918.2 |
+| A pd_a @1024 | 913.4 | 1945.1 | 2561.3 |
+| B pd_a @256 cold->DRAM | 269.2 | 382.2 | 365.8 |
+| C hot_cold @256 cold->HBM | 1400.2 | 1951.1 | 2405.6 |
+| C' hot_cold @128 cold->HBM | 938.3 | 1920.4 | 2358.5 |
 
 Energy per output token, J (lower is better):
 
 | Arm | co=0.0 | co=0.6 | co=0.9 |
 |---|---|---|---|
-| A | 47.30 | 33.75 | 26.98 |
-| B | 55.02 | 27.56 | 25.64 |
-| C | 13.68 | 10.39 | 8.74 |
-| C' | 8.33 | 6.48 | 5.56 |
+| A | 55.78 | 27.53 | 22.22 |
+| B | 64.88 | 47.01 | 50.24 |
+| C | 11.20 | 8.52 | 7.25 |
+| C' | 10.02 | 5.28 | 4.57 |
 
-Three things fall out of that:
+Reading the capacity table is the point of the exercise, and it is more
+nuanced than the throughput one:
 
-1. **At co=0.9, 128 brain chips (12% of the baseline silicon) deliver 90% of
-   the throughput at 4.85x the energy efficiency.**
-2. **A worse engine favours `hot_cold`.** At co=0.0 the 256-chip `hot_cold`
-   arm actually beats the 1024-chip baseline (1140 vs 1070 tok/s), because
-   `pd_a` has the largest collective share and therefore depends most on
-   scheduler quality.
-3. **At matched chip count, "cold on the GPU's HBM" beats "cold on the brain
-   pool's own DRAM" by 2.8-3.6x** (1991 vs 713 tok/s at co=0.9). Arm B hugs
-   both SLO limits at co=0.0: TTFT p99 4.54 s against a 5 s budget, TPOT p99
-   49.43 ms against 50 ms.
+1. **On a weak engine (co=0) the tiered arms win outright.** C @256 carries
+   2.9x the baseline's request rate on a quarter of the silicon, and C' @128
+   matches the 1024-chip baseline outright on an eighth of it. `pd_a` has the
+   largest collective share, so it suffers most from a scheduler that cannot
+   hide it.
+2. **On a middling engine (co=0.6) all three are level**, 82-86 req/s, with
+   the tiered arms using a quarter to an eighth of the chips.
+3. **Only on a good engine (co=0.9) does the full baseline pull ahead on
+   rate** (232 against 188), because hiding the collective finally makes all
+   1024 chips worth paying for.
+4. **Energy does not follow that reversal.** C' stays at 4.57 J/token against
+   A's 22.22 J at co=0.9 -- a 4.86x gap -- and beats A at every co.
+5. **Arm B is unusable at every co**, 4-6 req/s, and hugs both SLO limits.
 
+### Getting a real capacity point
+
+The first version of this table saturated its bracket and reported the top of
+the probed range (1984 req/s) for every arm. The cause was that
+`find_capacity` replaced `n_requests` with a value below `max_running`, so
+every request was admitted immediately, no queue ever formed and attainment
+stayed at 100 percent no matter the arrival rate. `find_capacity` now warns
+when `n_requests <= max_running`; this script runs 256 requests against
+`max_running` 64.
+
+## The routing-skew threshold (`skew_threshold_probe.py`)
+
+Every tiering number above rests on one unmeasured parameter: `hot_traffic`
+(`p`), the share of token->expert assignments landing on the pinned experts.
+Everything used `p=0.9`. This sweeps it and reports where the tiered arm stops
+paying for itself, with `hot_frac` held at 0.10 and 128 brain chips against a
+1024-chip baseline, at `collective_overlap` 0.6.
+
+| p | req/s | vs base | J/tok | verdict |
+|---|---|---|---|---|
+| 0.50 | 54.00 | 0.66x | 6.55 | loses |
+| 0.70 | 66.00 | 0.80x | 5.93 | loses |
+| 0.90 | 84.00 | 1.02x | 5.28 | beats |
+| 0.99 | 128.00 | 1.56x | 4.52 | beats |
+
+**The crossing sits between p=0.70 and p=0.90.** Pinning the hottest tenth of
+the stack on an eighth of the silicon only pays if those experts absorb
+roughly 80-90% of the routing. Below that the tiered arm still wins on energy
+-- 6.55 J/token against the baseline's 27.53 is a 4.2x advantage even at
+p=0.50 -- but it loses on request rate.
+
+Read the crossing point, not the individual rows. `python
+repro/skew_threshold_probe.py [co] [chips] [p ...]` re-runs it elsewhere.
+
+The skew distribution itself still has to come from somewhere. The relevant
+literature exists -- DeepSeek's own auxiliary-loss-free balancing paper
+(arXiv 2408.15664) opens by stating that unbalanced expert load costs
+computational overhead -- but a usable per-expert histogram has not been
+extracted into this repository yet, which is why this probe reports a
+threshold rather than a predicted result.
 ## Micro-batch pipelining and collective overlap (`pipeline_overlap_probe.py`)
 
 Two questions with different answers.
