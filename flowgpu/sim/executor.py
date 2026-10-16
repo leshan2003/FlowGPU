@@ -303,6 +303,15 @@ def _scale_graph(graph: G.Graph, f: float) -> G.Graph:
             if t.shape:
                 t.shape = (max(1.0, t.shape[0] * f),) + tuple(t.shape[1:])
         op.m = max(1, int(round(op.m * f)))
+        # Collective volume is T-dependent too.  ``bytes`` is what
+        # ``_collective_cost`` actually charges, and for both the TP
+        # all-reduce and the MoE dispatch/combine it is ``T * k * d * cb`` --
+        # linear in the token count.  Leaving it unscaled made a micro-batch
+        # pay the *full-batch* collective, which on an expert-parallel pool
+        # is most of the step, and so turned every micro-batching result into
+        # "overlap is a 2x loss" regardless of the real trade.
+        if "bytes" in op.meta:
+            op.meta["bytes"] = op.meta["bytes"] * f
         if op.role == G.R_MOE and "experts_touched" in op.meta:
             # Fewer tokens per micro-batch -> fewer *distinct* experts touched
             # -> less weight traffic, but sub-linearly so.  Skipping this would
