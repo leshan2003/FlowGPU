@@ -1,8 +1,40 @@
 # FlowGPU
 
-> Simulator v2 正在以独立包 `flowgpu.sim_v2` 开发。它不会静默替换历史
-> v1 结果。v2 的规范、已实现能力与尚不可支持的声明见
-> [`docs/sim_v2/README.md`](docs/sim_v2/README.md)。
+## Start here: current MoE v2 study
+
+The repository now contains two deliberately separate generations:
+
+| Generation | Package | Purpose |
+|---|---|---|
+| Original FlowGPU study | `flowgpu.*` | Cross-device capacity, serving, power, EDA calibration and sensitivity |
+| MoE v2 research platform | `flowgpu.sim_v2` | Expert tiering, replicas, clustering, dispatch, refresh and reproducible bundles |
+
+For the latest MoE work, read:
+
+- [MoE research overview](docs/MOE/README.md)
+- [Experiment results](docs/MOE/03_实验结果.md)
+- [Conclusions and open gaps](docs/MOE/04_结论与缺口.md)
+- [Reproduction and canonical bundles](docs/MOE/05_复现与结果索引.md)
+
+Current MoE evidence level:
+
+```text
+synthetic workload + projected/estimated hardware
+```
+
+This is **not** a KA200 measurement and does not establish real TCO.
+
+Headline findings from the MoE v2 study:
+
+- HBM fallback + selective Brain-SRAM hot replicas is the most stable design;
+- coverage-first is the strongest current planner baseline;
+- GPU/Brain parallel overlays help only for high batch and the right scheduler;
+- D0 GPU-direct reduces bridge bytes, but completion gains depend on batch/node;
+- clustering reduces node fanout but has not produced stable D0 completion gains;
+- full Brain-only DRAM/SRAM execution is much slower under the current projected profile.
+
+The original v1 study and its results remain intact below and are not replaced by
+the v2 simulation.
 
 A Python simulator for **brain-inspired many-core dataflow + GPU**
 large-model inference.
