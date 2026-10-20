@@ -50,6 +50,9 @@ def main() -> int:
     parser.add_argument("--hot-experts", type=int, default=8)
     parser.add_argument("--zipf-exponent", type=float, default=1.3)
     parser.add_argument("--layer-limit", type=int, default=0)
+    parser.add_argument("--gpu-profile", default="h100_sxm")
+    parser.add_argument("--brain-profile", default="lynxi_hp300_proj")
+    parser.add_argument("--bridge-fabric", default="pcie5_x16")
     args = parser.parse_args()
     output = Path(args.output).resolve()
     if output.exists():
@@ -75,6 +78,9 @@ def main() -> int:
             seed=seed,
             zipf_exponent=args.zipf_exponent,
             layer_limit=args.layer_limit,
+            gpu_profile=args.gpu_profile,
+            brain_profile=args.brain_profile,
+            bridge_fabric=args.bridge_fabric,
         )
         g_rows, _, _ = run_gate(local, temp)
         serving_rows, _, _ = run_serving_gate(local)
@@ -101,6 +107,9 @@ def main() -> int:
         seed=seeds[0],
         zipf_exponent=args.zipf_exponent,
         layer_limit=args.layer_limit,
+        gpu_profile=args.gpu_profile,
+        brain_profile=args.brain_profile,
+        bridge_fabric=args.bridge_fabric,
     ))
     for row in c1_rows:
         raw_rows.append({
@@ -140,6 +149,9 @@ def main() -> int:
         "seeds": list(seeds),
         "zipf_exponent": args.zipf_exponent,
         "layer_limit": args.layer_limit,
+        "gpu_profile": args.gpu_profile,
+        "brain_profile": args.brain_profile,
+        "bridge_fabric": args.bridge_fabric,
         "raw_rows": len(raw_rows),
         "c1": c1_meta,
         "claim_boundary": (
@@ -157,6 +169,7 @@ def main() -> int:
         ROOT / "flowgpu" / "sim_v2" / "serving.py",
         ROOT / "flowgpu" / "sim_v2" / "research.py",
         ROOT / "flowgpu" / "sim_v2" / "placement.py",
+        ROOT / "flowgpu" / "sim_v2" / "hardware_profiles.py",
     ]
     manifest = {
         "schema_version": 1,

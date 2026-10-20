@@ -32,17 +32,17 @@ Stage 0 gate 和后续边界点 detailed replay 中使用。
 
 | Zipf | Coverage | Replica | Ranked-0.25 | Marginal proxy |
 |---:|---:|---:|---:|---:|
-| 0.5 | **1.048** [1.026, 1.069] | 1.003 [0.997, 1.010] | 1.029 [1.001, 1.057] | 1.022 [1.000, 1.045] |
-| 1.3 | **1.113** [1.086, 1.139] | 1.008 [0.995, 1.020] | 1.086 [1.055, 1.118] | 1.029 [1.009, 1.050] |
-| 2.0 | **1.136** [1.058, 1.214] | 1.011 [0.996, 1.025] | 1.097 [1.050, 1.145] | 1.020 [1.006, 1.035] |
+| 0.5 | **1.047** [1.025, 1.068] | 1.003 [0.997, 1.010] | 1.029 [1.001, 1.057] | 1.022 [1.000, 1.045] |
+| 1.3 | **1.103** [1.080, 1.127] | 1.008 [0.995, 1.020] | 1.083 [1.051, 1.114] | 1.026 [1.010, 1.042] |
+| 2.0 | **1.083** [1.040, 1.126] | 1.011 [0.996, 1.025] | 1.070 [1.037, 1.104] | 1.019 [1.007, 1.032] |
 
 serving goodput speedup：
 
 | Zipf | Overlay | H-exclusive |
 |---:|---:|---:|
 | 0.5 | **1.021** [1.013, 1.030] | 1.013 [0.971, 1.056] |
-| 1.3 | **1.033** [1.003, 1.062] | 1.019 [0.971, 1.068] |
-| 2.0 | 1.030 [0.990, 1.069] | 1.002 [0.888, 1.115] |
+| 1.3 | **1.032** [1.003, 1.061] | 1.019 [0.971, 1.068] |
+| 2.0 | 1.029 [0.989, 1.069] | 1.002 [0.888, 1.115] |
 
 观察：
 
@@ -58,12 +58,12 @@ Zipf 1.3、5 seeds：
 
 | Policy | Speedup | 95% CI |
 |---|---:|---:|
-| Coverage | **1.186** | 1.121–1.250 |
-| Ranked-0.25 | **1.186** | 1.121–1.250 |
+| Coverage | **1.166** | 1.130–1.201 |
+| Ranked-0.25 | **1.166** | 1.130–1.201 |
 | Ranked-adaptive | 1.157 | 1.113–1.201 |
-| Marginal proxy | 1.122 | 1.049–1.195 |
+| Marginal proxy | 1.106 | 1.020–1.192 |
 | Replica | 1.015 | 0.973–1.057 |
-| Overlay serving | **1.059** | 1.023–1.094 |
+| Overlay serving | **1.057** | 1.019–1.095 |
 | H-exclusive serving | 1.047 | 0.991–1.102 |
 
 这与 Mixtral 的方向一致，但仍是小 trace、projected kernel 结果。
@@ -74,25 +74,25 @@ Qwen3-235B-A22B，前 4 个 MoE 层，5 seeds：
 
 | Policy | Speedup | 95% CI |
 |---|---:|---:|
-| Coverage | **1.193** | 1.127–1.259 |
-| Joint-marginal | 1.179 | 1.137–1.221 |
-| Ranked-0.25 | 1.095 | 1.019–1.171 |
+| Coverage | **1.165** | 1.101–1.229 |
+| Joint-marginal | 1.164 | 1.121–1.207 |
+| Ranked-0.25 | 1.082 | 1.012–1.153 |
 | Marginal proxy | 1.050 | 0.977–1.123 |
 | Replica | 1.005 | 0.997–1.013 |
-| Overlay serving | 1.096 | 1.054–1.137 |
+| Overlay serving | 1.094 | 1.050–1.138 |
 | H-exclusive serving | 1.053 | 0.985–1.120 |
 
 DeepSeek-V3，前 4 个 MoE 层，5 seeds：
 
 | Policy | Speedup | 95% CI |
 |---|---:|---:|
-| Coverage | **1.129** | 1.023–1.236 |
-| Joint-marginal | 1.118 | 1.003–1.233 |
-| Ranked-0.25 | 1.088 | 0.992–1.184 |
+| Coverage | **1.100** | 1.035–1.166 |
+| Joint-marginal | 1.105 | 0.998–1.212 |
+| Ranked-0.25 | 1.075 | 0.998–1.153 |
 | Ranked-adaptive | 1.056 | 1.004–1.108 |
 | Marginal proxy | 1.028 | 0.980–1.076 |
 | Replica | 1.022 | 0.987–1.057 |
-| Overlay serving | **1.080** | 1.035–1.126 |
+| Overlay serving | **1.077** | 1.028–1.126 |
 | H-exclusive serving | 1.013 | 0.902–1.123 |
 
 这两个 screen 只覆盖前 4 个 MoE 层，不能替代完整模型或真实 trace。
@@ -119,11 +119,11 @@ DeepSeek-V3，前 4 个 MoE 层，5 seeds：
 
 ## 6. Artifacts
 
-- `experiments/moe_2026_screen_final_v2_mixtral_zipf05/`
-- `experiments/moe_2026_screen_final_v2_mixtral/`
-- `experiments/moe_2026_screen_final_v2_mixtral_zipf20/`
-- `experiments/moe_2026_screen_final_v2_gptoss4/`（4-layer）
-- `experiments/moe_2026_screen_qwen_v2/`（4-layer fast screen）
-- `experiments/moe_2026_screen_deepseek_v2/`（4-layer fast screen）
+- `experiments/moe_2026_screen_final_v4_mixtral_zipf05/`
+- `experiments/moe_2026_screen_final_v4_mixtral/`
+- `experiments/moe_2026_screen_final_v4_mixtral_zipf20/`
+- `experiments/moe_2026_screen_final_v4_gptoss4/`（4-layer）
+- `experiments/moe_2026_screen_final_v4_qwen4/`（4-layer fast screen）
+- `experiments/moe_2026_screen_final_v4_deepseek4/`（4-layer fast screen）
 - `experiments/moe_2026_stage0_final_deepseek/`
 - `experiments/moe_2026_stage0_final_qwen/`

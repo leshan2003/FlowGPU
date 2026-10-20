@@ -1,0 +1,27 @@
+{
+  "claim_boundary": "Stage 0 semantic/mechanism gate; projected hardware and synthetic routing; not a final performance claim",
+  "files": [
+    "config.json",
+    "gate_results.csv",
+    "placements.json",
+    "summary.json",
+    "warnings.json",
+    "stage_report.md"
+  ],
+  "kind": "moe-stage0-gate",
+  "python": "3.8.3 (tags/v3.8.3:6f8c832, May 13 2020, 22:37:02) [MSC v.1924 64 bit (AMD64)]",
+  "schema_version": 1,
+  "source_sha256": {
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\hardware_profiles.py": "147b2494429f16d7a5051a0b72bf85ae14a20b976112caea0d698f48ed7ae1d8",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\model_geometry.py": "09a0bec1eb971ad9d3845845dc1346fa38e3261f8272aaa2f4e4318843fc9a0f",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\placement.py": "4ae98f7450afbc5c54b4619c6aeb347eadac69477b90a685b7019b56c328a6a0",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\refresh.py": "a5d3a527fc926841980054fff8ce0c800dee16777602cf182b412e6c1bfcb979",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\replicas.py": "4274c4ec7a51556fc41aac66f59c33032902b2e36587dd01c724d645494de99b",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\research.py": "a4ee3886bd723e02c48054184e174f965f217f538f918eaa4677b0798faf324a",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\schema.py": "33326bdc0c8fd63cfcc73d97b99d7d86549ebece1a7045f7763433977fda1870",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\statistics.py": "89e9673b8df58bb4b420827632b31ab1f73bf772e2dd442e35f7100e569f8f59",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\units.py": "289954224a31d54806dcaa6c63dbf028bf7447849c6ea1dc7b58465cbce19697",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\scripts\\run_moe_stage0.py": "c36fa75f13a65e0ca154c12be68bd1f19de1e4f78bacb51fbb580b3e4e340dab"
+  },
+  "timestamp_utc": "2026-10-20T07:13:26.520971+00:00"
+}

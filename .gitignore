@@ -24,11 +24,9 @@ results/*.log
 # Superseded Stage 0 development checkpoints; canonical bundles are listed
 # explicitly in docs/MOE_STAGE0_执行审计.md.
 experiments/moe_2026_stage0_*/
-!experiments/moe_2026_stage0_final_*/
+!experiments/moe_2026_stage0_final_v4_*/
 experiments/moe_2026_screen_*/
-!experiments/moe_2026_screen_final_v2_*/
-!experiments/moe_2026_screen_qwen_v2/
-!experiments/moe_2026_screen_deepseek_v2/
+!experiments/moe_2026_screen_final_v4_*/
 
 # OS
 .DS_Store

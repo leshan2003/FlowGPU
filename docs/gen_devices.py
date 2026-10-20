@@ -130,4 +130,11 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    from contextlib import redirect_stdout
+    from pathlib import Path
+
+    output = Path(__file__).with_name("DEVICES.md")
+    with output.open("w", encoding="utf-8", newline="\n") as handle:
+        with redirect_stdout(handle):
+            status = main()
+    sys.exit(status)

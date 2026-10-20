@@ -33,6 +33,8 @@ from .layer_engine import (LayerCriticalPath, MoELayerEngine, MoELayerResult,
 from .network_model import (Flow, FlowResult, SerializedPathScheduler,
                             estimate_unloaded)
 from .model_geometry import ModelExpertGeometry, build_model_expert_geometry
+from .hardware_profiles import (FabricProfile, HardwareProfile,
+                                load_fabric_profile, load_hardware_profile)
 from .multicast import (MulticastResult, MulticastTree,
                         build_multicast_tree, simulate_multicast)
 from .oracle import (OracleGapReport, OracleResult, audit_oracle_gap,
@@ -125,6 +127,7 @@ __all__ = [
     "LinkProfile", "LinkSpec", "MoELayerEngine", "MoELayerResult",
     "MulticastResult", "MulticastTree", "NetworkCalibrationSet",
     "ModelExpertGeometry",
+    "FabricProfile", "HardwareProfile",
     "MigrationCopy", "MigrationPlan", "MigrationTiming",
     "NetworkFitKey", "NodeSweepCase", "NodeSweepSpec", "OracleGapReport",
     "NodeSweepComparisonResult", "NodeSweepMetricPoint", "OracleResult",
@@ -156,6 +159,7 @@ __all__ = [
     "build_kernel_calibration",
     "build_multicast_tree", "build_network_calibration",
     "build_model_expert_geometry",
+    "load_fabric_profile", "load_hardware_profile",
     "build_migration_plan", "estimate_migration_timing",
     "build_node_count_sweep", "capacity_ratio",
     "aggregate_serving_results", "coactivation_clustered",

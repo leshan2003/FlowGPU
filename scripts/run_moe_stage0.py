@@ -32,6 +32,10 @@ from flowgpu.sim_v2.research import (  # noqa: E402
 )
 from flowgpu.sim_v2.demand import profile_demand
 from flowgpu.sim_v2.kernel_model import ExpertKernelCurve, KernelSample
+from flowgpu.sim_v2.hardware_profiles import (
+    load_fabric_profile,
+    load_hardware_profile,
+)
 from flowgpu.sim_v2.model_geometry import build_model_expert_geometry
 from flowgpu.sim_v2.placement import (
     coactivation_clustered,
@@ -83,13 +87,39 @@ def derived_provenance(label: str) -> Provenance:
     return Provenance(Confidence.DERIVED, label)
 
 
-def make_cluster(nodes: int, chips_per_node: int) -> ClusterTopology:
-    provenance = projected_provenance(
-        "projected brain topology for Stage 0; not measured"
+def make_cluster(
+    nodes: int,
+    chips_per_node: int,
+    brain_profile=None,
+    bridge_profile=None,
+) -> ClusterTopology:
+    brain_profile = brain_profile or load_hardware_profile(
+        "lynxi_hp300_proj"
     )
-    scale_up = LinkProfile(90e9, 0.4e-6, 0.85, 2e-12, provenance)
-    scale_out = LinkProfile(39e9, 7e-6, 0.85, 5e-12, provenance)
-    bridge = LinkProfile(51.2e9, 0.4e-6, 0.80, 8e-12, provenance)
+    bridge_profile = bridge_profile or load_fabric_profile("pcie5_x16")
+    brain_provenance = brain_profile.provenance
+    bridge_provenance = bridge_profile.provenance
+    scale_up = LinkProfile(
+        brain_profile.inter_chip_bandwidth_bytes_per_s,
+        brain_profile.inter_chip_latency_s,
+        0.85,
+        2e-12,
+        brain_provenance,
+    )
+    scale_out = LinkProfile(
+        brain_profile.inter_board_bandwidth_bytes_per_s,
+        brain_profile.inter_board_latency_s,
+        0.85,
+        5e-12,
+        brain_provenance,
+    )
+    bridge = LinkProfile(
+        bridge_profile.bandwidth_bytes_per_s,
+        bridge_profile.latency_s,
+        bridge_profile.efficiency,
+        bridge_profile.energy_per_byte,
+        bridge_provenance,
+    )
     return build_hierarchical_cluster(
         n_nodes=nodes,
         chips_per_node=chips_per_node,
@@ -102,14 +132,13 @@ def make_cluster(nodes: int, chips_per_node: int) -> ClusterTopology:
 
 def make_brain_chips(
     cluster: ClusterTopology,
-    capacity_bytes: int,
     max_experts: int,
     count_per_node: int,
     reserve: float = 0.0,
+    profile=None,
 ) -> tuple:
-    provenance = projected_provenance(
-        "projected brain SRAM profile; not measured"
-    )
+    profile = profile or load_hardware_profile("lynxi_hp300_proj")
+    provenance = profile.provenance
     node_ids = sorted({
         endpoint.node_id for endpoint in cluster.topology.endpoints.values()
         if endpoint.kind == "node_switch"
@@ -118,7 +147,7 @@ def make_brain_chips(
         ChipSpec(
             chip_id="%s:chip%d" % (node_id, index),
             node_id=node_id,
-            sram_capacity_bytes=capacity_bytes,
+            sram_capacity_bytes=profile.weight_capacity_bytes,
             runtime_reserve_fraction=reserve,
             fixed_reserved_bytes=0,
             provenance=provenance,
@@ -130,15 +159,14 @@ def make_brain_chips(
     )
 
 
-def make_gpu_chips(count: int = 16) -> tuple:
-    provenance = derived_provenance(
-        "H100 public capacity; explicit decimal bytes"
-    )
+def make_gpu_chips(count: int = 16, profile=None) -> tuple:
+    profile = profile or load_hardware_profile("h100_sxm")
+    provenance = profile.provenance
     return tuple(
         ChipSpec(
             chip_id="gpu%d" % index,
             node_id="gpu-tier",
-            sram_capacity_bytes=80_000_000_000,
+            sram_capacity_bytes=profile.weight_capacity_bytes,
             runtime_reserve_fraction=0.20,
             fixed_reserved_bytes=0,
             provenance=provenance,
@@ -248,6 +276,20 @@ def model_case(args):
     return geometry, experts, used_layers
 
 
+def runtime_profiles(args):
+    return (
+        load_hardware_profile(
+            getattr(args, "gpu_profile", "h100_sxm")
+        ),
+        load_hardware_profile(
+            getattr(args, "brain_profile", "lynxi_hp300_proj")
+        ),
+        load_fabric_profile(
+            getattr(args, "bridge_fabric", "pcie5_x16")
+        ),
+    )
+
+
 @dataclass(frozen=True)
 class GateRow:
     gate: str
@@ -278,7 +320,9 @@ class OffsetWeightedRouter:
 
 def run_gate(args, temp: Path):
     geometry, experts, used_layers = model_case(args)
-    home_nodes = make_cluster(2, 8).ingress_nodes
+    gpu_profile, brain_profile, bridge_profile = runtime_profiles(args)
+    cluster = make_cluster(2, 8, brain_profile, bridge_profile)
+    home_nodes = cluster.ingress_nodes
     placement_tokens = max(2, args.tokens)
     evaluation_tokens = placement_tokens
     placement = task_trace(
@@ -310,14 +354,13 @@ def run_gate(args, temp: Path):
         getattr(args, "zipf_exponent", 1.3),
     )
     demand = profile_demand(placement.trace)
-    cluster = make_cluster(2, 8)
     brain = make_brain_chips(
         cluster,
-        capacity_bytes=geometry.expert_weight_bytes * args.c_max,
         max_experts=args.c_max,
         count_per_node=8,
+        profile=brain_profile,
     )
-    gpu = make_gpu_chips()
+    gpu = make_gpu_chips(profile=gpu_profile)
     kernels = make_kernels(experts, gpu, brain, geometry.dtype)
     gpu_plan = unique_balanced(experts, gpu, {
         expert.key: float(demand.global_for(expert.key))
@@ -404,11 +447,19 @@ def run_c1_gate(args):
         ExpertSpec(ExpertKey(0, index), 100, provenance)
         for index in range(8)
     )
-    cluster = make_cluster(2, 4)
-    chips = make_brain_chips(
-        cluster, 100, max_experts=1, count_per_node=4, reserve=0.0
+    _, brain_profile, bridge_profile = runtime_profiles(args)
+    gpu_profile = load_hardware_profile(
+        getattr(args, "gpu_profile", "h100_sxm")
     )
-    gpu = make_gpu_chips()
+    cluster = make_cluster(2, 4, brain_profile, bridge_profile)
+    chips = make_brain_chips(
+        cluster,
+        max_experts=1,
+        count_per_node=4,
+        reserve=0.0,
+        profile=brain_profile,
+    )
+    gpu = make_gpu_chips(profile=gpu_profile)
     kernels = make_kernels(experts, gpu, chips, "fp8")
     records = []
     for token in range(12):
@@ -501,7 +552,8 @@ def replace_record(record, split=None):
 
 def run_h_b_gate(args):
     geometry, experts, used_layers = model_case(args)
-    dram_capacity_bytes = 64_000_000_000
+    gpu_profile, brain_profile, bridge_profile = runtime_profiles(args)
+    dram_capacity_bytes = brain_profile.dram_capacity_bytes
     brain_nodes = max(
         2,
         int(math.ceil(
@@ -509,13 +561,15 @@ def run_h_b_gate(args):
             (dram_capacity_bytes * 0.8)
         )),
     )
-    cluster = make_cluster(brain_nodes, 8)
-    gpu = make_gpu_chips()
+    cluster = make_cluster(
+        brain_nodes, 8, brain_profile, bridge_profile
+    )
+    gpu = make_gpu_chips(profile=gpu_profile)
     brain = make_brain_chips(
         cluster,
-        geometry.expert_weight_bytes * args.c_max,
-        args.c_max,
-        8,
+        max_experts=args.c_max,
+        count_per_node=8,
+        profile=brain_profile,
     )
     planning = task_trace(
         max(2, args.tokens),
@@ -580,7 +634,10 @@ def run_h_b_gate(args):
         0,
         "no-gpu-fallback",
     ))
-    dram_bw = {node: 68e9 for node in cluster.ingress_nodes}
+    dram_bw = {
+        node: brain_profile.dram_bandwidth_bytes_per_s
+        for node in cluster.ingress_nodes
+    }
     dram_capacity = {
         node: dram_capacity_bytes for node in cluster.ingress_nodes
     }
@@ -713,13 +770,14 @@ def run_refresh_gate(args):
 
 def run_serving_gate(args):
     geometry, experts, used_layers = model_case(args)
-    cluster = make_cluster(2, 8)
-    gpu = make_gpu_chips()
+    gpu_profile, brain_profile, bridge_profile = runtime_profiles(args)
+    cluster = make_cluster(2, 8, brain_profile, bridge_profile)
+    gpu = make_gpu_chips(profile=gpu_profile)
     brain = make_brain_chips(
         cluster,
-        geometry.expert_weight_bytes * args.c_max,
-        args.c_max,
-        8,
+        max_experts=args.c_max,
+        count_per_node=8,
+        profile=brain_profile,
     )
     planning = task_trace(
         max(2, args.tokens),
@@ -897,6 +955,9 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=101)
     parser.add_argument("--zipf-exponent", type=float, default=1.3)
     parser.add_argument("--layer-limit", type=int, default=0)
+    parser.add_argument("--gpu-profile", default="h100_sxm")
+    parser.add_argument("--brain-profile", default="lynxi_hp300_proj")
+    parser.add_argument("--bridge-fabric", default="pcie5_x16")
     args = parser.parse_args()
     output = Path(args.output).resolve()
     if output.exists():
@@ -952,6 +1013,9 @@ def main() -> int:
         "seed": args.seed,
         "zipf_exponent": args.zipf_exponent,
         "layer_limit": args.layer_limit,
+        "gpu_profile": args.gpu_profile,
+        "brain_profile": args.brain_profile,
+        "bridge_fabric": args.bridge_fabric,
         "claim_boundary": (
             "Stage 0 semantic/mechanism gate; projected hardware and "
             "synthetic routing; not a final performance claim"
@@ -1003,6 +1067,7 @@ def main() -> int:
         Path(__file__),
         ROOT / "flowgpu" / "sim_v2" / "schema.py",
         ROOT / "flowgpu" / "sim_v2" / "replicas.py",
+        ROOT / "flowgpu" / "sim_v2" / "hardware_profiles.py",
         ROOT / "flowgpu" / "sim_v2" / "model_geometry.py",
         ROOT / "flowgpu" / "sim_v2" / "placement.py",
         ROOT / "flowgpu" / "sim_v2" / "research.py",

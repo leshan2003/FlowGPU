@@ -67,22 +67,22 @@ quoted with 2:4 structured sparsity have been halved.
 | device | vendor | arch | nm | yr | cores | SRAM/core | SRAM total | SRAM BW | bf16 | NoC bisect | chip-to-chip | board-to-board | DRAM | TDP | conf |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `brainscales2` | Heidelberg | snn | 65 | 2020 | 4 | 32.000 KB | 128.000 KB | 2.00 GB/s | 5.00 GFLOPS | 2.00 GB/s | 1.00 GB/s | 500.00 MB/s | none | 1 W | paper |
-| `cerebras_wse3` | Cerebras | wafer | 5 | 2024 | 900000 | 48.000 KB | 41.199 GB | 20700.00 TB/s | 62.50 PFLOPS | 26750.00 TB/s | 1.20 TB/s | 600.00 GB/s | 1.172 TB @ 150.00 GB/s | 23000 W | vendor |
-| `darwin3` | Zhejiang Univ 浙大 | snn | 22 | 2023 | 240 | 64.000 KB | 15.000 MB | 312.00 GB/s | 600.00 GFLOPS | 20.00 GB/s | 2.00 GB/s | 1.00 GB/s | none | 2 W | estimate |
-| `groq_lpu_v1` | Groq | dataflow | 14 | 2020 | 320 | 736.256 KB | 230.080 MB | 80.00 TB/s | 188.00 TFLOPS | 80.00 TB/s | 200.00 GB/s | 100.00 GB/s | none | 275 W | paper |
+| `cerebras_wse3` | Cerebras | wafer | 5 | 2024 | 900000 | 48.000 KB | 43.200 GB | 20700.00 TB/s | 62.50 PFLOPS | 26750.00 TB/s | 1.20 TB/s | 600.00 GB/s | 1.200 TB @ 150.00 GB/s | 23000 W | vendor |
+| `darwin3` | Zhejiang Univ 浙大 | snn | 22 | 2023 | 240 | 64.000 KB | 15.360 MB | 312.00 GB/s | 600.00 GFLOPS | 20.00 GB/s | 2.00 GB/s | 1.00 GB/s | none | 2 W | estimate |
+| `groq_lpu_v1` | Groq | dataflow | 14 | 2020 | 320 | 719.000 KB | 230.080 MB | 80.00 TB/s | 188.00 TFLOPS | 80.00 TB/s | 200.00 GB/s | 100.00 GB/s | none | 275 W | paper |
 | `groq_lpu_v2` | Groq | dataflow | 4 | 2025 | 320 | 1.600 MB | 512.000 MB | 192.00 TB/s | 375.00 TFLOPS | 192.00 TB/s | 400.00 GB/s | 200.00 GB/s | none | 350 W | estimate |
-| `ipu_bow` | Graphcore | dataflow | 7 | 2022 | 1472 | 624.000 KB | 897.000 MB | 65.95 TB/s | 350.00 TFLOPS | 11.00 TB/s | 320.00 GB/s | 128.00 GB/s | 128.000 GB @ 20.00 GB/s | 350 W | vendor |
-| `ipu_gc200` | Graphcore | dataflow | 7 | 2020 | 1472 | 624.000 KB | 897.000 MB | 47.55 TB/s | 250.00 TFLOPS | 8.00 TB/s | 320.00 GB/s | 128.00 GB/s | 64.000 GB @ 20.00 GB/s | 300 W | vendor |
-| `loihi2` | Intel | snn | 7 | 2021 | 128 | 192.000 KB | 24.000 MB | 1.02 TB/s | 500.00 GFLOPS | 90.00 GB/s | 6.00 GB/s | 3.00 GB/s | none | 1 W | estimate |
+| `ipu_bow` | Graphcore | dataflow | 7 | 2022 | 1472 | 624.000 KB | 918.528 MB | 65.95 TB/s | 350.00 TFLOPS | 11.00 TB/s | 320.00 GB/s | 128.00 GB/s | 128.000 GB @ 20.00 GB/s | 350 W | vendor |
+| `ipu_gc200` | Graphcore | dataflow | 7 | 2020 | 1472 | 624.000 KB | 918.528 MB | 47.55 TB/s | 250.00 TFLOPS | 8.00 TB/s | 320.00 GB/s | 128.00 GB/s | 64.000 GB @ 20.00 GB/s | 300 W | vendor |
+| `loihi2` | Intel | snn | 7 | 2021 | 128 | 192.000 KB | 24.576 MB | 1.02 TB/s | 500.00 GFLOPS | 90.00 GB/s | 6.00 GB/s | 3.00 GB/s | none | 1 W | estimate |
 | `lynxi_hp300_proj` | Lynxi 灵汐科技 | brain | 12 | 2025 | 256 | 3.000 MB | 768.000 MB | 51.20 TB/s | 128.00 TFLOPS | 2.00 TB/s | 200.00 GB/s | 100.00 GB/s | 64.000 GB @ 200.00 GB/s | 150 W | estimate |
-| `lynxi_ka200` | Lynxi 灵汐科技 | brain | 28 | 2021 | 30 | 1.600 MB | 48.000 MB | 2.40 TB/s | 16.00 TFLOPS | 350.00 GB/s | 50.00 GB/s | 25.00 GB/s | 16.000 GB @ 68.00 GB/s | 15 W | estimate |
-| `sambanova_sn40l` | SambaNova | dataflow | 5 | 2023 | 1040 | 512.000 KB | 520.000 MB | 14.56 TB/s | 638.00 TFLOPS | 4.00 TB/s | 400.00 GB/s | 200.00 GB/s | 1.500 TB @ 200.00 GB/s | 700 W | paper |
-| `spinnaker2` | TU Dresden / SpiNNcloud | snn | 22 | 2024 | 152 | 128.000 KB | 19.000 MB | 364.80 GB/s | 300.00 GFLOPS | 30.00 GB/s | 6.00 GB/s | 3.00 GB/s | 2.000 GB @ 10.00 GB/s | 3 W | paper |
+| `lynxi_ka200` | Lynxi 灵汐科技 | brain | 28 | 2021 | 30 | 1.600 MB | 48.000 MB | 2.40 TB/s | 24.00 TFLOPS | 350.00 GB/s | 50.00 GB/s | 25.00 GB/s | 16.000 GB @ 68.00 GB/s | 12 W | estimate |
+| `sambanova_sn40l` | SambaNova | dataflow | 5 | 2023 | 1040 | 512.000 KB | 532.480 MB | 14.56 TB/s | 638.00 TFLOPS | 4.00 TB/s | 400.00 GB/s | 200.00 GB/s | 1.536 TB @ 200.00 GB/s | 700 W | paper |
+| `spinnaker2` | TU Dresden / SpiNNcloud | snn | 22 | 2024 | 152 | 128.000 KB | 19.456 MB | 364.80 GB/s | 300.00 GFLOPS | 30.00 GB/s | 6.00 GB/s | 3.00 GB/s | 2.000 GB @ 10.00 GB/s | 3 W | paper |
 | `tesla_dojo_d1` | Tesla | dataflow | 7 | 2021 | 354 | 1.250 MB | 442.500 MB | 40.00 TB/s | 362.00 TFLOPS | 10.00 TB/s | 4.00 TB/s | 900.00 GB/s | none | 400 W | press |
-| `tianjic` | Tsinghua 清华 | brain | 28 | 2019 | 156 | 40.000 KB | 6.094 MB | 187.20 GB/s | 320.00 GFLOPS | 15.00 GB/s | 4.00 GB/s | 2.00 GB/s | none | 1 W | paper |
-| `tianjic2_proj` | Tsinghua 清华 | brain | 12 | 2024 | 320 | 256.000 KB | 80.000 MB | 20.48 TB/s | 64.00 TFLOPS | 1.00 TB/s | 100.00 GB/s | 50.00 GB/s | 16.000 GB @ 120.00 GB/s | 35 W | estimate |
-| `tianjicx` | Tsinghua 清华 | brain | 28 | 2022 | 16 | 80.000 KB | 1.250 MB | 64.00 GB/s | 500.00 GFLOPS | 16.00 GB/s | 2.00 GB/s | 1.00 GB/s | none | 1 W | paper |
-| `truenorth` | IBM | snn | 28 | 2014 | 4096 | 1.300 KB | 5.200 MB | 5.32 GB/s | 58.00 GFLOPS | 400.00 MB/s | 50.00 MB/s | 20.00 MB/s | none | 0 W | paper |
+| `tianjic` | Tsinghua 清华 | brain | 28 | 2019 | 156 | 40.000 KB | 6.240 MB | 187.20 GB/s | 320.00 GFLOPS | 15.00 GB/s | 4.00 GB/s | 2.00 GB/s | none | 1 W | paper |
+| `tianjic2_proj` | Tsinghua 清华 | brain | 12 | 2024 | 320 | 256.000 KB | 81.920 MB | 20.48 TB/s | 64.00 TFLOPS | 1.00 TB/s | 100.00 GB/s | 50.00 GB/s | 16.000 GB @ 120.00 GB/s | 35 W | estimate |
+| `tianjicx` | Tsinghua 清华 | brain | 28 | 2022 | 16 | 80.000 KB | 1.280 MB | 64.00 GB/s | 500.00 GFLOPS | 16.00 GB/s | 2.00 GB/s | 1.00 GB/s | none | 1 W | paper |
+| `truenorth` | IBM | snn | 28 | 2014 | 4096 | 1.300 KB | 5.325 MB | 5.32 GB/s | 58.00 GFLOPS | 400.00 MB/s | 50.00 MB/s | 20.00 MB/s | none | 0 W | paper |
 
 ### SRAM die-area plausibility
 
@@ -94,22 +94,22 @@ multi-die package whether or not the datasheet says so.
 | device | SRAM | node | SRAM area | reticles | single die? |
 |---|---|---|---|---|---|
 | `brainscales2` | 128.000 KB | 65 nm | 0.7 mm2 | 0.00 | yes |
-| `cerebras_wse3` | 41.199 GB | 5 nm | 10032.9 mm2 | 12.54 | **no** |
-| `darwin3` | 15.000 MB | 22 nm | 15.6 mm2 | 0.02 | yes |
-| `groq_lpu_v1` | 230.080 MB | 14 nm | 166.8 mm2 | 0.21 | yes |
-| `groq_lpu_v2` | 512.000 MB | 4 nm | 121.8 mm2 | 0.15 | yes |
-| `ipu_bow` | 897.000 MB | 7 nm | 274.3 mm2 | 0.34 | yes |
-| `ipu_gc200` | 897.000 MB | 7 nm | 274.3 mm2 | 0.34 | yes |
-| `loihi2` | 24.000 MB | 7 nm | 7.3 mm2 | 0.01 | yes |
-| `lynxi_hp300_proj` | 768.000 MB | 12 nm | 478.4 mm2 | 0.60 | yes |
-| `lynxi_ka200` | 48.000 MB | 28 nm | 69.0 mm2 | 0.09 | yes |
-| `sambanova_sn40l` | 520.000 MB | 5 nm | 123.7 mm2 | 0.15 | yes |
-| `spinnaker2` | 19.000 MB | 22 nm | 19.8 mm2 | 0.02 | yes |
-| `tesla_dojo_d1` | 442.500 MB | 7 nm | 135.3 mm2 | 0.17 | yes |
-| `tianjic` | 6.094 MB | 28 nm | 8.8 mm2 | 0.01 | yes |
-| `tianjic2_proj` | 80.000 MB | 12 nm | 49.8 mm2 | 0.06 | yes |
-| `tianjicx` | 1.250 MB | 28 nm | 1.8 mm2 | 0.00 | yes |
-| `truenorth` | 5.200 MB | 28 nm | 7.5 mm2 | 0.01 | yes |
+| `cerebras_wse3` | 43.200 GB | 5 nm | 9797.8 mm2 | 12.25 | **no** |
+| `darwin3` | 15.360 MB | 22 nm | 15.3 mm2 | 0.02 | yes |
+| `groq_lpu_v1` | 230.080 MB | 14 nm | 159.0 mm2 | 0.20 | yes |
+| `groq_lpu_v2` | 512.000 MB | 4 nm | 116.1 mm2 | 0.15 | yes |
+| `ipu_bow` | 918.528 MB | 7 nm | 267.8 mm2 | 0.33 | yes |
+| `ipu_gc200` | 918.528 MB | 7 nm | 267.8 mm2 | 0.33 | yes |
+| `loihi2` | 24.576 MB | 7 nm | 7.2 mm2 | 0.01 | yes |
+| `lynxi_hp300_proj` | 768.000 MB | 12 nm | 456.2 mm2 | 0.57 | yes |
+| `lynxi_ka200` | 48.000 MB | 28 nm | 65.8 mm2 | 0.08 | yes |
+| `sambanova_sn40l` | 532.480 MB | 5 nm | 120.8 mm2 | 0.15 | yes |
+| `spinnaker2` | 19.456 MB | 22 nm | 19.3 mm2 | 0.02 | yes |
+| `tesla_dojo_d1` | 442.500 MB | 7 nm | 129.0 mm2 | 0.16 | yes |
+| `tianjic` | 6.240 MB | 28 nm | 8.6 mm2 | 0.01 | yes |
+| `tianjic2_proj` | 81.920 MB | 12 nm | 48.7 mm2 | 0.06 | yes |
+| `tianjicx` | 1.280 MB | 28 nm | 1.8 mm2 | 0.00 | yes |
+| `truenorth` | 5.325 MB | 28 nm | 7.3 mm2 | 0.01 | yes |
 
 ### Dataflow sources
 
@@ -157,16 +157,16 @@ each device's TDP. Off-chip DRAM energy is **not** rescaled --
 
 | device | source | bf16 pJ/FLOP | int8 pJ/FLOP | SRAM pJ/B | L2 pJ/B | DRAM pJ/B | NoC pJ/B/hop | static W |
 |---|---|---|---|---|---|---|---|---|
-| `h100_sxm` | eda:lsi10k + TDP | 0.637 | 0.159 | 1.82 | 4.24 | 28.00 | 0.140 | 154 |
-| `b200_sxm` | eda:lsi10k + TDP | 0.414 | 0.104 | 1.18 | 3.59 | 25.60 | 0.091 | 220 |
-| `a100_80gb_sxm` | eda:lsi10k + TDP | 0.953 | 0.238 | 2.44 | 5.88 | 29.60 | 0.209 | 88 |
-| `iluvatar_bi_v100` | eda:lsi10k + TDP | 1.390 | 0.348 | 3.27 | 7.90 | 31.20 | 0.304 | 55 |
-| `ascend_910b` | eda:lsi10k + TDP | 0.946 | 0.237 | 5.38 | 9.08 | 29.60 | 0.207 | 88 |
-| `groq_lpu_v1` | eda:lsi10k + TDP | 0.642 | 0.161 | 3.23 | 0.00 | 0.00 | 0.141 | 50 |
-| `ipu_gc200` | eda:lsi10k + TDP | 0.901 | 0.225 | 4.24 | 0.00 | 144.00 | 0.197 | 54 |
-| `lynxi_ka200` | eda:lsi10k + TDP | 0.606 | 0.152 | 4.07 | 0.00 | 64.00 | 0.133 | 3 |
-| `lynxi_hp300_proj` | eda:lsi10k + TDP | 0.379 | 0.095 | 3.07 | 0.00 | 40.00 | 0.083 | 27 |
-| `cerebras_wse3` | eda:lsi10k + TDP | 0.342 | 0.085 | 0.51 | 0.00 | 40.00 | 0.075 | 4140 |
+| `h100_sxm` | eda:lsi10k + TDP | 0.638 | 0.160 | 1.81 | 4.19 | 28.00 | 0.140 | 154 |
+| `b200_sxm` | eda:lsi10k + TDP | 0.414 | 0.104 | 1.17 | 3.55 | 25.60 | 0.091 | 220 |
+| `a100_80gb_sxm` | eda:lsi10k + TDP | 0.955 | 0.239 | 2.43 | 5.80 | 29.60 | 0.209 | 88 |
+| `iluvatar_bi_v100` | eda:lsi10k + TDP | 1.393 | 0.349 | 3.24 | 7.79 | 31.20 | 0.305 | 55 |
+| `ascend_910b` | eda:lsi10k + TDP | 0.948 | 0.237 | 5.30 | 9.00 | 29.60 | 0.208 | 88 |
+| `groq_lpu_v1` | eda:lsi10k + TDP | 0.650 | 0.163 | 3.21 | 0.00 | 0.00 | 0.142 | 50 |
+| `ipu_gc200` | eda:lsi10k + TDP | 0.905 | 0.226 | 4.22 | 0.00 | 144.00 | 0.198 | 54 |
+| `lynxi_ka200` | eda:lsi10k + TDP | 0.385 | 0.096 | 2.54 | 0.00 | 64.00 | 0.084 | 2 |
+| `lynxi_hp300_proj` | eda:lsi10k + TDP | 0.383 | 0.096 | 3.06 | 0.00 | 40.00 | 0.084 | 27 |
+| `cerebras_wse3` | eda:lsi10k + TDP | 0.343 | 0.086 | 0.50 | 0.00 | 40.00 | 0.075 | 4140 |
 
 ## Models
 

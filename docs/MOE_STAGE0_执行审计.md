@@ -3,7 +3,12 @@
 > 日期：2026-10-20  
 > 基线提交：`fb6c1b3`  
 > Stage 0 代码检查点：`2f0ed4a`  
-> 当前结论：**Stage 0 semantic gate PASS；Stage 1 screening GO；final sweep NO-GO。**
+> 当前结论：**Stage 0 semantic gate PASS；Stage 1 fast screen PASS；
+> synthetic/projected simulation sweep GO；measured-hardware claim NO-GO。**
+
+仿真平台当前输入清单和后续实测替换点见
+[`MOE_仿真数据与校准接口.md`](MOE_仿真数据与校准接口.md)。缺少实测数据不阻塞
+synthetic/projected 仿真实验，只限制证据等级。
 
 ## 1. 执行结果
 
@@ -11,7 +16,7 @@
 
 ```text
 python -m pytest tests -q
-133 passed
+136 passed
 
 python -m compileall -q flowgpu scripts
 COMPILEALL_OK
@@ -67,10 +72,10 @@ first-MoE-layer 模型上不再出现 key mismatch。
 
 当前源码对应的门控 bundles：
 
-- `experiments/moe_2026_stage0_final_v2_mixtral/`；
-- `experiments/moe_2026_stage0_final_v2_deepseek/`；
-- `experiments/moe_2026_stage0_final_v2_qwen/`；
-- `experiments/moe_2026_stage0_final_v2_gptoss/`。
+- `experiments/moe_2026_stage0_final_v4_mixtral/`；
+- `experiments/moe_2026_stage0_final_v4_deepseek/`；
+- `experiments/moe_2026_stage0_final_v4_qwen/`；
+- `experiments/moe_2026_stage0_final_v4_gptoss/`。
 
 每个 bundle 包含：
 
@@ -102,29 +107,32 @@ manifest.json
 
 因此，Stage 0 的“机制可执行”通过，不等于“机制有收益”。
 
-## 5. 仍未关闭的 final-sweep 门
+## 5. 仿真实现在下一步仍需补齐
 
-1. 真实 request-ordered router trace 仍不存在；
-2. KA200 measured kernel/link/power artifact 仍不存在；
-3. migration 与 serving 共享流量的 flow-level 调度尚未接入；
-4. event-model marginal planner 还没有在正式模型网格上运行；
-5. full model 的 20-block/功效分析还没有执行；
-6. acquisition cost、系统功率和 TCO 输入仍缺失；
-7. 最终 `stage1–stage5` 自动 runner 尚需基于本 Stage 0 API 完成；
-8. 大型结果目录仍需清理和选择唯一 canonical source set。
+1. migration 与 serving 共享流量的 flow-level 调度；
+2. event-model marginal planner 在正式模型网格上的运行；
+3. full model 的 20-block/功效分析；
+4. node/chip/batch 的完整 factorial 和 saturation sweep；
+5. Stage 1–5 的统一自动 runner；
+6. 大型结果目录和 canonical source set 的自动索引。
+
+真实 request-ordered trace、KA200 measured kernel/link/power、可信 acquisition cost
+是 **calibration-level upgrades**，不是 synthetic/projected 仿真实验的阻塞条件。
 
 ## 6. 决策
 
-**允许：**
+**当前允许：**
 
 - 进入多模型 Stage 1 fast screen；
 - 运行 C=1、普通/极端 skew、coverage/replica/marginal 的筛选；
-- 运行小规模 H/B 对照。
+- 运行小规模 H/B 对照；
+- 基于现有 profile 执行完整 synthetic/projected simulation sweep。
 
-**不允许：**
+**仍不允许：**
 
-- 将当前 smoke 数值写成最终结论；
-- 启动数十小时 final sweep；
-- 声称 KA200 实测或真实 TCO。
+- 将当前 synthetic 数值写成 KA200 实测；
+- 在没有价格/功率数据时声称真实 TCO；
+- 把 projected profile 的方向一致性当成已完成硬件校准。
 
-下一里程碑应是：完成 migration-serving 共流和正式自动 runner，然后重新做门控审计。
+下一里程碑应是：完成 migration-serving 共流和正式自动 runner，然后执行完整仿真
+sweep；实测数据到来后通过 calibration 接口重跑。

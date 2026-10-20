@@ -18,6 +18,16 @@ from .schema import (ChipSpec, ExpertKey, ExpertSpec, ReplicaSpec,
                      ValidationError)
 
 
+def _chip_has_room(chip, size, used_bytes, resident_experts):
+    return (
+        used_bytes + size <= chip.usable_weight_bytes and
+        (
+            chip.max_experts is None or
+            resident_experts + 1 <= chip.max_experts
+        )
+    )
+
+
 def _replica_id(key: ExpertKey) -> str:
     kind = "S" if key.shared else "R"
     return "primary-L%d-%sE%d" % (key.layer_id, kind, key.expert_id)
@@ -47,6 +57,7 @@ def unique_balanced(
             )
 
     used = {chip.chip_id: 0 for chip in chip_list}
+    counts = {chip.chip_id: 0 for chip in chip_list}
     load = {chip.chip_id: 0.0 for chip in chip_list}
     replicas = []
     ordered = sorted(
@@ -60,8 +71,12 @@ def unique_balanced(
     for expert in ordered:
         feasible = [
             chip for chip in chip_list
-            if used[chip.chip_id] + expert.weight_bytes
-            <= chip.usable_weight_bytes
+            if _chip_has_room(
+                chip,
+                expert.weight_bytes,
+                used[chip.chip_id],
+                counts[chip.chip_id],
+            )
         ]
         if not feasible:
             raise ValidationError(
@@ -84,6 +99,7 @@ def unique_balanced(
             is_primary=True,
         ))
         used[chip.chip_id] += expert.weight_bytes
+        counts[chip.chip_id] += 1
         load[chip.chip_id] += demand.get(expert.key, 0.0)
 
     return ReplicaPlan(
@@ -171,6 +187,10 @@ def popularity_replicated(
             "max_total_replicas is below required primary count"
         )
     replicas = list(base.replicas)
+    counts = {
+        chip_id: usage.resident_experts
+        for chip_id, usage in base.capacity_usage.items()
+    }
     copies = {expert.key: 1 for expert in expert_list}
     predicted_chip_load = {chip.chip_id: 0.0 for chip in chip_list}
     for replica in base.replicas:
@@ -191,8 +211,12 @@ def popularity_replicated(
             for chip in chip_list:
                 if (expert.key, chip.chip_id) in locations:
                     continue
-                if (used[chip.chip_id] + expert.weight_bytes >
-                        chip.usable_weight_bytes):
+                if not _chip_has_room(
+                    chip,
+                    expert.weight_bytes,
+                    used[chip.chip_id],
+                    counts[chip.chip_id],
+                ):
                     continue
                 score_per_byte = marginal / expert.weight_bytes
                 candidates.append((
@@ -213,6 +237,7 @@ def popularity_replicated(
         replicas.append(replica)
         locations.add((expert.key, chip.chip_id))
         used[chip.chip_id] += expert.weight_bytes
+        counts[chip.chip_id] += 1
         old_copies = copies[expert.key]
         copies[expert.key] += 1
         predicted_chip_load[chip.chip_id] += (
@@ -251,6 +276,10 @@ def ingress_local(
             "max_total_replicas is below required primary count"
         )
     replicas = list(base.replicas)
+    counts = {
+        chip_id: usage.resident_experts
+        for chip_id, usage in base.capacity_usage.items()
+    }
     node_chips: Dict[str, list] = {}
     for chip in chip_list:
         node_chips.setdefault(chip.node_id, []).append(chip)
@@ -272,8 +301,12 @@ def ingress_local(
             for chip in node_chips.get(node_id, ()):
                 if (key, chip.chip_id) in locations:
                     continue
-                if (used[chip.chip_id] + expert.weight_bytes >
-                        chip.usable_weight_bytes):
+                if not _chip_has_room(
+                    chip,
+                    expert.weight_bytes,
+                    used[chip.chip_id],
+                    counts[chip.chip_id],
+                ):
                     continue
                 candidates.append((
                     -(count / expert.weight_bytes),
@@ -293,6 +326,7 @@ def ingress_local(
         replicas.append(replica)
         locations.add((expert.key, chip.chip_id))
         used[chip.chip_id] += expert.weight_bytes
+        counts[chip.chip_id] += 1
 
     return ReplicaPlan(expert_list, chip_list, replicas, "ingress-local")
 
@@ -334,6 +368,10 @@ def node_load_replicated(
         chip_id: usage.weight_bytes
         for chip_id, usage in base.capacity_usage.items()
     }
+    counts = {
+        chip_id: usage.resident_experts
+        for chip_id, usage in base.capacity_usage.items()
+    }
     expert_map = {expert.key: expert for expert in expert_list}
     chip_map = {chip.chip_id: chip for chip in chip_list}
     locations = {
@@ -361,8 +399,12 @@ def node_load_replicated(
                     continue
                 if (key, chip.chip_id) in locations:
                     continue
-                if (used[chip.chip_id] + expert.weight_bytes >
-                        chip.usable_weight_bytes):
+                if not _chip_has_room(
+                    chip,
+                    expert.weight_bytes,
+                    used[chip.chip_id],
+                    counts[chip.chip_id],
+                ):
                     continue
                 candidates.append((
                     -(marginal / expert.weight_bytes),
@@ -381,6 +423,7 @@ def node_load_replicated(
         replicas.append(replica)
         locations.add((expert.key, chip.chip_id))
         used[chip.chip_id] += expert.weight_bytes
+        counts[chip.chip_id] += 1
 
     return ReplicaPlan(
         expert_list, chip_list, replicas, "node-load-replicated"
@@ -398,6 +441,7 @@ def layer_packed(
     if not expert_list or not chip_list:
         raise ValidationError("layer-packed needs experts and chips")
     used = {chip.chip_id: 0 for chip in chip_list}
+    counts = {chip.chip_id: 0 for chip in chip_list}
     replicas = []
     current_chip_by_layer = {}
     ordered = sorted(
@@ -411,8 +455,12 @@ def layer_packed(
     for expert in ordered:
         candidates = [
             chip for chip in chip_list
-            if used[chip.chip_id] + expert.weight_bytes <=
-            chip.usable_weight_bytes
+            if _chip_has_room(
+                chip,
+                expert.weight_bytes,
+                used[chip.chip_id],
+                counts[chip.chip_id],
+            )
         ]
         if not candidates:
             raise ValidationError(
@@ -436,6 +484,7 @@ def layer_packed(
             )
         current_chip_by_layer[expert.key.layer_id] = chip.chip_id
         used[chip.chip_id] += expert.weight_bytes
+        counts[chip.chip_id] += 1
         replicas.append(ReplicaSpec(
             _replica_id(expert.key), expert.key, chip.chip_id, True
         ))
@@ -483,14 +532,19 @@ def coactivation_clustered(
         ),
     )
     used = {chip.chip_id: 0 for chip in chip_list}
+    counts = {chip.chip_id: 0 for chip in chip_list}
     residents = {chip.chip_id: [] for chip in chip_list}
     replicas = []
     predicted_load = {chip.chip_id: 0 for chip in chip_list}
     for expert in ordered:
         feasible = [
             chip for chip in chip_list
-            if used[chip.chip_id] + expert.weight_bytes <=
-            chip.usable_weight_bytes
+            if _chip_has_room(
+                chip,
+                expert.weight_bytes,
+                used[chip.chip_id],
+                counts[chip.chip_id],
+            )
         ]
         if not feasible:
             raise ValidationError(
@@ -516,6 +570,7 @@ def coactivation_clustered(
 
         chip = min(feasible, key=score)
         used[chip.chip_id] += expert.weight_bytes
+        counts[chip.chip_id] += 1
         residents[chip.chip_id].append(expert.key)
         predicted_load[chip.chip_id] += demand.global_for(expert.key)
         replicas.append(ReplicaSpec(
