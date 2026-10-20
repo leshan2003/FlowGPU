@@ -18,10 +18,10 @@ Routing:       paper-constrained synthetic task/community trace
 Kernel:        projected hardware-relative curve
 ```
 
-所有 bundle 的源码哈希均为零差异。当前测试：
+最终 34 个 canonical bundle 的源码哈希均为零差异。当前测试：
 
 ```text
-137 passed
+138 passed
 COMPILEALL_OK
 ```
 
@@ -63,7 +63,8 @@ Mixtral-8x7B 完整 32 层，C=2，16 copies，5 seeds。
 | 8 | 1.262 | 1.123 |
 | 14 | 1.262 | 1.123 |
 
-C=1 没有退化，反而在 64/64 轻载铺开后略优。
+C=1 没有额外串行退化，在当前 64-chip 铺开方式下略优；这是该资源布局的结果，
+不能外推为“C 越小永远越快”。
 
 ### C-scan panel：32 copies / 16 chips
 
@@ -129,16 +130,20 @@ Mixtral 使用完整 32 层；Qwen、DeepSeek、gpt-oss 使用前 4 个 MoE 层�
 
 - 版本切换、旧请求保留旧版本、新请求使用新版本均已通过；
 - drift 触发和 migration diff 已执行；
-- migration 与 serving 共用流量的完整模型尚未集成，因此本轮不报告刷新净收益。
+- migration 与 serving 已进入同一个 `FluidNetwork`，并分开计算逐
+  serving-flow 延迟和 overall makespan；
+- 前 2 层 representative replay 中服务 flow 延迟增量为 0，但迁移时间为
+  4.1–34.4 ms；
+- 尚未执行完整模型的长期 refresh sweep，因此本轮不报告刷新净收益或 P99。
 
 ## 6. Result artifacts
 
-- `experiments/moe_2026_stage0_final_v5_*`
-- `experiments/moe_2026_screen_final_v5_*`
-- `experiments/moe_2026_matrix_final_v5_n*_b*`
-- `experiments/moe_2026_cscan_final_v5_c*`
-- `experiments/moe_2026_cscan32_final_v5_c*`
-- `experiments/moe_2026_boundary20_v5_*`
+- `experiments/moe_2026_stage0_final_v12_*`
+- `experiments/moe_2026_screen_final_v8_*`
+- `experiments/moe_2026_matrix_final_v8_n*_b*`
+- `experiments/moe_2026_cscan_final_v8_c*`
+- `experiments/moe_2026_cscan32_final_v8_c*`
+- `experiments/moe_2026_boundary20_v8_*`
 
 ## 7. Remaining limitations
 
@@ -146,5 +151,9 @@ Mixtral 使用完整 32 层；Qwen、DeepSeek、gpt-oss 使用前 4 个 MoE 层�
 - 类脑 kernel/NoC/power 仍是 estimate/projected；
 - 20-seed 只覆盖 seed 随机性，不覆盖真实 trace sampling；
 - 4-layer fast screen 不是完整模型；
-- refresh migration-serving 共流和 20-block 真实 block bootstrap 仍待后续 calibration
-  phase。
+- 完整模型 refresh sweep 和真实 trace 的 block bootstrap 仍待后续
+  calibration phase；
+- Qwen、DeepSeek、gpt-oss 的 20-seed 结果只覆盖前 4 个 MoE 层。
+
+完整审计见
+[`MOE_最终实验执行与审计_v1.md`](MOE_最终实验执行与审计_v1.md)。

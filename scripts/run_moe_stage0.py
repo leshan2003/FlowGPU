@@ -9,7 +9,7 @@ import json
 import math
 import shutil
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional
@@ -49,6 +49,7 @@ from flowgpu.sim_v2.refresh import (
     build_migration_plan,
     estimate_migration_timing,
 )
+from flowgpu.sim_v2.migration_runtime import replay_with_shared_migration
 from flowgpu.sim_v2.replicas import ReplicaPlan
 from flowgpu.sim_v2.routing import RoutingRecord, RoutingTrace
 from flowgpu.sim_v2.routing import zipf_expert_weights
@@ -773,7 +774,7 @@ def run_refresh_gate(args):
     }
 
 
-def run_serving_gate(args):
+def run_serving_gate(args, include_shared_migration: bool = True):
     geometry, experts, used_layers = model_case(args)
     gpu_profile, brain_profile, bridge_profile = runtime_profiles(args)
     brain_nodes = int(getattr(args, "brain_nodes", 2) or 2)
@@ -899,11 +900,75 @@ def run_serving_gate(args):
             goodput,
             result.tpot_percentile(99),
         ))
+    shared_meta = None
+    if include_shared_migration:
+        serving_flows = []
+        base_serving = results["gpu-only-serving"]
+        window_start = base_serving.start_s
+        replay_layers = base_serving.layer_results[:2]
+        window_end = max(
+            (
+                flow_result.finish_s
+                for layer in replay_layers
+                for flow_result in layer.flow_results.values()
+            ),
+            default=window_start,
+        )
+        for layer_index, layer in enumerate(
+            replay_layers
+        ):
+            for flow_id, flow_result in layer.flow_results.items():
+                if (
+                    flow_result.release_s > window_end or
+                    flow_result.finish_s < window_start
+                ):
+                    continue
+                serving_flows.append(replace(
+                    flow_result.flow,
+                    flow_id="serving:%d:%s" % (layer_index, flow_id),
+                ))
+        migration = build_migration_plan(
+            plans["gpu-only-serving"],
+            plans["overlay-serving"],
+            experts,
+        )
+        shared = replay_with_shared_migration(
+            cluster,
+            serving_flows,
+            migration,
+            [chip.chip_id for chip in gpu],
+            migration_start_s=window_start,
+        )
+        rows.append(GateRow(
+            "refresh-shared",
+            "background-shared-bandwidth",
+            "G",
+            shared.combined_completion_s,
+            1.0,
+            0,
+            0,
+            len(plans["overlay-serving"].replicas),
+            0.0,
+            shared.migration_bytes,
+            "migration-and-serving-share-fluid-network",
+        ))
+        shared_meta = {
+            "serving_completion_s": shared.serving_completion_s,
+            "shared_serving_completion_s": shared.shared_serving_completion_s,
+            "migration_completion_s": shared.migration_completion_s,
+            "combined_completion_s": shared.combined_completion_s,
+            "serving_delay_s": shared.serving_delay_s,
+            "migration_bytes": shared.migration_bytes,
+            "migration_energy_j": shared.migration_energy_j,
+            "serving_window_s": window_end - window_start,
+            "serving_flows_replayed": len(serving_flows),
+        }
     return rows, {
         "requests": len(requests),
         "output_tokens": sum(item.output_tokens for item in requests),
         "slo_ttft_s": 0.1,
         "slo_tpot_s": 0.1,
+        "migration_shared": shared_meta,
     }, plans
 
 
@@ -1077,15 +1142,8 @@ def main() -> int:
     (temp / "stage_report.md").write_text(report, encoding="utf-8")
     source_paths = [
         Path(__file__),
-        ROOT / "flowgpu" / "sim_v2" / "schema.py",
-        ROOT / "flowgpu" / "sim_v2" / "replicas.py",
-        ROOT / "flowgpu" / "sim_v2" / "hardware_profiles.py",
-        ROOT / "flowgpu" / "sim_v2" / "model_geometry.py",
-        ROOT / "flowgpu" / "sim_v2" / "placement.py",
-        ROOT / "flowgpu" / "sim_v2" / "research.py",
-        ROOT / "flowgpu" / "sim_v2" / "refresh.py",
-        ROOT / "flowgpu" / "sim_v2" / "statistics.py",
         ROOT / "flowgpu" / "units.py",
+        *sorted((ROOT / "flowgpu" / "sim_v2").glob("*.py")),
     ]
     manifest = {
         "schema_version": 1,

@@ -16,7 +16,7 @@ synthetic/projected 仿真实验，只限制证据等级。
 
 ```text
 python -m pytest tests -q
-137 passed
+138 passed
 
 python -m compileall -q flowgpu scripts
 COMPILEALL_OK
@@ -44,6 +44,8 @@ python scripts/run_moe_stage0.py --output NEW_DIR ...
 - double-buffer/version activation/in-flight request semantics；
 - drift detector 和 paired block bootstrap；
 - continuous batching serving 的 layer offset；
+- migration 与 serving 共享 `FluidNetwork` 链路；
+- source-aware migration、逐 serving-flow 延迟和 overall makespan 分开报告；
 - 原子结果目录和 source SHA-256。
 
 ## 2. 四模型门控
@@ -72,10 +74,10 @@ first-MoE-layer 模型上不再出现 key mismatch。
 
 当前源码对应的门控 bundles：
 
-- `experiments/moe_2026_stage0_final_v5_mixtral/`；
-- `experiments/moe_2026_stage0_final_v5_deepseek/`；
-- `experiments/moe_2026_stage0_final_v5_qwen/`；
-- `experiments/moe_2026_stage0_final_v5_gptoss/`。
+- `experiments/moe_2026_stage0_final_v12_mixtral/`；
+- `experiments/moe_2026_stage0_final_v12_deepseek/`；
+- `experiments/moe_2026_stage0_final_v12_qwen/`；
+- `experiments/moe_2026_stage0_final_v12_gptoss/`。
 
 每个 bundle 包含：
 
@@ -89,8 +91,9 @@ stage_report.md
 manifest.json
 ```
 
-`manifest.json` 记录本次生成时的源码 SHA-256。早期 `_v1/_v2/_v3/_v4` 目录是开发
-过程中的检查点，不可作为最终引用；以当前审计列出的目录为准。
+`manifest.json` 记录 runner、`flowgpu/units.py` 和全部 31 个
+`flowgpu/sim_v2/*.py` 的 SHA-256。`v11` 及更早目录是过程检查点，不可作为最终
+引用；以当前审计列出的 `v12` 目录为准。
 
 ## 4. 门控观察
 
@@ -102,18 +105,21 @@ manifest.json
 - overlay 和 H-exclusive 在极小 batch smoke 中能运行，但收益必须由正式多
   seed/block 实验决定；
 - B-stage 只验证 grouped miss 和 DRAM 传输计费，不代表 B-stream；
-- migration bundle 验证旧请求和新请求的版本隔离，但迁移流量尚未与 serving
-  flow 共享带宽。
+- migration bundle 验证旧请求和新请求的版本隔离；shared replay 将前 2 个
+  serving layer 的 flow 与 migration flow 放入同一网络；
+- shared replay 中逐 serving-flow 的最大延迟增量为 0，但迁移本身仍需
+  4.1–34.4 ms，整体完成时间由迁移主导；
+- 这仍不是完整模型的 refresh P99 或净收益。
 
 因此，Stage 0 的“机制可执行”通过，不等于“机制有收益”。
 
 ## 5. 仿真实现在下一步仍需补齐
 
-1. migration 与 serving 共享流量的 flow-level 调度；
-2. event-model marginal planner 在正式模型网格上的运行；
-3. full model 的 20-block/功效分析；
-4. node/chip/batch 的完整 factorial 和 saturation sweep；
-5. Stage 1–5 的统一自动 runner；
+1. 完整模型、长窗口的 refresh 策略对比和累计 goodput；
+2. event-model marginal planner 的更大正式模型网格；
+3. 真实 trace 的 request/task block 功效分析；
+4. 更宽 node/chip/batch factorial 和自动饱和停止；
+5. real-trace migration 与完整 serving timeline 的统一 replay；
 6. 大型结果目录和 canonical source set 的自动索引。
 
 真实 request-ordered trace、KA200 measured kernel/link/power、可信 acquisition cost
@@ -134,5 +140,5 @@ manifest.json
 - 在没有价格/功率数据时声称真实 TCO；
 - 把 projected profile 的方向一致性当成已完成硬件校准。
 
-下一里程碑应是：完成 migration-serving 共流和正式自动 runner，然后执行完整仿真
-sweep；实测数据到来后通过 calibration 接口重跑。
+下一里程碑应是：完成完整模型 refresh sweep、真实 trace block 功效分析和
+saturation 自动停止；实测数据到来后通过 calibration 接口重跑。

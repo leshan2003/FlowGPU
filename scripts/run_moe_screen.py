@@ -85,7 +85,9 @@ def main() -> int:
             brain_nodes=args.brain_nodes,
         )
         g_rows, _, _ = run_gate(local, temp)
-        serving_rows, _, _ = run_serving_gate(local)
+        serving_rows, _, _ = run_serving_gate(
+            local, include_shared_migration=False
+        )
         for row in g_rows + serving_rows:
             raw_rows.append({
                 "seed": seed,
@@ -149,6 +151,11 @@ def main() -> int:
         "schema_version": 1,
         "model": args.model,
         "dtype": effective_dtype(args),
+        "tokens": args.tokens,
+        "requests": args.requests,
+        "c_max": args.c_max,
+        "replicas": args.replicas,
+        "hot_experts": args.hot_experts,
         "seeds": list(seeds),
         "zipf_exponent": args.zipf_exponent,
         "layer_limit": args.layer_limit,
@@ -170,10 +177,8 @@ def main() -> int:
     source_paths = [
         Path(__file__),
         SCRIPTS / "run_moe_stage0.py",
-        ROOT / "flowgpu" / "sim_v2" / "serving.py",
-        ROOT / "flowgpu" / "sim_v2" / "research.py",
-        ROOT / "flowgpu" / "sim_v2" / "placement.py",
-        ROOT / "flowgpu" / "sim_v2" / "hardware_profiles.py",
+        ROOT / "flowgpu" / "units.py",
+        *sorted((ROOT / "flowgpu" / "sim_v2").glob("*.py")),
     ]
     manifest = {
         "schema_version": 1,

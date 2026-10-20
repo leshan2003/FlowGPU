@@ -16,10 +16,10 @@
 
 未完成：
 
-- 20-block 功效实验；
+- 真实 trace 的 20-block 功效实验；
 - node/chips-per-node 全 factorial；
 - 真实 request-ordered trace；
-- migration 与 serving 共享流量；
+- 完整模型的 refresh 策略净收益；
 - KA200 校准和可信 TCO。
 
 Qwen/DeepSeek 的全层 5-seed screen 运行时间远超 fast-screen 预算，已终止。
@@ -119,12 +119,15 @@ DeepSeek-V3，前 4 个 MoE 层，5 seeds：
 
 ## 6. Artifacts
 
-- `experiments/moe_2026_screen_final_v5_mixtral_zipf05/`
-- `experiments/moe_2026_screen_final_v5_mixtral/`
-- `experiments/moe_2026_screen_final_v5_mixtral_zipf20/`
-- `experiments/moe_2026_screen_final_v5_gptoss4/`（4-layer）
-- `experiments/moe_2026_screen_final_v5_qwen4/`（4-layer fast screen）
-- `experiments/moe_2026_screen_final_v5_deepseek4/`（4-layer fast screen）
-- `experiments/moe_2026_boundary20_v5_*`（关键点 20 seeds）
-- `experiments/moe_2026_stage0_final_deepseek/`
-- `experiments/moe_2026_stage0_final_qwen/`
+- `experiments/moe_2026_screen_final_v8_mixtral_zipf05/`
+- `experiments/moe_2026_screen_final_v8_mixtral/`
+- `experiments/moe_2026_screen_final_v8_mixtral_zipf20/`
+- `experiments/moe_2026_screen_final_v8_gptoss4/`（4-layer）
+- `experiments/moe_2026_screen_final_v8_qwen4/`（4-layer fast screen）
+- `experiments/moe_2026_screen_final_v8_deepseek4/`（4-layer fast screen）
+- `experiments/moe_2026_boundary20_v8_*`（关键点 20 seeds）
+- `experiments/moe_2026_stage0_final_v12_*`
+
+最终三模型四层 20-seed CI、node/batch 矩阵、C 隔离、聚类限制和 shared
+migration 结果见
+[`MOE_最终实验执行与审计_v1.md`](MOE_最终实验执行与审计_v1.md)。

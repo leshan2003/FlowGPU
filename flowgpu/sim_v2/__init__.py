@@ -55,6 +55,11 @@ from .results import (RESULT_SCHEMA_VERSION,
 from .refresh import (MigrationCopy, MigrationPlan, MigrationTiming,
                       PlacementVersion, ReplicaRemoval, VersionedPlacement,
                       build_migration_plan, estimate_migration_timing)
+from .migration_runtime import (
+    SharedMigrationResult,
+    build_migration_flows,
+    replay_with_shared_migration,
+)
 from .runner import (FIXED_WINDOW_STRATEGIES, FixedWindowComparison,
                      FixedWindowStrategyResult,
                      NodeSweepComparisonResult, NodeSweepMetricPoint,
@@ -129,6 +134,7 @@ __all__ = [
     "ModelExpertGeometry",
     "FabricProfile", "HardwareProfile",
     "MigrationCopy", "MigrationPlan", "MigrationTiming",
+    "SharedMigrationResult",
     "NetworkFitKey", "NodeSweepCase", "NodeSweepSpec", "OracleGapReport",
     "NodeSweepComparisonResult", "NodeSweepMetricPoint", "OracleResult",
     "Provenance", "RESULT_SCHEMA_VERSION", "ReplicaBatch",
@@ -161,6 +167,7 @@ __all__ = [
     "build_model_expert_geometry",
     "load_fabric_profile", "load_hardware_profile",
     "build_migration_plan", "estimate_migration_timing",
+    "build_migration_flows", "replay_with_shared_migration",
     "build_node_count_sweep", "capacity_ratio",
     "aggregate_serving_results", "coactivation_clustered",
     "full_hyperedge_cut", "hyperedge_clustered",

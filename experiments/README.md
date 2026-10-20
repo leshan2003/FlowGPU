@@ -1,98 +1,83 @@
 # MoE experiment bundles
 
-> **证据状态警告：** `moe_2026_final_v4` 生成后 ranked/budget 源码发生过修改，
-> 不能继续作为最终 canonical 证据。最后相对完整的参考包是
-> `moe_2026_final_v3`，但当前源码哈希也已变化。正式重跑合同见
-> [`docs/MOE_高置信度实验设计_v2_冻结版.md`](../docs/MOE_高置信度实验设计_v2_冻结版.md)。
+> **最终 canonical 版本（2026-10-20）：**
+> Stage 0 为 `v12`，下游 screen/matrix/C/20-seed 为 `v8`。
+> 证据边界：synthetic workload + projected/estimated hardware。
+> `moe_2026_final_*`、`static_final_*`、`mechanisms_*` 是早期开发结果，
+> 不再作为最终证据。
+
+完整执行和审计见
+[`docs/MOE_最终实验执行与审计_v1.md`](../docs/MOE_最终实验执行与审计_v1.md)。
 
 ## Stage 0 canonical bundles
 
-当前源码对应的语义/机制门控结果：
+- `moe_2026_stage0_final_v12_mixtral`
+- `moe_2026_stage0_final_v12_deepseek`
+- `moe_2026_stage0_final_v12_qwen`
+- `moe_2026_stage0_final_v12_gptoss`
 
-- `moe_2026_stage0_final_v5_mixtral`：Mixtral-8x7B；
-- `moe_2026_stage0_final_v5_deepseek`：DeepSeek-V3；
-- `moe_2026_stage0_final_v5_qwen`：Qwen3-235B-A22B；
-- `moe_2026_stage0_final_v5_gptoss`：gpt-oss-120B。
+这些 bundle 验证模型驱动几何、显式 C、C=1、G/H/B 模式、版本迁移、
+continuous serving 和 shared migration，不是最终性能结论。
 
-这些 bundle 验证模型驱动几何、显式 C、C=1、H/B 模式、版本迁移和小规模 serving，
-不是最终性能结论。更早的 Stage 0 开发检查点已被忽略。
+## Stage 1 fast screen
 
-Stage 1 fast-screen bundles：
+- `moe_2026_screen_final_v8_mixtral_zipf05`
+- `moe_2026_screen_final_v8_mixtral`
+- `moe_2026_screen_final_v8_mixtral_zipf20`
+- `moe_2026_screen_final_v8_gptoss4`（前 4 个 MoE 层）
+- `moe_2026_screen_final_v8_qwen4`（前 4 个 MoE 层）
+- `moe_2026_screen_final_v8_deepseek4`（前 4 个 MoE 层）
 
-- `moe_2026_screen_final_v5_mixtral_zipf05`；
-- `moe_2026_screen_final_v5_mixtral`；
-- `moe_2026_screen_final_v5_mixtral_zipf20`；
-- `moe_2026_screen_final_v5_gptoss4`（4-layer）。
-- `moe_2026_screen_final_v5_qwen4`（前 4 个 MoE 层）；
-- `moe_2026_screen_final_v5_deepseek4`（前 4 个 MoE 层）。
+## Node × batch
 
-矩阵实验：
+- `moe_2026_matrix_final_v8_n{1,2,4}_b{1,2,4}`
 
-- `moe_2026_matrix_final_v5_n{1,2,4}_b{1,2,4}`；
-- `moe_2026_cscan_final_v5_c{1,2,4,8,14}`（64 copies / 64 chips）；
-- `moe_2026_cscan32_final_v5_c{2,4,8,14}`（32 copies / 16 chips）。
+batch 表示同时 admitted 的 request 数。九个点均已生成；旧版本缺失的
+`n2/b2` 已补齐。
 
-20-seed 边界实验：
+## C isolation
 
-- `moe_2026_boundary20_v5_mixtral*`；
-- `moe_2026_boundary20_v5_gptoss4`；
-- `moe_2026_boundary20_v5_qwen4`；
-- `moe_2026_boundary20_v5_deepseek4`。
+- `moe_2026_cscan_final_v8_c{1,2,4,8,14}`：64 copies / 64 chips；
+- `moe_2026_cscan32_final_v8_c{2,4,8,14}`：32 copies / 16 chips。
 
-完整汇总见
-[`docs/MOE_仿真完整矩阵结果_v1.md`](../docs/MOE_仿真完整矩阵结果_v1.md)。
+## 20-seed boundary
 
-解释见
-[`docs/MOE_STAGE1_SCREEN_RESULTS.md`](../docs/MOE_STAGE1_SCREEN_RESULTS.md)。
-
-## Canonical result
-
-Use [`moe_2026_final_v4`](moe_2026_final_v4/) for the current result set.
-It combines:
-
-- full DeepSeek-V3-shaped static capacity experiments;
-- fixed-size mechanism experiments for co-activation, C, node/batch, skew,
-  refresh, seeds, and hardware sensitivity;
-- combined `details.json`, `manifest.json`, CSV tables, and plots.
-
-The human-readable interpretation is:
-
-[`docs/MOE_EXPERIMENT_RESULTS_v1.md`](../docs/MOE_EXPERIMENT_RESULTS_v1.md)
-
-## Source bundles
-
-| Directory | Status |
-|---|---|
-| `moe_2026_static_final_v1` | canonical full-scale static source bundle |
-| `moe_2026_mechanisms_v4` | canonical fixed-size mechanism source bundle, including ranked policies |
-| `moe_2026_final_v1`, `moe_2026_final_v2`, `moe_2026_final_v3` | superseded combined bundles |
-| `moe_2026_quick_v1` … `moe_2026_quick_v5` | development smoke/screening runs |
-| `moe_2026_full_v1` … `moe_2026_full_v4` | interrupted development runs |
-| `moe_2026_full_v5` | static-only intermediate run superseded by `static_final_v1` |
-| `moe_2026_mechanisms_v2` | interrupted ranked-replication exploration; not a final result |
-
-Only the canonical bundle should be cited. Development and interrupted
-directories are retained for audit but must not be used as final evidence.
-
-## Claim boundary
-
-The bundle uses a paper-constrained synthetic routing generator and projected
-brain hardware curves. It does not contain a real request-ordered router trace
-or KA200 measured kernel/network/power artifacts.
+- `moe_2026_boundary20_v8_mixtral`
+- `moe_2026_boundary20_v8_mixtral_zipf05`
+- `moe_2026_boundary20_v8_mixtral_zipf20`
+- `moe_2026_boundary20_v8_qwen4`
+- `moe_2026_boundary20_v8_deepseek4`
+- `moe_2026_boundary20_v8_gptoss4`
 
 ## Reproduction
 
+Stage 0：
+
 ```powershell
-python scripts/run_moe_research.py --suite full --components static `
-  --output NEW_STATIC_DIR
-python scripts/run_moe_research.py --suite full `
-  --components community,node_batch,skew,refresh,seeds,sensitivity `
-  --output NEW_MECHANISM_DIR
-python scripts/assemble_moe_bundle.py `
-  --static NEW_STATIC_DIR --mechanisms NEW_MECHANISM_DIR `
-  --output NEW_COMBINED_DIR
-python scripts/analyze_moe_research.py NEW_COMBINED_DIR
+python scripts/run_moe_stage0.py `
+  --model deepseek_v3 --dtype fp8 `
+  --c-max 4 --replicas 32 --hot-experts 16 `
+  --seed 211 --brain-nodes 2 `
+  --output NEW_STAGE0_DIR
 ```
 
-The full static sweep is capped at 64 brain nodes because the current Python
-flow scheduler entered a multi-GB, hours-long regime at larger topologies.
+Screen / matrix：
+
+```powershell
+python scripts/run_moe_screen.py `
+  --model mixtral_8x7b --dtype fp8 `
+  --zipf-exponent 1.3 `
+  --seeds 101,102,103,104,105 `
+  --c-max 2 --replicas 16 --hot-experts 8 `
+  --brain-nodes 2 --requests 4 `
+  --output NEW_SCREEN_DIR
+```
+
+每个 `summary.json` 记录决定实验结果的参数；`manifest.json` 记录 runner、
+`flowgpu/units.py` 和全部 `flowgpu/sim_v2/*.py` 的 SHA-256。
+
+## Claim boundary
+
+当前结果使用 paper-constrained synthetic routing generator 和 projected/
+estimated hardware。它不包含真实 request-ordered router trace、KA200
+kernel/link/power 实测或可信 TCO 输入，因此不能把结果表述为真机结论。

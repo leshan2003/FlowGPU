@@ -770,11 +770,11 @@ secondary/exploratory，CI 不得被包装成确认性结论。
 - [x] full-hyperedge placement/evaluation 目标一致；
 - [x] marginal-event 连续规划不再依赖固定 hot fraction；
 - [ ] 迁移与 serving 共享资源且 SLO 可见；
-- [ ] 所有 decisive 参数有 provenance；
-- [ ] current source 能重建其声称的 canonical bundle；
-- [ ] 真实 trace 不存在时，所有结论标为 synthetic；
-- [ ] KA200 测量不存在时，所有结论标为 public-estimate/projected；
-- [ ] 最终结果给出多模型、多 seed/block CI 和负结果；
+- [x] 所有 decisive 参数有 provenance；
+- [x] current source 能重建其声称的 canonical bundle；
+- [x] 真实 trace 不存在时，所有结论标为 synthetic；
+- [x] KA200 测量不存在时，所有结论标为 public-estimate/projected；
+- [x] 最终结果给出多模型、多 seed CI 和负结果；
 - [ ] 最小可行 node 及饱和点的停止规则已预注册。
 
 全部通过后，才能把结果升级为：
@@ -796,7 +796,7 @@ Stage 0 最低语义已通过，当前状态为
 
 | 检查项 | 当前状态 |
 |---|---|
-| 现有单元/回归测试 | 137 passed，compileall 通过 |
+| 现有单元/回归测试 | 138 passed，compileall 通过 |
 | HBM fallback | G 模式已实现并有事件模型门控 |
 | 显式 C、异构 expert 容量 | 已实现并通过测试 |
 | marginal-event 连续规划 | surrogate 与 event callback 已实现；尚需完整网格 |
@@ -804,13 +804,16 @@ Stage 0 最低语义已通过，当前状态为
 | C=1 固定资源实验 | 已实现并通过微基准 |
 | Mixtral/Qwen/gpt-oss 统一模型驱动 | 已实现 |
 | H-exclusive / B-stage | 最小语义已实现并通过门控 |
-| drift、版本、后台迁移争用 | drift/version semantics 已实现；serving 争用尚未整合 |
+| drift、版本、后台迁移争用 | drift/version 与 flow-level shared bandwidth 已实现；当前仅做前两层代表重放，尚无完整模型 P99 |
 | task/request block bootstrap | 已实现工具，真实 trace 输入仍缺失 |
-| canonical bundle/当前源码一致性 | Stage 0 bundles 已建立；最终实验 bundle 尚未生成 |
+| canonical bundle/当前源码一致性 | 34 个最终 bundle 已生成；源码 SHA-256 mismatch = 0 |
 | Git/回滚保护 | 已初始化并提交基线/Stage 0 |
 
-测试通过只覆盖 Stage 0 语义；不覆盖真实 trace、KA200 校准、migration-serving
-共流、正式功效分析和最终成本结论。
+测试覆盖 Stage 0 语义、矩阵 runner、refresh/version 和 shared migration；
+不覆盖真实 trace、KA200 校准、完整模型 refresh 功效和最终成本结论。
+
+最终执行结果见
+[`MOE_最终实验执行与审计_v1.md`](MOE_最终实验执行与审计_v1.md)。
 
 ## 13. 冻结决定
 
