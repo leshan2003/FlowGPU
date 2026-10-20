@@ -1,0 +1,194 @@
+# =====================================================================
+# Where, if anywhere, does offloading FFN/MoE to SRAM-resident hardware win?
+#
+# The PD+A split moves the *decode* FFN off the GPU.  Its value therefore
+# depends entirely on how much of the total work is decode:
+#
+#   prompt >> output   -> prefill-dominated: the GPU is the bottleneck and
+#                         the offload target sits idle.  Offloading helps
+#                         nothing and costs a fleet of idle chips.
+#   prompt << output   -> decode-dominated: every token re-streams the
+#                         expert stack, which is exactly what SRAM-resident
+#                         weights fix.  This is the regime where the claim
+#                         has a chance.
+#
+# Four regimes, same hardware, same model.  The only thing that changes is
+# the prompt:output ratio.
+# =====================================================================
+name: workload_regimes
+baseline: gpu_summarise
+
+model:
+  name: deepseek_v4_flash_proj
+  w_dtype: fp8
+  a_dtype: bf16
+  kv_dtype: bf16
+  comm_dtype: fp8
+
+workload:
+  n_requests: 128
+  max_batch: 64
+  max_running: 192
+  chunk_tokens: 8192
+  prompt_sigma: 0.25
+  output_sigma: 0.3
+  arrival_rate: 0.5
+  seed: 3
+
+slo: {ttft: 8.0, tpot: 0.05}
+
+defaults:
+  collective_overlap: 0.6
+  jitter: true
+
+systems:
+  gpu:
+    name: iluvatar40
+    pools:
+      gpu:
+        device: iluvatar_bi_v100
+        count: 40
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 5, dp: 1}
+        scaleup: pcie4_x16
+        scaleout: roce_200g
+        host_overhead: 400 W
+        price_per_device: 20000
+
+  hetero:
+    name: iluvatar24 + lynxi256
+    pools:
+      gpu:
+        device: iluvatar_bi_v100
+        count: 24
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 3, dp: 1}
+        scaleup: pcie4_x16
+        scaleout: roce_200g
+        host_overhead: 400 W
+        price_per_device: 20000
+      brain:
+        device: lynxi_hp300_proj
+        count: 256
+        devices_per_board: 16
+        parallel: {tp: 1, pp: 1, ep: 256, dp: 1}
+        scaleup: custom_serdes_1600g
+        scaleout: custom_serdes_800g
+        host_overhead: 150 W
+        price_per_device: 1500
+    bridges:
+      - between: [gpu, brain]
+        fabric: custom_serdes_800g
+        lanes: 24
+
+runs:
+  # ---- summarisation: 16k in, 256 out (prefill-dominated, 64:1) -------
+  - name: gpu_summarise
+    system: gpu
+    placement: all_gpu
+    workload: {prompt_len: 16384, output_len: 256}
+  - name: pda_summarise
+    system: hetero
+    placement: {strategy: pd_a, gpu: gpu, brain: brain, crossing_dtype: fp8}
+    microbatches: 2
+    workload: {prompt_len: 16384, output_len: 256}
+
+  # ---- chat: 2k in, 512 out (balanced, 4:1) ---------------------------
+  - name: gpu_chat
+    system: gpu
+    placement: all_gpu
+    workload: {prompt_len: 2048, output_len: 512}
+  - name: pda_chat
+    system: hetero
+    placement: {strategy: pd_a, gpu: gpu, brain: brain, crossing_dtype: fp8}
+    microbatches: 2
+    workload: {prompt_len: 2048, output_len: 512}
+
+  # ---- reasoning / agent: 1k in, 8k out (decode-dominated, 1:8) -------
+  # This is the regime the architecture is built for: long chains of
+  # thought, where almost all work is token-by-token decode.
+  - name: gpu_reason
+    system: gpu
+    placement: all_gpu
+    workload: {prompt_len: 1024, output_len: 8192}
+  - name: pda_reason
+    system: hetero
+    placement: {strategy: pd_a, gpu: gpu, brain: brain, crossing_dtype: fp8}
+    microbatches: 2
+    workload: {prompt_len: 1024, output_len: 8192}
+
+  # ---- low-latency single stream: batch 1, decode-only ---------------
+  # "低时延" -- the other half of the claim.  Here the GPU is at its worst
+  # (batch 1 means ~0.1% of peak FLOPS) and SRAM residency is at its best.
+  - name: gpu_latency
+    system: gpu
+    placement: all_gpu
+    workload: {prompt_len: 512, output_len: 2048, max_batch: 1,
+               max_running: 1, n_requests: 16, arrival_rate: 0.05,
+               prompt_sigma: 0, output_sigma: 0}
+  - name: pda_latency
+    system: hetero
+    placement: {strategy: pd_a, gpu: gpu, brain: brain, crossing_dtype: fp8}
+    microbatches: 1
+    workload: {prompt_len: 512, output_len: 2048, max_batch: 1,
+               max_running: 1, n_requests: 16, arrival_rate: 0.05,
+               prompt_sigma: 0, output_sigma: 0}
+
+  # ---- right-sized single-stream latency -----------------------------
+  # The runs above compare a 40-GPU cluster against a 24-GPU + 256-chip
+  # cluster at batch 1, so both are mostly idle and the energy comparison
+  # is dominated by fleet size rather than by the architecture.  These two
+  # arms size each system to the *minimum that can hold the model*, which
+  # is the fair way to ask "what does one token cost on each architecture".
+  #   GPU   : 142 GiB fp8 weights / ~30 GiB usable per BI-V100 -> 8 cards
+  #   hetero: attention + embedding (~4 GiB) -> 2 GPUs;
+  #           149 B fp8 experts / 0.65 GiB usable per chip     -> 224 chips
+  - name: gpu_minimal_latency
+    system:
+      name: iluvatar8
+      pools:
+        gpu:
+          device: iluvatar_bi_v100
+          count: 8
+          devices_per_board: 8
+          parallel: {tp: 8, pp: 1, ep: 1, dp: 1}
+          scaleup: pcie4_x16
+          scaleout: roce_200g
+          host_overhead: 400 W
+          price_per_device: 20000
+    placement: all_gpu
+    workload: {prompt_len: 512, output_len: 2048, max_batch: 1,
+               max_running: 1, n_requests: 12, arrival_rate: 0.05,
+               prompt_sigma: 0, output_sigma: 0}
+
+  - name: pda_minimal_latency
+    system:
+      name: iluvatar2 + lynxi224
+      pools:
+        gpu:
+          device: iluvatar_bi_v100
+          count: 2
+          devices_per_board: 8
+          parallel: {tp: 2, pp: 1, ep: 1, dp: 1}
+          scaleup: pcie4_x16
+          scaleout: roce_200g
+          host_overhead: 400 W
+          price_per_device: 20000
+        brain:
+          device: lynxi_hp300_proj
+          count: 224
+          devices_per_board: 16
+          parallel: {tp: 1, pp: 1, ep: 224, dp: 1}
+          scaleup: custom_serdes_1600g
+          scaleout: custom_serdes_800g
+          host_overhead: 150 W
+          price_per_device: 1500
+      bridges:
+        - between: [gpu, brain]
+          fabric: custom_serdes_1600g
+          lanes: 2
+    placement: {strategy: pd_a, gpu: gpu, brain: brain, crossing_dtype: fp8}
+    microbatches: 1
+    workload: {prompt_len: 512, output_len: 2048, max_batch: 1,
+               max_running: 1, n_requests: 12, arrival_rate: 0.05,
+               prompt_sigma: 0, output_sigma: 0}

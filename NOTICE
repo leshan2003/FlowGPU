@@ -1,0 +1,16 @@
+FlowGPU
+Copyright 2026 FlowGPU contributors
+
+This product includes software developed as an independent simulation study.
+
+FlowGPU models third-party hardware from published specifications. Device
+names, model names and trademarks (NVIDIA, Graphcore, Groq, Cerebras,
+SambaNova, Intel, IBM, Huawei, Tesla, Iluvatar CoreX / 天数智芯, Lynxi /
+灵汐科技, Moore Threads / 摩尔线程, MetaX / 沐曦, AMD, and others) belong to
+their respective owners and are used here only to identify the parts being
+modelled. No endorsement or affiliation is implied.
+
+Hardware specifications in flowgpu/hardware/registry.py carry a `source` and
+a `confidence` tag. Entries tagged `estimate`, and every model or device whose
+name ends in `_proj`, are the authors' constructions and are NOT vendor
+specifications. See docs/DEVICES.md.

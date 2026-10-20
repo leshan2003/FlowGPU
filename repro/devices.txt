@@ -1,0 +1,41 @@
+﻿GPUs
+name                             vendor  kind  SMs      peak bf16         mem       mem BW  TDP W  nm    yr      conf
+------------------  -------------------  ----  ---  -------------  ----------  -----------  -----  --  ----  --------
+a100_80gb_sxm                    NVIDIA   gpu  108  312.00 TFLOPS   80.000 GB    2.04 TB/s    400   7  2020    vendor
+amd_mi300x                          AMD   gpu  304    1.31 PFLOPS  192.000 GB    5.30 TB/s    750   5  2023    vendor
+ascend_910b                      Huawei   gpu   32  376.00 TFLOPS   64.000 GB    1.60 TB/s    400   7  2023     press
+ascend_910c                      Huawei   gpu   64  752.00 TFLOPS  128.000 GB    3.20 TB/s    600   7  2025  estimate
+b200_sxm                         NVIDIA   gpu  148    2.25 PFLOPS  192.000 GB    8.00 TB/s   1000   4  2024    vendor
+gb200_gpu                        NVIDIA   gpu  148    2.50 PFLOPS  192.000 GB    8.00 TB/s   1200   4  2024    vendor
+h100_sxm                         NVIDIA   gpu  132  989.00 TFLOPS   80.000 GB    3.35 TB/s    700   5  2022    vendor
+h200_sxm                         NVIDIA   gpu  132  989.00 TFLOPS  141.000 GB    4.80 TB/s    700   5  2023    vendor
+iluvatar_bi_v100    Iluvatar CoreX 天数智芯   gpu   64  147.00 TFLOPS   32.000 GB    1.20 TB/s    250   7  2021   derived
+iluvatar_mr_v100    Iluvatar CoreX 天数智芯   gpu   64   96.00 TFLOPS   32.000 GB  800.00 GB/s    250   7  2022   derived
+jetson_agx_orin_64               NVIDIA   gpu   16   85.00 TFLOPS   64.000 GB  204.80 GB/s     60   8  2022    vendor
+jetson_agx_thor                  NVIDIA   gpu   20  250.00 TFLOPS  128.000 GB  273.00 GB/s    130   4  2025     press
+jetson_orin_nx_16                NVIDIA   gpu    8   25.00 TFLOPS   16.000 GB  102.40 GB/s     25   8  2023    vendor
+l40s                             NVIDIA   gpu  142  362.00 TFLOPS   48.000 GB  864.00 GB/s    350   5  2023    vendor
+metax_c500                     MetaX 沐曦   gpu  104  280.00 TFLOPS   64.000 GB    1.80 TB/s    450   7  2023   derived
+mthreads_s4000       Moore Threads 摩尔线程   gpu  128  100.00 TFLOPS   48.000 GB  768.00 GB/s    450   7  2023   derived
+mthreads_s5000       Moore Threads 摩尔线程   gpu  160  250.00 TFLOPS   80.000 GB    1.60 TB/s    500   6  2026  estimate
+
+Brain-inspired many-core dataflow chips
+name                               vendor      arch   cores   SRAM/core    SRAM tot        SRAM BW      peak bf16     NoC bisect    chip2chip  TDP W  nm    yr      conf
+----------------  -----------------------  --------  ------  ----------  ----------  -------------  -------------  -------------  -----------  -----  --  ----  --------
+brainscales2                   Heidelberg       snn       4   32.000 KB  128.000 KB      2.00 GB/s    5.00 GFLOPS      2.00 GB/s    1.00 GB/s      1  65  2020     paper
+cerebras_wse3                    Cerebras     wafer  900000   48.000 KB   41.199 GB  20700.00 TB/s   62.50 PFLOPS  26750.00 TB/s    1.20 TB/s  23000   5  2024    vendor
+darwin3                  Zhejiang Univ 浙大       snn     240   64.000 KB   15.000 MB    312.00 GB/s  600.00 GFLOPS     20.00 GB/s    2.00 GB/s      2  22  2023  estimate
+groq_lpu_v1                          Groq  dataflow     320  736.256 KB  230.080 MB     80.00 TB/s  188.00 TFLOPS     80.00 TB/s  200.00 GB/s    275  14  2020     paper
+groq_lpu_v2                          Groq  dataflow     320    1.600 MB  512.000 MB    192.00 TB/s  375.00 TFLOPS    192.00 TB/s  400.00 GB/s    350   4  2025  estimate
+ipu_bow                         Graphcore  dataflow    1472  624.000 KB  897.000 MB     65.95 TB/s  350.00 TFLOPS     11.00 TB/s  320.00 GB/s    350   7  2022    vendor
+ipu_gc200                       Graphcore  dataflow    1472  624.000 KB  897.000 MB     47.55 TB/s  250.00 TFLOPS      8.00 TB/s  320.00 GB/s    300   7  2020    vendor
+loihi2                              Intel       snn     128  192.000 KB   24.000 MB      1.02 TB/s  500.00 GFLOPS     90.00 GB/s    6.00 GB/s      1   7  2021  estimate
+lynxi_hp300_proj               Lynxi 灵汐科技     brain     256    3.000 MB  768.000 MB     51.20 TB/s  128.00 TFLOPS      2.00 TB/s  200.00 GB/s    150  12  2025  estimate
+lynxi_ka200                    Lynxi 灵汐科技     brain      30    1.600 MB   48.000 MB      2.40 TB/s   16.00 TFLOPS    350.00 GB/s   50.00 GB/s     15  28  2021  estimate
+sambanova_sn40l                 SambaNova  dataflow    1040  512.000 KB  520.000 MB     14.56 TB/s  638.00 TFLOPS      4.00 TB/s  400.00 GB/s    700   5  2023     paper
+spinnaker2        TU Dresden / SpiNNcloud       snn     152  128.000 KB   19.000 MB    364.80 GB/s  300.00 GFLOPS     30.00 GB/s    6.00 GB/s      3  22  2024     paper
+tesla_dojo_d1                       Tesla  dataflow     354    1.250 MB  442.500 MB     40.00 TB/s  362.00 TFLOPS     10.00 TB/s    4.00 TB/s    400   7  2021     press
+tianjic                       Tsinghua 清华     brain     156   40.000 KB    6.094 MB    187.20 GB/s  320.00 GFLOPS     15.00 GB/s    4.00 GB/s      1  28  2019     paper
+tianjic2_proj                 Tsinghua 清华     brain     320  256.000 KB   80.000 MB     20.48 TB/s   64.00 TFLOPS      1.00 TB/s  100.00 GB/s     35  12  2024  estimate
+tianjicx                      Tsinghua 清华     brain      16   80.000 KB    1.250 MB     64.00 GB/s  500.00 GFLOPS     16.00 GB/s    2.00 GB/s      1  28  2022     paper
+truenorth                             IBM       snn    4096    1.300 KB    5.200 MB      5.32 GB/s   58.00 GFLOPS    400.00 MB/s   50.00 MB/s      0  28  2014     paper

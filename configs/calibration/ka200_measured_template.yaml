@@ -1,0 +1,77 @@
+# TEMPLATE ONLY. This is intentionally not a usable measured profile.
+# Replace every null and add all requested records from one identified
+# machine/run. Never copy the estimate values from hardware/registry.py here.
+schema_version: 1
+machine:
+  model: KA200
+  revision: null
+  firmware: null
+  runtime: null
+measurement:
+  timestamp: null
+  repetitions: 100
+  environment: null
+records:
+  # Repeat expert_latency for M = 1,2,4,8,16,32,64, every dtype/shape and
+  # relevant concurrent_experts setting. latency_s should be the declared
+  # central statistic; retain p50/p95/p99 and repetitions.
+  - kind: expert_latency
+    expert_shape: null
+    dtype: null
+    m: null
+    concurrent_experts: 1
+    residency: sram
+    latency_s: null
+    p50_s: null
+    p95_s: null
+    p99_s: null
+    repetitions: 100
+    clock_state: null
+    power_state: null
+
+  # Repeat at logarithmic message sizes and concurrency = 1,2,4,8,... for
+  # chip-local, node-local, scale-out and GPU bridge paths.
+  - kind: p2p
+    src_class: null
+    dst_class: null
+    bytes: null
+    concurrency: null
+    latency_s: null
+    p95_s: null
+
+  # Record real runtime multicast. Do not infer this row from p2p bandwidth.
+  - kind: multicast
+    src_class: null
+    dst_class: null
+    fanout: null
+    bytes: null
+    concurrency: null
+    latency_s: null
+    p95_s: null
+
+  # Record chip/node reduction separately.
+  - kind: reduce
+    src_class: null
+    dst_class: null
+    fanin: null
+    bytes: null
+    concurrency: null
+    latency_s: null
+    p95_s: null
+
+  # GPU-to-brain bridge, including the actual ingress endpoint count.
+  - kind: bridge
+    src_class: gpu
+    dst_class: node_switch
+    bytes: null
+    concurrency: null
+    latency_s: null
+    p95_s: null
+
+  # Power samples are retained by the artifact even though the current
+  # latency/bandwidth calibration builder does not yet fit them.
+  - kind: power
+    state: idle
+    watts: null
+    duration_s: null
+

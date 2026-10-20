@@ -1,0 +1,104 @@
+{
+  "default": {
+    "run_id": "lsi10k",
+    "library": "lsi_10k (Synopsys-shipped educational library)",
+    "saif": false,
+    "activity": "derived-rho0.5",
+    "array_bytes": 512,
+    "dtype": "int8",
+    "ratio_sram_byte_per_flop": 1.0904627824705797,
+    "ratio_sram_byte_per_flop_uncorrected": 10.904627824705798,
+    "flop_sram_factor": 10.0,
+    "measured": {
+      "j_per_flop_int8": 4.809375e-12,
+      "j_per_flop_16b": 1.921875e-11,
+      "j_per_byte_sram_flopram": 5.244444444444445e-11,
+      "j_per_byte_sram_corrected": 5.2444444444444445e-12,
+      "j_per_byte_noc_hop": 4.210666666666666e-12,
+      "j_per_cycle": {
+        "mac8": 6.156e-10,
+        "mac16": 2.46e-09,
+        "sram": 4.72e-10,
+        "noc": 1.2631999999999998e-10,
+        "pe": 1.219e-09
+      }
+    },
+    "note": "Absolute joules are from a ~0.5 um library and are NOT transferable; only the ratios are used, and the absolute scale is re-anchored to each device's TDP.",
+    "ratio_noc_byte_per_flop": 0.8755122373835823,
+    "relative_flop_energy": {
+      "int8": 1.0,
+      "fp8": 1.6783625730994154,
+      "bf16": 3.9961013645224175,
+      "fp16": 3.9961013645224175,
+      "fp32": 12.387914230019495
+    }
+  },
+  "dataflow": {
+    "run_id": "lsi10k",
+    "library": "lsi_10k (Synopsys-shipped educational library)",
+    "saif": false,
+    "activity": "derived-rho0.5",
+    "array_bytes": 512,
+    "dtype": "int8",
+    "ratio_sram_byte_per_flop": 1.0904627824705797,
+    "ratio_sram_byte_per_flop_uncorrected": 10.904627824705798,
+    "flop_sram_factor": 10.0,
+    "measured": {
+      "j_per_flop_int8": 4.809375e-12,
+      "j_per_flop_16b": 1.921875e-11,
+      "j_per_byte_sram_flopram": 5.244444444444445e-11,
+      "j_per_byte_sram_corrected": 5.2444444444444445e-12,
+      "j_per_byte_noc_hop": 4.210666666666666e-12,
+      "j_per_cycle": {
+        "mac8": 6.156e-10,
+        "mac16": 2.46e-09,
+        "sram": 4.72e-10,
+        "noc": 1.2631999999999998e-10,
+        "pe": 1.219e-09
+      }
+    },
+    "note": "Absolute joules are from a ~0.5 um library and are NOT transferable; only the ratios are used, and the absolute scale is re-anchored to each device's TDP.",
+    "ratio_noc_byte_per_flop": 0.8755122373835823,
+    "relative_flop_energy": {
+      "int8": 1.0,
+      "fp8": 1.6783625730994154,
+      "bf16": 3.9961013645224175,
+      "fp16": 3.9961013645224175,
+      "fp32": 12.387914230019495
+    }
+  },
+  "gpu": {
+    "run_id": "lsi10k",
+    "library": "lsi_10k (Synopsys-shipped educational library)",
+    "saif": false,
+    "activity": "derived-rho0.5",
+    "array_bytes": 512,
+    "dtype": "int8",
+    "ratio_sram_byte_per_flop": 1.0904627824705797,
+    "ratio_sram_byte_per_flop_uncorrected": 10.904627824705798,
+    "flop_sram_factor": 10.0,
+    "measured": {
+      "j_per_flop_int8": 4.809375e-12,
+      "j_per_flop_16b": 1.921875e-11,
+      "j_per_byte_sram_flopram": 5.244444444444445e-11,
+      "j_per_byte_sram_corrected": 5.2444444444444445e-12,
+      "j_per_byte_noc_hop": 4.210666666666666e-12,
+      "j_per_cycle": {
+        "mac8": 6.156e-10,
+        "mac16": 2.46e-09,
+        "sram": 4.72e-10,
+        "noc": 1.2631999999999998e-10,
+        "pe": 1.219e-09
+      }
+    },
+    "note": "Absolute joules are from a ~0.5 um library and are NOT transferable; only the ratios are used, and the absolute scale is re-anchored to each device's TDP.",
+    "ratio_noc_byte_per_flop": 0.8755122373835823,
+    "relative_flop_energy": {
+      "int8": 1.0,
+      "fp8": 1.6783625730994154,
+      "bf16": 3.9961013645224175,
+      "fp16": 3.9961013645224175,
+      "fp32": 12.387914230019495
+    }
+  }
+}

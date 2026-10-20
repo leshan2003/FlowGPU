@@ -1,0 +1,252 @@
+
+======================================================================
+SWEEP 1: SRAM per core (chip count rescaled to hold total capacity fixed)
+======================================================================
+--- baseline: iluvatar43 ---
+  probe    0.500 req/s -> att  98.1%     276.6 tok/s
+  probe    1.000 req/s -> att  24.3%     482.0 tok/s
+  bisect    0.750 req/s -> att  94.2%     403.8 tok/s
+  bisect    0.625 req/s -> att 100.0%     345.4 tok/s
+  bisect    0.688 req/s -> att 100.0%     371.3 tok/s
+  bisect    0.719 req/s -> att  98.1%     389.3 tok/s
+  bisect    0.734 req/s -> att  96.1%     402.4 tok/s
+--- sram_per_core=0.5 MB/core (1536 chips) ---
+  probe    0.500 req/s -> att  92.2%     270.7 tok/s
+  bisect    0.275 req/s -> att  98.1%     154.8 tok/s
+  bisect    0.388 req/s -> att  97.1%     214.4 tok/s
+  bisect    0.444 req/s -> att  99.0%     243.3 tok/s
+  bisect    0.472 req/s -> att  88.3%     254.7 tok/s
+  bisect    0.458 req/s -> att  96.1%     248.7 tok/s
+--- sram_per_core=1 MB/core (768 chips) ---
+  probe    0.500 req/s -> att  96.1%     273.2 tok/s
+  probe    1.000 req/s -> att   0.0%     365.4 tok/s
+  bisect    0.750 req/s -> att  15.5%     361.9 tok/s
+  bisect    0.625 req/s -> att  51.5%     330.0 tok/s
+  bisect    0.562 req/s -> att  75.7%     300.7 tok/s
+  bisect    0.531 req/s -> att  88.3%     288.7 tok/s
+  bisect    0.516 req/s -> att  91.3%     278.4 tok/s
+--- sram_per_core=2 MB/core (384 chips) ---
+  probe    0.500 req/s -> att  90.3%     276.2 tok/s
+  bisect    0.275 req/s -> att  97.1%     154.5 tok/s
+  bisect    0.388 req/s -> att 100.0%     214.7 tok/s
+  bisect    0.444 req/s -> att  98.1%     242.6 tok/s
+  bisect    0.472 req/s -> att  90.3%     255.5 tok/s
+  bisect    0.458 req/s -> att  96.1%     248.1 tok/s
+--- sram_per_core=4 MB/core (192 chips) ---
+  probe    0.500 req/s -> att  89.3%     269.3 tok/s
+  bisect    0.275 req/s -> att  98.1%     154.4 tok/s
+  bisect    0.388 req/s -> att  99.0%     213.7 tok/s
+  bisect    0.444 req/s -> att  91.3%     241.4 tok/s
+  bisect    0.416 req/s -> att  96.1%     226.8 tok/s
+  bisect    0.430 req/s -> att  94.2%     234.3 tok/s
+--- sram_per_core=8 MB/core (96 chips) ---
+  probe    0.500 req/s -> att  67.0%     267.9 tok/s
+  bisect    0.275 req/s -> att  82.5%     151.4 tok/s
+  bisect    0.163 req/s -> att  86.4%      91.6 tok/s
+  bisect    0.106 req/s -> att  94.2%      60.4 tok/s
+  bisect    0.078 req/s -> att  99.0%      44.6 tok/s
+  bisect    0.092 req/s -> att  96.1%      52.6 tok/s
+  bisect    0.099 req/s -> att  95.1%      56.5 tok/s
+  bisect    0.103 req/s -> att  93.2%      58.4 tok/s
+--- sram_per_core=16 MB/core (48 chips) ---
+  probe    0.500 req/s -> att  21.4%     233.5 tok/s
+  bisect    0.275 req/s -> att  52.4%     148.2 tok/s
+  bisect    0.163 req/s -> att  48.5%      89.9 tok/s
+  bisect    0.106 req/s -> att  63.1%      59.8 tok/s
+  bisect    0.078 req/s -> att  73.8%      44.1 tok/s
+  bisect    0.064 req/s -> att  74.8%      36.2 tok/s
+  bisect    0.057 req/s -> att  75.7%      32.4 tok/s
+  bisect    0.054 req/s -> att  76.7%      30.4 tok/s
+  bisect    0.052 req/s -> att  80.6%      29.5 tok/s
+--- sram_per_core=32 MB/core (24 chips) ---
+  probe    0.500 req/s -> att   3.9%     205.9 tok/s
+  bisect    0.275 req/s -> att  15.5%     137.2 tok/s
+  bisect    0.163 req/s -> att  15.5%      85.5 tok/s
+  bisect    0.106 req/s -> att  25.2%      57.3 tok/s
+  bisect    0.078 req/s -> att  33.0%      43.5 tok/s
+  bisect    0.064 req/s -> att  37.9%      35.8 tok/s
+  bisect    0.057 req/s -> att  43.7%      32.1 tok/s
+  bisect    0.054 req/s -> att  44.7%      29.9 tok/s
+  bisect    0.052 req/s -> att  44.7%      29.0 tok/s
+
+BREAK-EVEN SWEEP: sram_per_core
+baseline = iluvatar43: 402.4 tok/s, 123.04 tok/s/kW
+
+sram_per_core  req/s  tok/s  vs GPU    kW  tok/s/kW  vs GPU                                                          note
+-------------  -----  -----  ------  ----  --------  ------  ------------------------------------------------------------
+0.5 MB/core    0.458  248.7   0.62x  56.3      4.41   0.04x                                                              
+1 MB/core      0.500  273.2   0.68x  29.3      9.32   0.08x                                                              
+2 MB/core      0.458  248.1   0.62x  15.6     15.86   0.13x                                                              
+4 MB/core      0.416  226.8   0.56x   8.9     25.43   0.21x                  SRAM = 638 mm2 (0.8 reticles) -- not one die
+8 MB/core      0.099   56.5   0.14x   5.9      9.54   0.08x                 SRAM = 1276 mm2 (1.6 reticles) -- not one die
+16 MB/core     0.052   29.5   0.07x   4.2      6.94   0.06x  SRAM = 2551 mm2 (3.2 reticles) -- not one die; SLO never met
+32 MB/core     0.052   29.0   0.07x   3.4      8.41   0.07x  SRAM = 5102 mm2 (6.4 reticles) -- not one die; SLO never met
+
+  throughput parity not reached in this range
+  energy-efficiency parity not reached in this range
+  the claimed 2x throughput is not reached in this range
+  the claimed 2x efficiency is not reached in this range
+
+======================================================================
+SWEEP 2: brain-chip TDP at fixed capability
+======================================================================
+--- baseline: iluvatar43 ---
+  probe    0.500 req/s -> att  98.1%     276.6 tok/s
+  probe    1.000 req/s -> att  24.3%     482.0 tok/s
+  bisect    0.750 req/s -> att  94.2%     403.8 tok/s
+  bisect    0.625 req/s -> att 100.0%     345.4 tok/s
+  bisect    0.688 req/s -> att 100.0%     371.3 tok/s
+  bisect    0.719 req/s -> att  98.1%     389.3 tok/s
+  bisect    0.734 req/s -> att  96.1%     402.4 tok/s
+--- tdp=20 W (256 chips) ---
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.1 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+--- tdp=40 W (256 chips) ---
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.1 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+--- tdp=60 W (256 chips) ---
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.1 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+--- tdp=90 W (256 chips) ---
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.1 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+--- tdp=150 W (256 chips) ---
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.1 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+--- tdp=250 W (256 chips) ---
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.1 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+
+BREAK-EVEN SWEEP: tdp
+baseline = iluvatar43: 402.4 tok/s, 123.04 tok/s/kW
+
+tdp    req/s  tok/s  vs GPU    kW  tok/s/kW  vs GPU  note
+-----  -----  -----  ------  ----  --------  ------  ----
+20 W   0.500  273.3   0.68x   5.4     50.86   0.41x      
+40 W   0.500  273.3   0.68x   6.3     43.67   0.35x      
+60 W   0.500  273.3   0.68x   7.1     38.26   0.31x      
+90 W   0.500  273.3   0.68x   8.5     32.27   0.26x      
+150 W  0.500  273.3   0.68x  11.1     24.57   0.20x      
+250 W  0.500  273.3   0.68x  15.5     17.58   0.14x      
+
+  throughput parity not reached in this range
+  energy-efficiency parity not reached in this range
+  the claimed 2x throughput is not reached in this range
+  the claimed 2x efficiency is not reached in this range
+
+======================================================================
+SWEEP 3: GPU <-> brain-chip bridge bandwidth
+======================================================================
+  probe    0.500 req/s -> att  98.1%     276.6 tok/s
+  probe    1.000 req/s -> att  24.3%     482.0 tok/s
+  bisect    0.750 req/s -> att  94.2%     403.8 tok/s
+  bisect    0.625 req/s -> att 100.0%     345.4 tok/s
+  bisect    0.688 req/s -> att 100.0%     371.3 tok/s
+  bisect    0.719 req/s -> att  98.1%     389.3 tok/s
+  bisect    0.734 req/s -> att  96.1%     402.4 tok/s
+  probe    0.500 req/s -> att  90.3%     271.0 tok/s
+  bisect    0.275 req/s -> att  97.1%     154.4 tok/s
+  bisect    0.388 req/s -> att 100.0%     214.1 tok/s
+  bisect    0.444 req/s -> att  96.1%     241.3 tok/s
+  bisect    0.472 req/s -> att  92.2%     256.5 tok/s
+  bisect    0.458 req/s -> att  92.2%     251.1 tok/s
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.8 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.5 tok/s
+  bisect    0.625 req/s -> att  38.8%     326.1 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.1 tok/s
+  bisect    0.531 req/s -> att  84.5%     288.6 tok/s
+  bisect    0.516 req/s -> att  83.5%     279.8 tok/s
+  probe    0.500 req/s -> att  95.1%     273.9 tok/s
+  probe    1.000 req/s -> att   0.0%     350.8 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.5 tok/s
+  bisect    0.625 req/s -> att  39.8%     323.7 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.1 tok/s
+  bisect    0.531 req/s -> att  84.5%     288.7 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.7 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  84.5%     288.7 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.1 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.2 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.2 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+  probe    0.500 req/s -> att  95.1%     273.3 tok/s
+  probe    1.000 req/s -> att   0.0%     350.9 tok/s
+  bisect    0.750 req/s -> att  12.6%     352.6 tok/s
+  bisect    0.625 req/s -> att  40.8%     323.8 tok/s
+  bisect    0.562 req/s -> att  61.2%     299.2 tok/s
+  bisect    0.531 req/s -> att  79.6%     284.2 tok/s
+  bisect    0.516 req/s -> att  90.3%     281.7 tok/s
+
+BREAK-EVEN SWEEP: bridge lanes (x800G)
+baseline = iluvatar43: 402.4 tok/s, 123.04 tok/s/kW
+
+bridge lanes (x800G)  req/s  tok/s  vs GPU    kW  tok/s/kW  vs GPU                  note
+--------------------  -----  -----  ------  ----  --------  ------  --------------------
+1                     0.444  241.3   0.60x  11.1     21.66   0.18x    100 GB/s aggregate
+2                     0.500  273.3   0.68x  11.1     24.57   0.20x    200 GB/s aggregate
+4                     0.500  273.9   0.68x  11.1     24.62   0.20x    400 GB/s aggregate
+8                     0.500  273.3   0.68x  11.1     24.57   0.20x    800 GB/s aggregate
+24                    0.500  273.3   0.68x  11.1     24.57   0.20x   2400 GB/s aggregate
+48                    0.500  273.3   0.68x  11.1     24.57   0.20x   4800 GB/s aggregate
+96                    0.500  273.3   0.68x  11.1     24.57   0.20x   9600 GB/s aggregate
+192                   0.500  273.3   0.68x  11.1     24.57   0.20x  19200 GB/s aggregate
+
+  throughput parity not reached in this range
+  energy-efficiency parity not reached in this range
+  the claimed 2x throughput is not reached in this range
+  the claimed 2x efficiency is not reached in this range
+
+[saved] results/breakeven.json

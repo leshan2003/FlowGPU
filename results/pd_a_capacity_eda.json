@@ -1,0 +1,344 @@
+{
+  "pure_gpu_equal_capex": {
+    "max_rate": 0.734375,
+    "output_throughput": 402.3892040844118,
+    "avg_power": 3175.2362734981143,
+    "energy_per_output_token": 7.890957911564706,
+    "tokens_per_kw": 126.7273265435158,
+    "ttft_p99": 8.409398831706213,
+    "tpot_p99": 0.04852167486532409,
+    "capex": 800000.0,
+    "tdp": 12000.0,
+    "warnings": [],
+    "curve": [
+      {
+        "rate": 0.5,
+        "attainment": 0.9805825242718447,
+        "output_throughput": 276.6373486380757,
+        "avg_power": 3365.647199345805
+      },
+      {
+        "rate": 0.625,
+        "attainment": 1.0,
+        "output_throughput": 345.44555224704936,
+        "avg_power": 3259.0376146219087
+      },
+      {
+        "rate": 0.6875,
+        "attainment": 1.0,
+        "output_throughput": 371.3435106850992,
+        "avg_power": 3194.9500767813556
+      },
+      {
+        "rate": 0.71875,
+        "attainment": 0.9805825242718447,
+        "output_throughput": 389.3286218595219,
+        "avg_power": 3179.413345480699
+      },
+      {
+        "rate": 0.734375,
+        "attainment": 0.9611650485436893,
+        "output_throughput": 402.3892040844118,
+        "avg_power": 3175.2362734981143
+      },
+      {
+        "rate": 0.75,
+        "attainment": 0.941747572815534,
+        "output_throughput": 403.83539036289534,
+        "avg_power": 3161.1663847811838
+      },
+      {
+        "rate": 1.0,
+        "attainment": 0.24271844660194175,
+        "output_throughput": 481.9697066527033,
+        "avg_power": 3046.010791442159
+      }
+    ]
+  },
+  "pure_gpu_same_count": {
+    "max_rate": 0.59375,
+    "output_throughput": 327.3970218844257,
+    "avg_power": 2202.0727911764293,
+    "energy_per_output_token": 6.726001288899267,
+    "tokens_per_kw": 148.67674819664703,
+    "ttft_p99": 7.874690831209307,
+    "tpot_p99": 0.023192870506116382,
+    "capex": 480000.0,
+    "tdp": 7200.0,
+    "warnings": [],
+    "curve": [
+      {
+        "rate": 0.5,
+        "attainment": 1.0,
+        "output_throughput": 272.942164483041,
+        "avg_power": 2244.769407141984
+      },
+      {
+        "rate": 0.5625,
+        "attainment": 1.0,
+        "output_throughput": 306.8781761290024,
+        "avg_power": 2229.824282825519
+      },
+      {
+        "rate": 0.59375,
+        "attainment": 1.0,
+        "output_throughput": 327.3970218844257,
+        "avg_power": 2202.0727911764293
+      },
+      {
+        "rate": 0.609375,
+        "attainment": 0.9320388349514563,
+        "output_throughput": 327.69123680191996,
+        "avg_power": 2202.5329097210015
+      },
+      {
+        "rate": 0.625,
+        "attainment": 0.9029126213592233,
+        "output_throughput": 337.82596189890074,
+        "avg_power": 2192.80416711292
+      },
+      {
+        "rate": 0.75,
+        "attainment": 0.8932038834951457,
+        "output_throughput": 392.54616827090774,
+        "avg_power": 2163.382879527501
+      },
+      {
+        "rate": 1.0,
+        "attainment": 0.2524271844660194,
+        "output_throughput": 457.7831362764043,
+        "avg_power": 2112.751473184284
+      }
+    ]
+  },
+  "pd_a": {
+    "max_rate": 0.609375,
+    "output_throughput": 330.3653490611258,
+    "avg_power": 11305.534475943496,
+    "energy_per_output_token": 34.22130834263641,
+    "tokens_per_kw": 29.221559561301092,
+    "ttft_p99": 8.365687928979753,
+    "tpot_p99": 0.031650577914525,
+    "capex": 864000.0,
+    "tdp": 48000.0,
+    "warnings": [],
+    "curve": [
+      {
+        "rate": 0.5,
+        "attainment": 1.0,
+        "output_throughput": 275.3872504267867,
+        "avg_power": 11322.631313238617
+      },
+      {
+        "rate": 0.5625,
+        "attainment": 0.9805825242718447,
+        "output_throughput": 304.8834445054927,
+        "avg_power": 11320.599639396738
+      },
+      {
+        "rate": 0.59375,
+        "attainment": 0.9902912621359223,
+        "output_throughput": 327.9658722621959,
+        "avg_power": 11314.893656188811
+      },
+      {
+        "rate": 0.609375,
+        "attainment": 0.9514563106796117,
+        "output_throughput": 330.3653490611258,
+        "avg_power": 11305.534475943496
+      },
+      {
+        "rate": 0.625,
+        "attainment": 0.941747572815534,
+        "output_throughput": 336.9715825734603,
+        "avg_power": 11306.898772820847
+      },
+      {
+        "rate": 0.75,
+        "attainment": 0.7669902912621359,
+        "output_throughput": 392.19472962034905,
+        "avg_power": 11287.606066651932
+      },
+      {
+        "rate": 1.0,
+        "attainment": 0.1941747572815534,
+        "output_throughput": 468.10473233290594,
+        "avg_power": 11302.359085010867
+      }
+    ]
+  },
+  "pd_a_no_quant_crossing": {
+    "max_rate": 0.609375,
+    "output_throughput": 330.34884507349955,
+    "avg_power": 11305.562321424699,
+    "energy_per_output_token": 34.22310230541086,
+    "tokens_per_kw": 29.220027777607246,
+    "ttft_p99": 8.37400784844587,
+    "tpot_p99": 0.03165130552085764,
+    "capex": 864000.0,
+    "tdp": 48000.0,
+    "warnings": [],
+    "curve": [
+      {
+        "rate": 0.5,
+        "attainment": 1.0,
+        "output_throughput": 275.38230941540445,
+        "avg_power": 11322.642200075636
+      },
+      {
+        "rate": 0.5625,
+        "attainment": 0.9805825242718447,
+        "output_throughput": 304.8779035629662,
+        "avg_power": 11320.610605854361
+      },
+      {
+        "rate": 0.59375,
+        "attainment": 0.9902912621359223,
+        "output_throughput": 327.02781383263584,
+        "avg_power": 11314.536479622866
+      },
+      {
+        "rate": 0.609375,
+        "attainment": 0.9514563106796117,
+        "output_throughput": 330.34884507349955,
+        "avg_power": 11305.562321424699
+      },
+      {
+        "rate": 0.625,
+        "attainment": 0.941747572815534,
+        "output_throughput": 336.9510149627152,
+        "avg_power": 11306.932393054549
+      },
+      {
+        "rate": 0.75,
+        "attainment": 0.8640776699029126,
+        "output_throughput": 395.97435622581065,
+        "avg_power": 11293.40598156799
+      },
+      {
+        "rate": 1.0,
+        "attainment": 0.1941747572815534,
+        "output_throughput": 468.08005895480755,
+        "avg_power": 11302.388141928343
+      }
+    ]
+  },
+  "layer_split": {
+    "max_rate": 0.28203125,
+    "output_throughput": 158.75765888865445,
+    "avg_power": 11695.105689543907,
+    "energy_per_output_token": 73.66640306623779,
+    "tokens_per_kw": 13.574709207681028,
+    "ttft_p99": 10.884147267130288,
+    "tpot_p99": 0.011881288645137163,
+    "capex": 864000.0,
+    "tdp": 48000.0,
+    "warnings": [],
+    "curve": [
+      {
+        "rate": 0.275,
+        "attainment": 0.9611650485436893,
+        "output_throughput": 154.48156961650807,
+        "avg_power": 11699.73543351999
+      },
+      {
+        "rate": 0.28203125,
+        "attainment": 0.9514563106796117,
+        "output_throughput": 158.75765888865445,
+        "avg_power": 11695.105689543907
+      },
+      {
+        "rate": 0.2890625,
+        "attainment": 0.941747572815534,
+        "output_throughput": 162.27407042692593,
+        "avg_power": 11692.893354748501
+      },
+      {
+        "rate": 0.30312500000000003,
+        "attainment": 0.9320388349514563,
+        "output_throughput": 169.9115294857815,
+        "avg_power": 11688.017326361169
+      },
+      {
+        "rate": 0.33125000000000004,
+        "attainment": 0.9223300970873787,
+        "output_throughput": 185.87836657960443,
+        "avg_power": 11678.041144490127
+      },
+      {
+        "rate": 0.3875,
+        "attainment": 0.9223300970873787,
+        "output_throughput": 217.13907387729486,
+        "avg_power": 11661.937844391528
+      },
+      {
+        "rate": 0.5,
+        "attainment": 0.941747572815534,
+        "output_throughput": 276.4597747674897,
+        "avg_power": 11627.89067328035
+      }
+    ]
+  },
+  "moe_offload_only": {
+    "max_rate": 1.09375,
+    "output_throughput": 568.9675065847479,
+    "avg_power": 10561.480995348276,
+    "energy_per_output_token": 18.562538059060742,
+    "tokens_per_kw": 53.871943417343196,
+    "ttft_p99": 9.147363792766583,
+    "tpot_p99": 0.03793713734900102,
+    "capex": 864000.0,
+    "tdp": 48000.0,
+    "warnings": [],
+    "curve": [
+      {
+        "rate": 0.5,
+        "attainment": 0.970873786407767,
+        "output_throughput": 277.91169875646614,
+        "avg_power": 11039.647488422886
+      },
+      {
+        "rate": 1.0,
+        "attainment": 0.9611650485436893,
+        "output_throughput": 524.4553204611432,
+        "avg_power": 10603.223438955998
+      },
+      {
+        "rate": 1.0625,
+        "attainment": 0.9611650485436893,
+        "output_throughput": 547.5801792440877,
+        "avg_power": 10586.152259389703
+      },
+      {
+        "rate": 1.09375,
+        "attainment": 0.9611650485436893,
+        "output_throughput": 568.9675065847479,
+        "avg_power": 10561.480995348276
+      },
+      {
+        "rate": 1.125,
+        "attainment": 0.9320388349514563,
+        "output_throughput": 574.0520245334826,
+        "avg_power": 10563.502527282164
+      },
+      {
+        "rate": 1.25,
+        "attainment": 0.8446601941747572,
+        "output_throughput": 615.0851428558861,
+        "avg_power": 10490.899247273324
+      },
+      {
+        "rate": 1.5,
+        "attainment": 0.7378640776699029,
+        "output_throughput": 702.7879890906477,
+        "avg_power": 10387.021737464493
+      },
+      {
+        "rate": 2.0,
+        "attainment": 0.13592233009708737,
+        "output_throughput": 764.2272575307294,
+        "avg_power": 10244.17643419333
+      }
+    ]
+  }
+}

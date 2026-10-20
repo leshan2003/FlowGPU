@@ -1,0 +1,471 @@
+{
+  "diffusion/8x H100": {
+    "latency": 0.905901106768855,
+    "throughput": 1.103873251205945,
+    "avg_power": 2779.4197829738628,
+    "energy_per_item": 2517.879457571273,
+    "achieved_flops": 4599819025477050.0,
+    "flops": 4166981146116096.0,
+    "t_by_bound": {
+      "compute": 0.8827243843643667,
+      "memory": 0.02317672240448956
+    },
+    "busy_by_pool": {
+      "gpu": 0.905901106768855
+    },
+    "e_by_source": {
+      "mem:hbm": 26.585783441817625,
+      "mem:l2": 38.24265180733627,
+      "compute": 884.0303053984697,
+      "static": 1116.0701635392297,
+      "idle": 0.0,
+      "host": 452.9505533844275
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "h100_sxmx8",
+      "placement": "all_gpu",
+      "weights_by_pool": {
+        "gpu": 18.04193115234375
+      },
+      "steps": 28,
+      "cfg": true
+    }
+  },
+  "diffusion/1x H100": {
+    "latency": 6.70118022292442,
+    "throughput": 0.1492274445297035,
+    "avg_power": 795.5957650865164,
+    "energy_per_item": 5331.430606440186,
+    "achieved_flops": 621827947838360.0,
+    "flops": 4166981146116096.0,
+    "t_by_bound": {
+      "compute": 6.560454443688494,
+      "memory": 0.1407257792359164
+    },
+    "busy_by_pool": {
+      "gpu": 6.70118022292442
+    },
+    "e_by_source": {
+      "mem:hbm": 26.585783441817625,
+      "mem:l2": 38.24265180733627,
+      "compute": 884.0303053984697,
+      "static": 1031.981754330358,
+      "idle": 0.0,
+      "host": 3350.59011146221
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "h100_sxmx1",
+      "placement": "all_gpu",
+      "weights_by_pool": {
+        "gpu": 18.04193115234375
+      },
+      "steps": 28,
+      "cfg": true
+    }
+  },
+  "diffusion/16x IPU GC200": {
+    "latency": 4.063431846426443,
+    "throughput": 0.24609739692802846,
+    "avg_power": 2112.9733964634333,
+    "energy_per_item": 8585.923389841362,
+    "achieved_flops": 1025483213107343.9,
+    "flops": 4166981146116096.0,
+    "t_by_bound": {
+      "compute": 0.010074280995956364,
+      "memory": 0.21278582620648118,
+      "network": 3.840571739224008
+    },
+    "busy_by_pool": {
+      "brain": 4.063431846426443
+    },
+    "e_by_source": {
+      "mem:sram": 23.6406160563631,
+      "mem:dram": 29.394994914433013,
+      "compute": 701.0144286299128,
+      "noc": 257.63638850178137,
+      "static": 3510.8051153124397,
+      "idle": 0.0,
+      "host": 4063.4318464264434
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "ipu_gc200x16",
+      "placement": "all_dataflow",
+      "weights_by_pool": {
+        "brain": 18.04193115234375
+      },
+      "steps": 28,
+      "cfg": true
+    }
+  },
+  "diffusion/32x Groq LPU": {
+    "latency": 45.85502383797768,
+    "throughput": 0.021807861305085354,
+    "avg_power": 2594.45392097322,
+    "energy_per_item": 118968.74639276168,
+    "achieved_flops": 90872946895405.42,
+    "flops": 4166981146116096.0,
+    "t_by_bound": {
+      "compute": 45.85502383797768
+    },
+    "busy_by_pool": {
+      "brain": 45.85502383797768
+    },
+    "e_by_source": {
+      "mem:sram": 13.979232255023447,
+      "compute": 458.36945002336324,
+      "noc": 7.016113148962574,
+      "static": 72634.3577593561,
+      "idle": 0.0,
+      "host": 45855.023837977686
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "groq_lpu_v1x32",
+      "placement": "all_dataflow",
+      "weights_by_pool": {
+        "brain": 18.04193115234375
+      },
+      "steps": 28,
+      "cfg": true
+    }
+  },
+  "diffusion/256x Lynxi(proj)": {
+    "latency": 1.3903052040533295,
+    "throughput": 0.7192665301723505,
+    "avg_power": 11323.227820535263,
+    "energy_per_item": 15742.742565571616,
+    "achieved_flops": 2997170070260528.5,
+    "flops": 4166981146116096.0,
+    "t_by_bound": {
+      "compute": 1.3880613557333283,
+      "network": 0.0022438483199999975
+    },
+    "busy_by_pool": {
+      "brain": 1.3903052040533295
+    },
+    "e_by_source": {
+      "mem:sram": 12.37794053383863,
+      "compute": 245.5324933025244,
+      "noc": 313.8217451052989,
+      "static": 9609.789570416639,
+      "idle": 0.0,
+      "host": 5561.220816213317
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "lynxi_hp300_projx256",
+      "placement": "all_dataflow",
+      "weights_by_pool": {
+        "brain": 18.04193115234375
+      },
+      "steps": 28,
+      "cfg": true
+    }
+  },
+  "cnn/1x H100": {
+    "latency": 0.0007701975040000001,
+    "throughput": 83095.56921129674,
+    "avg_power": 852.3586110258007,
+    "energy_per_item": 0.010257569917577791,
+    "achieved_flops": 681383667532633.2,
+    "flops": 524800000000.0,
+    "t_by_bound": {
+      "memory": 0.0007701975040000001
+    },
+    "busy_by_pool": {
+      "gpu": 0.0007701975040000001
+    },
+    "e_by_source": {
+      "mem:hbm": 0.03172109516800002,
+      "mem:l2": 0.10398254138922126,
+      "compute": 0.017071670551757283,
+      "static": 0.11861041561599998,
+      "idle": 0.0,
+      "host": 0.38509875200000004
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "h100_sxmx1",
+      "placement": "all_gpu",
+      "weights_by_pool": {
+        "gpu": 0.02384185791015625
+      }
+    }
+  },
+  "cnn/1x Jetson Orin": {
+    "latency": 0.00787534848,
+    "throughput": 8126.624512239996,
+    "avg_power": 37.941433624411886,
+    "energy_per_item": 0.004668781431609891,
+    "achieved_flops": 66638321000367.97,
+    "flops": 524800000000.0,
+    "t_by_bound": {
+      "memory": 0.00787534848
+    },
+    "busy_by_pool": {
+      "gpu": 0.00787534848
+    },
+    "e_by_source": {
+      "mem:hbm": 0.04531585023999999,
+      "mem:l2": 0.04462498750041014,
+      "compute": 0.02615308914662295,
+      "static": 0.10395459993600004,
+      "idle": 0.0,
+      "host": 0.07875348480000001
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "orin",
+      "placement": "all_gpu",
+      "weights_by_pool": {
+        "gpu": 0.02384185791015625
+      }
+    }
+  },
+  "cnn/1x IPU GC200": {
+    "latency": 0.0038280638218923936,
+    "throughput": 16718.634531114418,
+    "avg_power": 326.266118325236,
+    "energy_per_item": 0.019515117560470294,
+    "achieved_flops": 137092803155138.22,
+    "flops": 524800000000.0,
+    "t_by_bound": {
+      "compute": 0.0038280638218923936
+    },
+    "busy_by_pool": {
+      "brain": 0.0038280638218923936
+    },
+    "e_by_source": {
+      "mem:sram": 0.05735874905059888,
+      "compute": 0.01353741755742633,
+      "noc": 0.01433995540678603,
+      "static": 0.2067154463821893,
+      "idle": 0.0,
+      "host": 0.9570159554730984
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "ipu_gc200x1",
+      "placement": "all_dataflow",
+      "weights_by_pool": {
+        "brain": 0.02384185791015625
+      }
+    }
+  },
+  "cnn/1x Lynxi KA200": {
+    "latency": 0.02415123264222346,
+    "throughput": 2649.9682624111356,
+    "avg_power": 15.30433538236207,
+    "energy_per_item": 0.005775290066469348,
+    "achieved_flops": 21729739751771.312,
+    "flops": 524800000000.0,
+    "t_by_bound": {
+      "compute": 0.02415123264222346
+    },
+    "busy_by_pool": {
+      "brain": 0.02415123264222346
+    },
+    "e_by_source": {
+      "mem:sram": 0.05087406341538991,
+      "compute": 0.011700579789840116,
+      "noc": 0.0003232664925703197,
+      "static": 0.06520832813400333,
+      "idle": 0.0,
+      "host": 0.2415123264222346
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "lynxi_ka200x1",
+      "placement": "all_dataflow",
+      "weights_by_pool": {
+        "brain": 0.02384185791015625
+      }
+    }
+  },
+  "cnn/1x Groq LPU": {
+    "latency": 0.01676014300797532,
+    "throughput": 3818.583168982841,
+    "avg_power": 301.92940035896476,
+    "energy_per_item": 0.07906843638013257,
+    "achieved_flops": 31312381985659.297,
+    "flops": 524800000000.0,
+    "t_by_bound": {
+      "compute": 0.01676014300797532
+    },
+    "busy_by_pool": {
+      "brain": 0.01676014300797532
+    },
+    "e_by_source": {
+      "mem:sram": 0.03179187804019008,
+      "compute": 0.008851656095954662,
+      "noc": 7.356330373183795e-05,
+      "static": 0.8296270788947786,
+      "idle": 0.0,
+      "host": 4.19003575199383
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "groq_lpu_v1x1",
+      "placement": "all_dataflow",
+      "weights_by_pool": {
+        "brain": 0.02384185791015625
+      }
+    }
+  },
+  "vlm/4x H100 (all GPU)": {
+    "latency": 0.018372164900043775,
+    "throughput": 54.430166800735456,
+    "avg_power": 1525.8098309242423,
+    "energy_per_item": 28.03242981984809,
+    "achieved_flops": 1696963766711549.2,
+    "flops": 31176898151424.0,
+    "t_by_bound": {
+      "compute": 0.017586583646312447,
+      "memory": 0.0007855812537313437
+    },
+    "busy_by_pool": {
+      "gpu": 0.018372164900043775
+    },
+    "e_by_source": {
+      "mem:hbm": 0.5393064133631995,
+      "mem:l2": 0.3755691160049427,
+      "compute": 6.614218262031107,
+      "static": 11.317253578426985,
+      "idle": 0.0,
+      "host": 9.186082450021887
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "h100_sxmx4",
+      "placement": "all_gpu",
+      "weights_by_pool": {
+        "gpu": 14.12862491607666
+      },
+      "visual_tokens": 1332,
+      "text_tokens": 256
+    }
+  },
+  "vlm/16x IPU (all dataflow)": {
+    "latency": 0.03610092908252922,
+    "throughput": 27.700118124769887,
+    "avg_power": 2091.0302453798326,
+    "energy_per_item": 75.48813459788101,
+    "achieved_flops": 863603761558364.6,
+    "flops": 31176898151424.0,
+    "t_by_bound": {
+      "network": 0.02699461608500001,
+      "memory": 0.000701447652365555,
+      "compute": 0.008404865345163633
+    },
+    "busy_by_pool": {
+      "brain": 0.03610092908252922
+    },
+    "e_by_source": {
+      "mem:sram": 0.2999905051503044,
+      "mem:dram": 0.45820256255999936,
+      "compute": 5.244913446379314,
+      "noc": 2.192896273956908,
+      "static": 31.19120272730523,
+      "idle": 0.0,
+      "host": 36.10092908252923
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "ipu_gc200x16",
+      "placement": "all_dataflow",
+      "weights_by_pool": {
+        "brain": 14.12862491607666
+      },
+      "visual_tokens": 1332,
+      "text_tokens": 256
+    }
+  },
+  "vlm/4x H100 + 16x IPU, ViT->IPU": {
+    "latency": 0.031171449897544775,
+    "throughput": 32.0806379968474,
+    "avg_power": 3247.6635297161006,
+    "energy_per_item": 101.23438100062884,
+    "achieved_flops": 1000174783460414.4,
+    "flops": 31176898151424.0,
+    "t_by_bound": {
+      "network": 0.020847650717000014,
+      "memory": 0.0004916055097313437,
+      "compute": 0.009832193670813434
+    },
+    "busy_by_pool": {
+      "brain": 0.020847650717000014,
+      "gpu": 0.010323799180544761
+    },
+    "e_by_source": {
+      "mem:sram": 0.09843015179099045,
+      "compute": 6.177731234238919,
+      "noc": 1.3947602268280885,
+      "static": 24.371830514703564,
+      "mem:hbm": 0.46168560865279956,
+      "mem:l2": 0.21085308443464448,
+      "idle": 21.761915333662685,
+      "host": 46.75717484631716
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "h100_sxmx4+ipu_gc200x16",
+      "placement": "vit_offload",
+      "weights_by_pool": {
+        "brain": 0.9482097625732422,
+        "gpu": 13.180415153503418
+      },
+      "visual_tokens": 1332,
+      "text_tokens": 256
+    }
+  },
+  "vlm/4x H100 + 16x IPU, FFN->IPU": {
+    "latency": 0.018372164900043775,
+    "throughput": 54.430166800735456,
+    "avg_power": 3389.8098309242423,
+    "energy_per_item": 62.27814519352969,
+    "achieved_flops": 1696963766711549.2,
+    "flops": 31176898151424.0,
+    "t_by_bound": {
+      "compute": 0.017586583646312447,
+      "memory": 0.0007855812537313437
+    },
+    "busy_by_pool": {
+      "gpu": 0.018372164900043775
+    },
+    "e_by_source": {
+      "mem:hbm": 0.5393064133631995,
+      "mem:l2": 0.3755691160049427,
+      "compute": 6.614218262031107,
+      "static": 11.317253578426985,
+      "idle": 15.873550473637822,
+      "host": 27.558247350065663
+    },
+    "bytes_crossed": 0.0,
+    "warnings": [],
+    "meta": {
+      "system": "h100_sxmx4+ipu_gc200x16",
+      "placement": "pd_a",
+      "weights_by_pool": {
+        "gpu": 14.12862491607666
+      },
+      "visual_tokens": 1332,
+      "text_tokens": 256
+    }
+  }
+}

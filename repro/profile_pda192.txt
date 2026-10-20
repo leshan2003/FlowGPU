@@ -1,0 +1,33 @@
+﻿arm=pd_a model=deepseek_v4_flash_proj devs=280 n_requests=192 rate=2
+one probe: 11.78 s  att=0.000 tok/s=509.1 wall=205.3s
+         27947208 function calls (26230180 primitive calls) in 11.443 seconds
+
+   Ordered by: internal time
+   List reduced from 163 to 22 due to restriction <22>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+1477119/31    1.315    0.000    2.922    0.094 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:128(deepcopy)
+      217    0.783    0.004    5.938    0.027 .\flowgpu\sim\executor.py:122(execute)
+    99231    0.687    0.000    3.599    0.000 .\flowgpu\hardware\gpu.py:180(cost_op)
+  1044938    0.554    0.000    1.983    0.000 {built-in method builtins.sum}
+  5659185    0.541    0.000    0.541    0.000 {method 'get' of 'dict' objects}
+    99231    0.493    0.000    0.709    0.000 .\flowgpu\hardware\gpu.py:75(efficiency)
+   916308    0.424    0.000    1.059    0.000 .\flowgpu\workload\graph.py:71(nbytes)
+ 90954/31    0.356    0.000    2.921    0.094 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:226(_deepcopy_dict)
+  1931448    0.337    0.000    0.353    0.000 {built-in method builtins.max}
+    99231    0.334    0.000    1.356    0.000 .\flowgpu\hardware\gpu.py:158(_byte_map)
+   975696    0.309    0.000    0.417    0.000 .\flowgpu\units.py:195(dtype_bytes)
+  1184541    0.296    0.000    0.411    0.000 .\flowgpu\sim\executor.py:82(_bump)
+      218    0.280    0.001    1.477    0.007 .\flowgpu\mapping\placement.py:104(annotate)
+   916308    0.248    0.000    0.248    0.000 .\flowgpu\workload\graph.py:64(numel)
+    10028    0.211    0.000    0.463    0.000 .\flowgpu\workload\llm.py:200(_moe_block)
+    10464    0.211    0.000    0.435    0.000 .\flowgpu\workload\llm.py:56(_attention_block)
+ 71548/31    0.185    0.000    2.921    0.094 C:\Users\18474\AppData\Local\Programs\Python\Python38\lib\copy.py:258(_reconstruct)
+   604442    0.175    0.000    0.175    0.000 .\flowgpu\hardware\base.py:196(level)
+   396464    0.163    0.000    0.993    0.000 .\flowgpu\workload\graph.py:109(output_bytes)
+   251911    0.162    0.000    1.406    0.000 .\flowgpu\workload\graph.py:113(act_bytes)
+   792928    0.157    0.000    0.610    0.000 .\flowgpu\workload\graph.py:111(<genexpr>)
+  2009358    0.155    0.000    0.155    0.000 {built-in method builtins.id}
+
+
+

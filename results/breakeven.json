@@ -1,0 +1,290 @@
+{
+  "sram_per_core": {
+    "param": "sram_per_core",
+    "baseline_name": "iluvatar43",
+    "baseline_throughput": 402.3892040844118,
+    "baseline_tokens_per_kw": 123.03818209655252,
+    "throughput_parity": null,
+    "efficiency_parity": null,
+    "throughput_2x": null,
+    "efficiency_2x": null,
+    "points": [
+      {
+        "value": 524288.0,
+        "label": "0.5 MB/core",
+        "rate": 0.45781249999999996,
+        "output_throughput": 248.66293036589556,
+        "avg_power": 56331.818957943164,
+        "tokens_per_kw": 4.414253524310037,
+        "energy_per_token": 226.5388688014478,
+        "tdp": 252000.0,
+        "capex": 2784000.0,
+        "note": ""
+      },
+      {
+        "value": 1048576.0,
+        "label": "1 MB/core",
+        "rate": 0.5,
+        "output_throughput": 273.22633459378983,
+        "avg_power": 29302.40703148818,
+        "tokens_per_kw": 9.324364865322584,
+        "energy_per_token": 107.24591051976216,
+        "tdp": 129600.0,
+        "capex": 1632000.0,
+        "note": ""
+      },
+      {
+        "value": 2097152.0,
+        "label": "2 MB/core",
+        "rate": 0.45781249999999996,
+        "output_throughput": 248.07871304196487,
+        "avg_power": 15640.729577913467,
+        "tokens_per_kw": 15.861070406349901,
+        "energy_per_token": 63.04744726431924,
+        "tdp": 68400.0,
+        "capex": 1056000.0,
+        "note": ""
+      },
+      {
+        "value": 4194304.0,
+        "label": "4 MB/core",
+        "rate": 0.415625,
+        "output_throughput": 226.8473449432842,
+        "avg_power": 8919.207718829435,
+        "tokens_per_kw": 25.433575727178585,
+        "energy_per_token": 39.318104961992795,
+        "tdp": 37800.0,
+        "capex": 768000.0,
+        "note": "SRAM = 638 mm2 (0.8 reticles) -- not one die"
+      },
+      {
+        "value": 8388608.0,
+        "label": "8 MB/core",
+        "rate": 0.09921875000000001,
+        "output_throughput": 56.48858786611069,
+        "avg_power": 5918.179984835467,
+        "tokens_per_kw": 9.54492563775604,
+        "energy_per_token": 104.76770987553704,
+        "tdp": 22500.0,
+        "capex": 624000.0,
+        "note": "SRAM = 1276 mm2 (1.6 reticles) -- not one die"
+      },
+      {
+        "value": 16777216.0,
+        "label": "16 MB/core",
+        "rate": 0.0517578125,
+        "output_throughput": 29.46807810584412,
+        "avg_power": 4243.347410159013,
+        "tokens_per_kw": 6.9445358245460875,
+        "energy_per_token": 143.99810516714595,
+        "tdp": 14850.0,
+        "capex": 552000.0,
+        "note": "SRAM = 2551 mm2 (3.2 reticles) -- not one die; SLO never met"
+      },
+      {
+        "value": 33554432.0,
+        "label": "32 MB/core",
+        "rate": 0.0517578125,
+        "output_throughput": 28.967346165466765,
+        "avg_power": 3446.195969843884,
+        "tokens_per_kw": 8.405600383421902,
+        "energy_per_token": 118.96830141631146,
+        "tdp": 11100.0,
+        "capex": 516000.0,
+        "note": "SRAM = 5102 mm2 (6.4 reticles) -- not one die; SLO never met"
+      }
+    ]
+  },
+  "tdp": {
+    "param": "tdp",
+    "baseline_name": "iluvatar43",
+    "baseline_throughput": 402.3892040844118,
+    "baseline_tokens_per_kw": 123.03818209655252,
+    "throughput_parity": null,
+    "efficiency_parity": null,
+    "throughput_2x": null,
+    "efficiency_2x": null,
+    "points": [
+      {
+        "value": 20.0,
+        "label": "20 W",
+        "rate": 0.5,
+        "output_throughput": 273.3013529685708,
+        "avg_power": 5373.3136103210445,
+        "tokens_per_kw": 50.86272136500918,
+        "energy_per_token": 19.660764763718404,
+        "tdp": 14720.0,
+        "capex": 864000.0,
+        "note": ""
+      },
+      {
+        "value": 40.0,
+        "label": "40 W",
+        "rate": 0.5,
+        "output_throughput": 273.3013529685708,
+        "avg_power": 6257.8605803698265,
+        "tokens_per_kw": 43.673288891396055,
+        "energy_per_token": 22.897290892992647,
+        "tdp": 19840.0,
+        "capex": 864000.0,
+        "note": ""
+      },
+      {
+        "value": 60.0,
+        "label": "60 W",
+        "rate": 0.5,
+        "output_throughput": 273.3013529685708,
+        "avg_power": 7142.407550418533,
+        "tokens_per_kw": 38.26459790194355,
+        "energy_per_token": 26.133817022266616,
+        "tdp": 24960.0,
+        "capex": 864000.0,
+        "note": ""
+      },
+      {
+        "value": 90.0,
+        "label": "90 W",
+        "rate": 0.5,
+        "output_throughput": 273.3013529685708,
+        "avg_power": 8469.228005491757,
+        "tokens_per_kw": 32.26992504999892,
+        "energy_per_token": 30.988606216178166,
+        "tdp": 32640.0,
+        "capex": 864000.0,
+        "note": ""
+      },
+      {
+        "value": 150.0,
+        "label": "150 W",
+        "rate": 0.5,
+        "output_throughput": 273.3013529685708,
+        "avg_power": 11122.868915638066,
+        "tokens_per_kw": 24.57112054825406,
+        "energy_per_token": 40.69818460400075,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": ""
+      },
+      {
+        "value": 250.0,
+        "label": "250 W",
+        "rate": 0.5,
+        "output_throughput": 273.3013529685708,
+        "avg_power": 15545.60376588196,
+        "tokens_per_kw": 17.580620031522166,
+        "energy_per_token": 56.88081525037191,
+        "tdp": 73600.0,
+        "capex": 864000.0,
+        "note": ""
+      }
+    ]
+  },
+  "bridge_lanes": {
+    "param": "bridge lanes (x800G)",
+    "baseline_name": "iluvatar43",
+    "baseline_throughput": 402.3892040844118,
+    "baseline_tokens_per_kw": 123.03818209655252,
+    "throughput_parity": null,
+    "efficiency_parity": null,
+    "throughput_2x": null,
+    "efficiency_2x": null,
+    "points": [
+      {
+        "value": 1,
+        "label": "1",
+        "rate": 0.44375,
+        "output_throughput": 241.2595235945915,
+        "avg_power": 11136.336428645876,
+        "tokens_per_kw": 21.664173414696982,
+        "energy_per_token": 46.159157834362595,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": "100 GB/s aggregate"
+      },
+      {
+        "value": 2,
+        "label": "2",
+        "rate": 0.5,
+        "output_throughput": 273.3025128609428,
+        "avg_power": 11125.264412420502,
+        "tokens_per_kw": 24.565934141378392,
+        "energy_per_token": 40.70677688236651,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": "200 GB/s aggregate"
+      },
+      {
+        "value": 4,
+        "label": "4",
+        "rate": 0.5,
+        "output_throughput": 273.93280586614185,
+        "avg_power": 11126.528211711382,
+        "tokens_per_kw": 24.61979160559806,
+        "energy_per_token": 40.61772804659401,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": "400 GB/s aggregate"
+      },
+      {
+        "value": 8,
+        "label": "8",
+        "rate": 0.5,
+        "output_throughput": 273.2788884902437,
+        "avg_power": 11122.92720389644,
+        "tokens_per_kw": 24.56897213123108,
+        "energy_per_token": 40.70174342901552,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": "800 GB/s aggregate"
+      },
+      {
+        "value": 24,
+        "label": "24",
+        "rate": 0.5,
+        "output_throughput": 273.3013529685708,
+        "avg_power": 11122.868915638066,
+        "tokens_per_kw": 24.57112054825406,
+        "energy_per_token": 40.69818460400075,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": "2400 GB/s aggregate"
+      },
+      {
+        "value": 48,
+        "label": "48",
+        "rate": 0.5,
+        "output_throughput": 273.3069696652443,
+        "avg_power": 11122.854342076102,
+        "tokens_per_kw": 24.57165771121939,
+        "energy_per_token": 40.69729489774721,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": "4800 GB/s aggregate"
+      },
+      {
+        "value": 96,
+        "label": "96",
+        "rate": 0.5,
+        "output_throughput": 273.30977810015344,
+        "avg_power": 11122.847055070491,
+        "tokens_per_kw": 24.57192630150944,
+        "energy_per_token": 40.69685004462065,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": "9600 GB/s aggregate"
+      },
+      {
+        "value": 192,
+        "label": "192",
+        "rate": 0.5,
+        "output_throughput": 273.31118233925594,
+        "avg_power": 11122.843411511516,
+        "tokens_per_kw": 24.572060598856787,
+        "energy_per_token": 40.69662761805678,
+        "tdp": 48000.0,
+        "capex": 864000.0,
+        "note": "19200 GB/s aggregate"
+      }
+    ]
+  }
+}

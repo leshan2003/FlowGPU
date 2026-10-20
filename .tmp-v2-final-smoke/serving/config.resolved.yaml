@@ -1,0 +1,214 @@
+{
+  "chip": {
+    "fixed_reserved_bytes": 0,
+    "provenance": {
+      "confidence": "projected",
+      "source": "synthetic smoke-test chip; not KA200"
+    },
+    "runtime_reserve_fraction": 0.15,
+    "sram_capacity_bytes": 200000000
+  },
+  "execution": {
+    "capabilities": {
+      "combine_reduce_chip": false,
+      "combine_reduce_node": false,
+      "dispatch_dedup_chip": false,
+      "dispatch_dedup_node": false,
+      "hardware_multicast": false
+    },
+    "chip_reduce_latency_s": 0.0,
+    "dispatcher_policy": "earliest_finish",
+    "ingress_semantics": "home-node-resident",
+    "max_total_replicas": null,
+    "node_reduce_latency_s": 0.0,
+    "strategies": [
+      "unique-balanced",
+      "ingress-local"
+    ]
+  },
+  "kernel": {
+    "concurrent_experts": 1,
+    "dtype": "bf16",
+    "expert_shape": "smoke-ffn",
+    "provenance": {
+      "confidence": "projected",
+      "source": "synthetic smoke-test kernel curve; not KA200"
+    },
+    "residency": "sram",
+    "samples": [
+      {
+        "latency_s": 0.0001,
+        "m": 1
+      },
+      {
+        "latency_s": 0.00016,
+        "m": 2
+      },
+      {
+        "latency_s": 0.00027,
+        "m": 4
+      },
+      {
+        "latency_s": 0.00048,
+        "m": 8
+      },
+      {
+        "latency_s": 0.0009,
+        "m": 16
+      }
+    ]
+  },
+  "links": {
+    "bridge": {
+      "bandwidth_bytes_per_s": 25000000000,
+      "duplex": "full",
+      "efficiency": 0.8,
+      "energy_per_byte": 8e-12,
+      "latency_s": 1e-05,
+      "provenance": {
+        "confidence": "projected",
+        "source": "synthetic smoke-test GPU bridge; not KA200"
+      }
+    },
+    "scale_out": {
+      "bandwidth_bytes_per_s": 39000000000,
+      "duplex": "full",
+      "efficiency": 0.85,
+      "energy_per_byte": 5e-12,
+      "latency_s": 7e-06,
+      "provenance": {
+        "confidence": "projected",
+        "source": "synthetic smoke-test scale-out; not KA200"
+      }
+    },
+    "scale_up": {
+      "bandwidth_bytes_per_s": 90000000000,
+      "duplex": "full",
+      "efficiency": 0.85,
+      "energy_per_byte": 2e-12,
+      "latency_s": 4e-07,
+      "provenance": {
+        "confidence": "projected",
+        "source": "synthetic smoke-test scale-up; not KA200"
+      }
+    }
+  },
+  "model": {
+    "expert_provenance": {
+      "confidence": "derived",
+      "source": "synthetic eight-expert smoke workload"
+    },
+    "expert_weight_bytes": 40000000,
+    "hidden_bytes": 14336,
+    "n_experts": 8,
+    "n_layers": 1,
+    "top_k": 2
+  },
+  "power": {
+    "compute_dynamic_power_w": 20.0,
+    "idle_power_w": 10.0,
+    "provenance": {
+      "confidence": "projected",
+      "source": "synthetic smoke-test power; not KA200"
+    }
+  },
+  "schema_version": 1,
+  "serving": {
+    "compute_block_windows": [
+      {
+        "finish_s": 5e-05,
+        "source": "projected-prefill",
+        "start_s": 0.0
+      }
+    ],
+    "max_batch": 4,
+    "max_outstanding_requests": 8,
+    "n_requests": 4,
+    "offered_rates_per_s": [
+      0.1,
+      20.0
+    ],
+    "output_tokens": 1,
+    "seeds": [
+      31,
+      37
+    ],
+    "slo_tpot_s": 0.0,
+    "slo_ttft_s": 1.0,
+    "target_attainment": 0.5
+  },
+  "sweep": {
+    "chips_per_node": 2,
+    "concentrated_ingress_count": 1,
+    "ingress_modes": [
+      "distributed",
+      "concentrated"
+    ],
+    "node_counts": [
+      1,
+      2
+    ]
+  },
+  "tiered": {
+    "gpu_capacity_bytes": null,
+    "gpu_kernel": {
+      "concurrent_experts": 1,
+      "dtype": "bf16",
+      "expert_shape": "smoke-ffn",
+      "provenance": {
+        "confidence": "projected",
+        "source": "synthetic smoke-test GPU kernel; not measured hardware"
+      },
+      "residency": "hbm",
+      "samples": [
+        {
+          "latency_s": 0.0002,
+          "m": 1
+        },
+        {
+          "latency_s": 0.00032,
+          "m": 2
+        },
+        {
+          "latency_s": 0.00054,
+          "m": 4
+        },
+        {
+          "latency_s": 0.00096,
+          "m": 8
+        },
+        {
+          "latency_s": 0.0018,
+          "m": 16
+        }
+      ]
+    },
+    "gpu_provenance": {
+      "confidence": "projected",
+      "source": "synthetic smoke-test GPU capacity; not measured hardware"
+    },
+    "max_brain_replicas": null
+  },
+  "uncertainty": {
+    "evaluation_seeds": [
+      17,
+      19
+    ],
+    "placement_seeds": [
+      11,
+      13
+    ]
+  },
+  "workload": {
+    "evaluation_seed": 23,
+    "evaluation_tokens": 16,
+    "placement_seed": 17,
+    "placement_tokens": 16,
+    "routing_model": "uniform",
+    "routing_provenance": {
+      "confidence": "projected",
+      "source": "deterministic uniform synthetic routing"
+    },
+    "scaling_mode": "strong"
+  }
+}

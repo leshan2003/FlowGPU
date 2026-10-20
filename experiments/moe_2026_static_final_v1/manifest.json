@@ -1,0 +1,25 @@
+{
+  "claim_boundary": "paper-constrained synthetic routing and projected hardware; not KA200 or trace measurement",
+  "components": [
+    "static"
+  ],
+  "expert_bytes": 44040192,
+  "gpu_bytes_per_device": 80000000000,
+  "gpu_count": 16,
+  "gpu_reserve_fraction": 0.2,
+  "platform": "win32",
+  "python": "3.8.3 (tags/v3.8.3:6f8c832, May 13 2020, 22:37:02) [MSC v.1924 64 bit (AMD64)]",
+  "result_rows": {
+    "static_capacity": 80
+  },
+  "schema_version": 1,
+  "source_sha256": {
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\detailed_network.py": "777ee1abae4fab78a8a0ef848908950d27c47b4867508d5d3af6a0d56e8597f8",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\layer_engine.py": "9e781b97214e9587ea6e68aa56ef82607924252dc241bad21b8921e7a0f1e3ed",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\research.py": "d894c5876ace3355e3d96c36de1afbcba15ea78d12862c166fa5b33cfd02d200",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\tiering.py": "e1c9179202b871067de592f7ce40895807d157f461687df53d1f86f480e516bc",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\scripts\\run_moe_research.py": "171c3b81ddf0f47b8eff4b954ec562e413faf28850edf4e2aed3971f88adf66a"
+  },
+  "suite": "full",
+  "timestamp_utc": "2026-10-20T03:47:36.569832+00:00"
+}

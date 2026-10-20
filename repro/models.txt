@@ -1,0 +1,39 @@
+﻿LLM
+name                      L      d  params  active    E  topk  attn   KV/token  note
+----------------------  ---  -----  ------  ------  ---  ----  ----  ---------  ----
+deepseek_r1              61   7168  671.0B   36.6B  256     8   MLA   68.6 KiB      
+deepseek_v2_lite         27   2048   15.7B    2.5B   64     6   MLA   30.4 KiB      
+deepseek_v3              61   7168  671.0B   36.6B  256     8   MLA   68.6 KiB      
+deepseek_v41_flash       40   5120  551.5B   15.8B  384     6  CSA2    0.9 KiB      
+deepseek_v4_flash_proj   48   4096  153.0B    8.9B  256     8   MLA   48.0 KiB  PROJ
+gpt_oss_120b             36   2880  116.8B    5.1B  128     4   GQA   72.0 KiB      
+llama3_1b                16   2048    1.5B    1.2B    -     -   GQA   32.0 KiB      
+llama3_405b             126  16384  405.9B  403.8B    -     -   GQA  504.0 KiB      
+llama3_70b               80   8192   70.6B   69.5B    -     -   GQA  320.0 KiB      
+llama3_8b                32   4096    8.0B    7.5B    -     -   GQA  128.0 KiB      
+mixtral_8x7b             32   4096   46.7B   12.7B    8     2   GQA  128.0 KiB      
+qwen3_235b_a22b          94   4096  235.1B   21.6B  128     8   GQA  188.0 KiB      
+qwen3_32b                64   5120   32.8B   32.0B    -     -   GQA  256.0 KiB      
+qwen3_8b                 36   4096    8.2B    7.6B    -     -   GQA  144.0 KiB      
+
+VLM
+name            L     d  params  active  E  topk  attn   KV/token  note
+-------------  --  ----  ------  ------  -  ----  ----  ---------  ----
+internvl3_38b  64  5120   32.8B   32.0B  -     -   GQA  256.0 KiB      
+qwen2_5_vl_7b  28  3584    7.6B    7.1B  -     -   GQA   56.0 KiB      
+
+DIFFUSION
+name        L  d  params  active  E  topk  attn  KV/token  note
+----------  -  -  ------  ------  -  ----  ----  --------  ----
+flux_dev    -  -       -       -  -     -   dit         -      
+sd3_medium  -  -       -       -  -     -   dit         -      
+sdxl        -  -       -       -  -     -  unet         -      
+
+CNN
+name      L  d  params  active  E  topk      attn  KV/token  note
+--------  -  -  ------  ------  -  ----  --------  --------  ----
+resnet18  -  -       -       -  -     -  resnet18         -      
+resnet50  -  -       -       -  -     -  resnet50         -      
+vit_l_16  -  -       -       -  -     -  vit_l_16         -      
+yolov8l   -  -       -       -  -     -   yolov8l         -      
+

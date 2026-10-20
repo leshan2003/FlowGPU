@@ -1,0 +1,307 @@
+﻿# repro/ -- local reproduction and diagnostic workspace
+
+Not part of the package. A workbench for "run it, poke at it, tune it", plus
+the raw console output every conclusion in here is drawn from, so a reader can
+check the claims without re-running anything.
+
+Everything in this directory only *reads* the `flowgpu` package, except where a
+section below says otherwise. Run from the repository root.
+
+## Evidence files
+
+| File | Contents |
+|---|---|
+| `devices.txt` / `models.txt` / `placements.txt` / `fabrics.txt` | device zoo, model zoo, placement strategies, interconnect fabrics |
+| `quickstart.txt` / `multimodal.txt` / `make_figures.txt` | the three shipped scripts |
+| `grounded_run.txt` / `grounded_capacity.txt` | `grounded_published_hw.yaml`, fixed load and capacity |
+| `regimes_run.txt` / `fixed_regimes.txt` | `regimes.yaml`, before and after the batch-bucketing fix |
+| `pda_capacity.txt` / `fixed_grounded_capacity.txt` | capacity searches, before and after |
+| `capacity_timing_all_fixed.txt` | per-arm timings for the equal-capex arms |
+| `bucket_gpu.txt` | `batch_bucket` sensitivity 1/2/4/8/16 -- the measurement behind the batch-bucketing bug |
+| `profile_pda.txt` / `profile_pda192.txt` | cProfile output |
+| `eda_dryrun.txt` | `flowgpu eda --dry-run --local-only` |
+| `v41_run.txt` | `deepseek_v41_flash.yaml` |
+| `hot_cold_probe.txt` | hot/cold expert tiering, sections A-G (below) |
+| `hot_cold_capacity.txt` | the same arms through the serving simulator, swept over `collective_overlap` |
+| `pipeline_overlap_probe.txt` | micro-batch tax vs overlap gain, and the collective-overlap sweep |
+
+## Scripts
+
+All read-only with respect to the package. Import with `sys.path.insert(0, ".")`.
+
+```
+python repro/cache_stats.py             <config> <arm> [requests] [rate]
+python repro/bucket_sensitivity.py      <config> <arm>
+python repro/capacity_timing.py         <config> <arm|ALL> [requests] [iters]
+python repro/profile_probe.py           <config> <arm> [requests] [rate]
+python repro/hot_cold_probe.py
+python repro/hot_cold_capacity.py
+python repro/pipeline_overlap_probe.py
+```
+
+- `cache_stats.py` -- how many graph keys one probe builds. Prefill uses the
+  exact batch and chunk, so it keys a lot; decode buckets, so it keys few.
+  Use it to tell a graph-construction bottleneck from a simulation-loop one.
+- `bucket_sensitivity.py` -- clone a load and change only `batch_bucket`, to see
+  how TPOT/SLO/throughput move. It is the tool that found the "decode cost comes
+  from the bucket, not the batch" defect.
+- `capacity_timing.py` -- timestamps every `find_capacity` probe, with
+  `FLOWGPU_WATCHDOG=<seconds>` (Windows has no `signal.alarm`, so it kills from
+  a daemon thread). Separates "one arm is pathologically slow" from "the whole
+  machine is saturated".
+- `profile_probe.py` -- sorted cProfile dump.
+- `hot_cold_probe.py` -- seven sections, below.
+- `hot_cold_capacity.py` -- SLO capacity over the arms, below.
+- `pipeline_overlap_probe.py` -- micro-batch decomposition and `co` sweep, below.
+
+## Hot/cold expert tiering (`hot_cold_*`)
+
+The question: if only part of the MoE expert stack is pinned on the brain
+chip and the rest is served from somewhere else, does the saving beat the
+cost?
+
+### `hot_cold_probe.py`, sections A-G
+
+| Section | Question |
+|---|---|
+| A | Where does a decode step spend its time (compute / memory / network / bridge / collective)? |
+| B | Does the brain pool actually hold the expert stack, vs chip count (`spill_frac`)? |
+| C | If the *cold* experts move to the GPU's HBM, does the capacity fit? |
+| D | Past the point where the stack fits, does another chip still help? |
+| E | What does going multi-node cost, at fixed chip count? |
+| F | A **hand-computed** `hot_frac x skew` map (labelled as such -- not a pipeline result) |
+| G | The real thing: build the split graph and price `pd_a` against `hot_cold` |
+
+Findings worth keeping:
+
+- **NoC is 0.1-0.3% of the step.** On-chip distance is not a bottleneck, so
+  replicating hot experts to shorten NoC routes buys nothing.
+- **The MoE all-to-all is the largest term**, 25-57% depending on batch.
+- **~1000 brain chips** are needed for a zero-spill DeepSeek-V3 expert stack;
+  512 chips still spills 46.7%.
+- **Marginal chips are worth almost nothing past the fit point**: 1024 -> 4096
+  chips (4x the silicon, 4x the leakage) buys 4% on the step.
+- **Multi-node is pure cost**: same chips, same SRAM, but the collective falls
+  from `scaleup` to `scaleout` as soon as a node holds fewer than the full
+  EP degree.
+
+### `hot_cold_capacity.py`
+
+Same arms through `ServingSimulator`, at SLO `ttft 5 s / tpot 50 ms`, target
+95% attainment, 48 requests of prompt 1024 / output 64, seed 11. Four arms:
+
+| Arm | Cold experts go to | Brain chips |
+|---|---|---|
+| A | (all pinned, nothing spilled) | 1024 |
+| B | the brain pool's own DRAM | 256 |
+| C | the GPU's HBM | 256 |
+| C' | the GPU's HBM | 128 |
+
+`collective_overlap` is swept because it turned out to dominate everything else.
+It is **scheduler quality, not hardware**: the fraction of the MoE all-to-all a
+production engine hides behind compute (DualPipe and SGLang two-batch overlap
+reach ~0.6-0.9; a naive engine is ~0). The package default is 0.0 and the
+shipped configs use 0.6.
+
+SLO capacity, req/s:
+
+| Arm | co=0.0 | co=0.6 | co=0.9 |
+|---|---|---|---|
+| A pd_a @1024 | 14.00 | 82.00 | 232.00 |
+| B pd_a @256 cold->DRAM | 4.12 | 6.00 | 5.62 |
+| C hot_cold @256 cold->HBM | 40.00 | 86.00 | 188.00 |
+| C' hot_cold @128 cold->HBM | 14.50 | 84.00 | 176.00 |
+
+Throughput, tok/s:
+
+| Arm | co=0.0 | co=0.6 | co=0.9 |
+|---|---|---|---|
+| A pd_a @1024 | 913.4 | 1945.1 | 2561.3 |
+| B pd_a @256 cold->DRAM | 269.2 | 382.2 | 365.8 |
+| C hot_cold @256 cold->HBM | 1400.2 | 1951.1 | 2405.6 |
+| C' hot_cold @128 cold->HBM | 938.3 | 1920.4 | 2358.5 |
+
+Energy per output token, J (lower is better):
+
+| Arm | co=0.0 | co=0.6 | co=0.9 |
+|---|---|---|---|
+| A | 55.78 | 27.53 | 22.22 |
+| B | 64.88 | 47.01 | 50.24 |
+| C | 11.20 | 8.52 | 7.25 |
+| C' | 10.02 | 5.28 | 4.57 |
+
+Reading the capacity table is the point of the exercise, and it is more
+nuanced than the throughput one:
+
+1. **On a weak engine (co=0) the tiered arms win outright.** C @256 carries
+   2.9x the baseline's request rate on a quarter of the silicon, and C' @128
+   matches the 1024-chip baseline outright on an eighth of it. `pd_a` has the
+   largest collective share, so it suffers most from a scheduler that cannot
+   hide it.
+2. **On a middling engine (co=0.6) all three are level**, 82-86 req/s, with
+   the tiered arms using a quarter to an eighth of the chips.
+3. **Only on a good engine (co=0.9) does the full baseline pull ahead on
+   rate** (232 against 188), because hiding the collective finally makes all
+   1024 chips worth paying for.
+4. **Energy does not follow that reversal.** C' stays at 4.57 J/token against
+   A's 22.22 J at co=0.9 -- a 4.86x gap -- and beats A at every co.
+5. **Arm B is unusable at every co**, 4-6 req/s, and hugs both SLO limits.
+
+### Getting a real capacity point
+
+The first version of this table saturated its bracket and reported the top of
+the probed range (1984 req/s) for every arm. The cause was that
+`find_capacity` replaced `n_requests` with a value below `max_running`, so
+every request was admitted immediately, no queue ever formed and attainment
+stayed at 100 percent no matter the arrival rate. `find_capacity` now warns
+when `n_requests <= max_running`; this script runs 256 requests against
+`max_running` 64.
+
+## The routing-skew threshold (`skew_threshold_probe.py`)
+
+Every tiering number above rests on one unmeasured parameter: `hot_traffic`
+(`p`), the share of token->expert assignments landing on the pinned experts.
+Everything used `p=0.9`. This sweeps it and reports where the tiered arm stops
+paying for itself, with `hot_frac` held at 0.10 and 128 brain chips against a
+1024-chip baseline, at `collective_overlap` 0.6.
+
+| p | req/s | vs base | J/tok | verdict |
+|---|---|---|---|---|
+| 0.50 | 54.00 | 0.66x | 6.55 | loses |
+| 0.70 | 66.00 | 0.80x | 5.93 | loses |
+| 0.90 | 84.00 | 1.02x | 5.28 | beats |
+| 0.99 | 128.00 | 1.56x | 4.52 | beats |
+
+**The crossing sits between p=0.70 and p=0.90.** Pinning the hottest tenth of
+the stack on an eighth of the silicon only pays if those experts absorb
+roughly 80-90% of the routing. Below that the tiered arm still wins on energy
+-- 6.55 J/token against the baseline's 27.53 is a 4.2x advantage even at
+p=0.50 -- but it loses on request rate.
+
+Read the crossing point, not the individual rows. `python
+repro/skew_threshold_probe.py [co] [chips] [p ...]` re-runs it elsewhere.
+
+The skew distribution itself still has to come from somewhere. The relevant
+literature exists -- DeepSeek's own auxiliary-loss-free balancing paper
+(arXiv 2408.15664) opens by stating that unbalanced expert load costs
+computational overhead -- but a usable per-expert histogram has not been
+extracted into this repository yet, which is why this probe reports a
+threshold rather than a predicted result.
+## Micro-batch pipelining and collective overlap (`pipeline_overlap_probe.py`)
+
+Two questions with different answers.
+
+### A. Does micro-batch pipelining pay?
+
+It is two effects multiplied, and reporting only the net hides which one wins:
+
+```
+overlap_gain   = (m * one_microbatch) / pipelined_time
+microbatch_tax = (m * one_microbatch) / serial_time
+net            = overlap_gain / microbatch_tax
+```
+
+The tax exists because a weight-bound decode step does not get m times cheaper
+when cut into m pieces -- the weights stream in full either way. The gain exists
+because with two or more micro-batches the steady-state period is the *busiest*
+pool, not the sum.
+
+At `co=0.6`, batch 8 the tax is 1.63-3.48 and every arm loses (net 0.33-0.74).
+At batch 256 the tax falls to 1.15 and it turns marginally positive: 1.04 for
+`pd_a`, 1.13 for `hot_cold`. `hot_cold` wins the comparison because it balances
+the two pools -- the same reason it wins on capacity.
+
+### B. How much is left in collective overlap?
+
+Raising `co` from 0 to 0.9 on a single decode step:
+
+| Arm | batch | speedup |
+|---|---|---|
+| pd_a @256 | 8 | 1.63x |
+| pd_a @256 | 64 | **2.23x** |
+| hot_cold @256 | 8 | 1.36x |
+| hot_cold @256 | 64 | 1.79x |
+
+By far the largest single lever found in this work -- an order of magnitude
+above anything micro-batching offers. `hot_cold` depends on it less, because the
+collective is a smaller share of its step (40-54% against `pd_a`'s 53-65%), so
+it is both faster and less sensitive to scheduler quality.
+
+### Two scoping notes
+
+- Section A deliberately re-derives `execute_pipelined`'s arithmetic, because
+  the package exposes only the product. It imports the private `_scale_graph`,
+  so it is a diagnostic, not package API.
+- Section B prices a single decode graph, not a serving run -- its numbers bound
+  the step, not the SLO capacity. `hot_cold_capacity.py` is the one that answers
+  the capacity question.
+
+## Package changes these scripts depend on
+
+Not in `repro/`; each needs separate review.
+
+| File | Change |
+|---|---|
+| `flowgpu/workload/llm.py` | `_moe_block` honours `hot_frac` / `hot_traffic` and emits `L*.moe_hot` + `L*.moe_cold` + `moe_combine` instead of one `L*.moe_experts` |
+| `flowgpu/mapping/placement.py` | new named strategy `hot_cold` |
+| `flowgpu/hardware/dataflow.py` | expert weights priced as *indivisible* units (below) |
+| `flowgpu/hardware/gpu.py` | same, so the two sides agree |
+| `flowgpu/sim/serving.py` | the FFN tail all-reduce is gated on the FFN pool's tensor parallelism (`ffn_tp_world`), not the attention pool's |
+| `flowgpu/sim/executor.py` | `_scale_graph` now scales `meta["bytes"]` too (below) |
+
+### Why `_byte_map` changed
+
+The old form was `wb = op.weight_bytes / shards`, i.e. spreading the weights of
+a `groups`-way grouped GEMM evenly across every device in the pool -- which lets
+a single expert access ride the pool's *aggregate* bandwidth. Expert weights are
+indivisible: one expert sits whole on one chip, so a hit only ever gets that one
+chip's bandwidth. The new form is
+
+```
+wb = ceil(groups / shards) * (weight_bytes / groups)
+```
+
+This is load-bearing. On `pd_a` with 47% spill at batch 1 it moves the step from
+3.14 ms to 9.01 ms. **It is our own modelling choice and still needs independent
+review.** It assumes experts are evenly distributed and that a given hit lands
+on its own chip; real routing skew would make the busiest chip busier still,
+i.e. it would make tiering look *better*, not worse.
+
+### Why `_scale_graph` changed
+
+It shrank flops, state bytes, input/output shapes and `op.m`, and re-derived
+`experts_touched`, but left `op.meta["bytes"]` alone. That field is what
+`_collective_cost` actually charges, and for both the TP all-reduce and the MoE
+dispatch/combine it is `T * k * d * cb` -- linear in the token count. A
+micro-batch was therefore paying the *full-batch* collective, which on an
+expert-parallel pool is most of the step, and every micro-batching result read
+as "overlap is a 2x loss" regardless of the real trade. Fixing it moved
+`pd_a` mb2 from 81% to 87% of baseline throughput.
+
+### Why the tail all-reduce moved
+
+`ar_ffn` exists to undo tensor parallelism. A MoE block running expert-parallel
+on a `tp=1` pool produces a complete hidden state, so it needs no all-reduce --
+and charging one also invented two extra bridge crossings per layer (4 instead
+of 2). Gating on the FFN pool's TP removes both; the `hot_cold` decode step gets
+8.9-12.1% faster and the crossing count matches `pd_a` exactly.
+
+## Caveats that must travel with any number from this directory
+
+| # | Caveat |
+|---|---|
+| 1 | **The routing skew `p=0.9` is hand-filled.** There is no measured routing data behind it, and it decides whether tiering wins or loses. |
+| 2 | **`lynxi_hp300_proj` is a projected part, not a vendor spec.** Its 768 MB SRAM and 150 W TDP are the simulator author's construction and set every absolute number. |
+| 3 | The `ceil(groups/shards)` form in `_byte_map` is our own modelling choice. |
+| 4 | The `a2a_combine` cross-pool attribution is approximate: its `world` is the brain pool's EP degree even when the op is priced on the GPU pool. Under 0.4 ms of effect. |
+| 5 | `find_capacity` tops out in these runs (the `req/s` column saturates), so per-arm capacity points are not resolved -- only the fixed-load throughput, p99s and energy are usable. |
+| 6 | Arm A's baseline is `pd_a` with everything pinned, not a pure-GPU cluster. |
+
+## Notes
+
+- `capacity_timing.py` monkey-patches `_probe` in-process only, so it can time
+  without touching the package.
+- These scripts are written plainly and do no argument validation; a bad
+  argument raises.
+- If an editor or browser is running alongside, long commands sent to a
+  background session can starve for CPU. Prefer short foreground runs with `-v`.

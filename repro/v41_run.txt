@@ -1,0 +1,163 @@
+﻿################ deepseek_v41_flash_reference ################
+
+SYSTEM: h100x32
+
+pool    device  kind   n         parallel    mem/dev     peak/dev  TDP/dev  pool TDP  spec conf
+----  --------  ----  --  ---------------  ---------  -----------  -------  --------  ---------
+gpu   h100_sxm   gpu  32  tp8/pp1/ep4/dp1  80.000 GB  1.98 PFLOPS    700 W  22.40 kW     vendor
+
+total devices 32   total memory 2.500 TB   system TDP 24.40 kW (PUE 1.0)
+
+=== h100_only ===
+model=deepseek_v41_flash  system=h100x32  placement=all_gpu  tp=8 ep=4 mb=1
+
+LATENCY
+metric        mean         p50       p90       p99
+------  ----------  ----------  --------  --------
+TTFT    629.036 ms  488.533 ms   1.361 s   1.791 s
+TPOT      2.845 ms    2.737 ms  3.048 ms  3.807 ms
+E2E        1.404 s     1.273 s   2.353 s   2.927 s
+
+THROUGHPUT & POWER
+metric                                    value
+-------------------------------------  --------
+output tokens/s                           538.7
+total tokens/s                           9212.9
+requests/s                                1.951
+avg power (W)                            5525.2
+energy / output token (J)               10.2556
+output tokens / joule                     0.098
+tokens/s per kW                            97.5
+SLO attainment (TTFT<5.0s, TPOT<50ms)    100.0%
+goodput (req/s)                           1.951
+wall time                              65.608 s
+
+SYSTEM: h100x16 + ipu768
+
+pool      device      kind    n           parallel    mem/dev       peak/dev  TDP/dev   pool TDP  spec conf
+-----  ---------  --------  ---  -----------------  ---------  -------------  -------  ---------  ---------
+gpu     h100_sxm       gpu   16    tp8/pp1/ep2/dp1  80.000 GB    1.98 PFLOPS    700 W   11.20 kW     vendor
+brain  ipu_gc200  dataflow  768  tp1/pp1/ep768/dp1  64.000 GB  250.00 TFLOPS    300 W  230.40 kW     vendor
+
+total devices 784   total memory 49.250 TB   system TDP 290.60 kW (PUE 1.0)
+
+bridge               fabric    usable BW  latency     energy
+-------------  ------------  -----------  -------  ---------
+gpu <-> brain  pcie5_x16x16  819.20 GB/s  1.20 us  12.0 pJ/B
+
+=== h100_ipu_pd_a ===
+model=deepseek_v41_flash  system=h100x16 + ipu768  placement=pd_a  tp=8 ep=768 mb=2
+
+LATENCY
+metric        mean         p50       p90       p99
+------  ----------  ----------  --------  --------
+TTFT    905.013 ms  712.179 ms   1.845 s   2.665 s
+TPOT      3.833 ms    3.671 ms  4.404 ms  5.657 ms
+E2E        1.941 s     1.714 s   3.223 s   4.467 s
+
+THROUGHPUT & POWER
+metric                                    value
+-------------------------------------  --------
+output tokens/s                           530.6
+total tokens/s                           9074.3
+requests/s                                1.922
+avg power (W)                           86110.0
+energy / output token (J)              162.2766
+output tokens / joule                     0.006
+tokens/s per kW                             6.2
+SLO attainment (TTFT<5.0s, TPOT<50ms)    100.0%
+goodput (req/s)                           1.922
+wall time                              66.611 s
+
+SYSTEM: h100x16 + ipu768
+
+pool      device      kind    n           parallel    mem/dev       peak/dev  TDP/dev   pool TDP  spec conf
+-----  ---------  --------  ---  -----------------  ---------  -------------  -------  ---------  ---------
+gpu     h100_sxm       gpu   16    tp8/pp1/ep2/dp1  80.000 GB    1.98 PFLOPS    700 W   11.20 kW     vendor
+brain  ipu_gc200  dataflow  768  tp1/pp1/ep768/dp1  64.000 GB  250.00 TFLOPS    300 W  230.40 kW     vendor
+
+total devices 784   total memory 49.250 TB   system TDP 290.60 kW (PUE 1.0)
+
+bridge               fabric    usable BW  latency     energy
+-------------  ------------  -----------  -------  ---------
+gpu <-> brain  pcie5_x16x16  819.20 GB/s  1.20 us  12.0 pJ/B
+
+=== h100_ipu_layer_split ===
+model=deepseek_v41_flash  system=h100x16 + ipu768  placement=layer_split@0.20  tp=8 ep=2 mb=2
+
+LATENCY
+metric        mean         p50         p90         p99
+------  ----------  ----------  ----------  ----------
+TTFT    195.611 ms  115.825 ms  512.007 ms  788.826 ms
+TPOT      1.399 ms    1.304 ms    1.650 ms    2.264 ms
+E2E     570.721 ms  514.487 ms  999.607 ms     1.370 s
+
+THROUGHPUT & POWER
+metric                                    value
+-------------------------------------  --------
+output tokens/s                           546.8
+total tokens/s                           9350.8
+requests/s                                1.980
+avg power (W)                           90072.6
+energy / output token (J)              164.7243
+output tokens / joule                     0.006
+tokens/s per kW                             6.1
+SLO attainment (TTFT<5.0s, TPOT<50ms)    100.0%
+goodput (req/s)                           1.980
+wall time                              64.641 s
+
+SYSTEM: h100x16 + ipu768
+
+pool      device      kind    n           parallel    mem/dev       peak/dev  TDP/dev   pool TDP  spec conf
+-----  ---------  --------  ---  -----------------  ---------  -------------  -------  ---------  ---------
+gpu     h100_sxm       gpu   16    tp8/pp1/ep2/dp1  80.000 GB    1.98 PFLOPS    700 W   11.20 kW     vendor
+brain  ipu_gc200  dataflow  768  tp1/pp1/ep768/dp1  64.000 GB  250.00 TFLOPS    300 W  230.40 kW     vendor
+
+total devices 784   total memory 49.250 TB   system TDP 290.60 kW (PUE 1.0)
+
+bridge               fabric    usable BW  latency     energy
+-------------  ------------  -----------  -------  ---------
+gpu <-> brain  pcie5_x16x16  819.20 GB/s  1.20 us  12.0 pJ/B
+
+=== h100_ipu_moe_offload ===
+model=deepseek_v41_flash  system=h100x16 + ipu768  placement=moe_offload  tp=8 ep=768 mb=2
+
+LATENCY
+metric      mean         p50       p90        p99
+------  --------  ----------  --------  ---------
+TTFT     1.142 s  973.988 ms   2.234 s    2.754 s
+TPOT    5.362 ms    4.599 ms  7.617 ms  13.356 ms
+E2E      2.513 s     2.397 s   4.189 s    5.195 s
+
+THROUGHPUT & POWER
+metric                                    value
+-------------------------------------  --------
+output tokens/s                           535.6
+total tokens/s                           9158.3
+requests/s                                1.939
+avg power (W)                           78324.3
+energy / output token (J)              146.2499
+output tokens / joule                     0.007
+tokens/s per kW                             6.8
+SLO attainment (TTFT<5.0s, TPOT<50ms)    100.0%
+goodput (req/s)                           1.939
+wall time                              65.999 s
+
+COMPARISON (baseline = h100_only)
+
+metric             h100_only       h100_ipu_pd_a  h100_ipu_layer_split  h100_ipu_moe_offload
+----------------  ----------  ------------------  --------------------  --------------------
+TTFT p50          488.533 ms  712.179 ms (0.69x)    115.825 ms (4.22x)    973.988 ms (0.50x)
+TTFT p99             1.791 s     2.665 s (0.67x)    788.826 ms (2.27x)       2.754 s (0.65x)
+TPOT mean           2.845 ms    3.833 ms (0.74x)      1.399 ms (2.03x)      5.362 ms (0.53x)
+TPOT p99            3.807 ms    5.657 ms (0.67x)      2.264 ms (1.68x)     13.356 ms (0.29x)
+E2E p50              1.273 s     1.714 s (0.74x)    514.487 ms (2.47x)       2.397 s (0.53x)
+output tok/s           538.7       530.6 (0.98x)         546.8 (1.01x)         535.6 (0.99x)
+total tok/s          9,212.9     9,074.3 (0.98x)       9,350.8 (1.01x)       9,158.3 (0.99x)
+avg power (W)          5,525      86,110 (0.06x)        90,073 (0.06x)        78,324 (0.07x)
+J / output token     10.2556    162.2766 (0.06x)      164.7243 (0.06x)      146.2499 (0.07x)
+tok/s per kW            97.5         6.2 (0.06x)           6.1 (0.06x)           6.8 (0.07x)
+SLO attainment        100.0%      100.0% (1.00x)        100.0% (1.00x)        100.0% (1.00x)
+goodput req/s          1.951       1.922 (0.98x)         1.980 (1.01x)         1.939 (0.99x)
+
+[saved] results\repro_v41.json

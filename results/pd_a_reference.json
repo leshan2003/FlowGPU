@@ -1,0 +1,743 @@
+{
+  "name": "pd_a_reference_claim",
+  "config": {
+    "name": "pd_a_reference_claim",
+    "baseline": "pure_gpu_equal_capex",
+    "model": {
+      "name": "deepseek_v4_flash_proj",
+      "w_dtype": "fp8",
+      "a_dtype": "bf16",
+      "kv_dtype": "bf16",
+      "comm_dtype": "fp8"
+    },
+    "workload": {
+      "n_requests": 192,
+      "arrival_rate": 1.0,
+      "prompt_len": 8192,
+      "output_len": 512,
+      "prompt_sigma": 0.35,
+      "output_sigma": 0.5,
+      "max_batch": 64,
+      "max_running": 256,
+      "chunk_tokens": 8192,
+      "seed": 7
+    },
+    "slo": {
+      "ttft": 8.0,
+      "tpot": 0.05
+    },
+    "defaults": {
+      "collective_overlap": 0.6,
+      "jitter": true,
+      "microbatches": 1
+    },
+    "systems": {
+      "hetero_pda": {
+        "name": "iluvatar24 + lynxi384",
+        "host_overhead": "400 W",
+        "pue": 1.0,
+        "pools": {
+          "gpu": {
+            "device": "iluvatar_bi_v100",
+            "count": 24,
+            "devices_per_board": 8,
+            "parallel": {
+              "tp": 8,
+              "pp": 1,
+              "ep": 3,
+              "dp": 1
+            },
+            "scaleup": "pcie4_x16",
+            "scaleout": "roce_200g",
+            "price_per_device": 20000,
+            "host_overhead": "400 W"
+          },
+          "brain": {
+            "device": "lynxi_hp300_proj",
+            "count": 256,
+            "devices_per_board": 16,
+            "parallel": {
+              "tp": 1,
+              "pp": 1,
+              "ep": 256,
+              "dp": 1
+            },
+            "host_overhead": "150 W",
+            "scaleup": "custom_serdes_1600g",
+            "scaleout": "custom_serdes_800g",
+            "price_per_device": 1500
+          }
+        },
+        "bridges": [
+          {
+            "between": [
+              "gpu",
+              "brain"
+            ],
+            "fabric": "custom_serdes_800g",
+            "lanes": 24
+          }
+        ]
+      },
+      "pure_gpu_equal_capex": {
+        "name": "iluvatar43",
+        "host_overhead": "400 W",
+        "pue": 1.0,
+        "pools": {
+          "gpu": {
+            "device": "iluvatar_bi_v100",
+            "count": 40,
+            "devices_per_board": 8,
+            "parallel": {
+              "tp": 8,
+              "pp": 1,
+              "ep": 5,
+              "dp": 1
+            },
+            "scaleup": "pcie4_x16",
+            "scaleout": "roce_200g",
+            "price_per_device": 20000
+          }
+        }
+      },
+      "pure_gpu_equal_power": {
+        "name": "iluvatar176",
+        "host_overhead": "400 W",
+        "pools": {
+          "gpu": {
+            "device": "iluvatar_bi_v100",
+            "count": 176,
+            "devices_per_board": 8,
+            "parallel": {
+              "tp": 8,
+              "pp": 1,
+              "ep": 22,
+              "dp": 1
+            },
+            "scaleup": "pcie4_x16",
+            "scaleout": "roce_200g",
+            "price_per_device": 20000
+          }
+        }
+      },
+      "pure_gpu_same_count": {
+        "name": "iluvatar24",
+        "host_overhead": "400 W",
+        "pools": {
+          "gpu": {
+            "device": "iluvatar_bi_v100",
+            "count": 24,
+            "devices_per_board": 8,
+            "parallel": {
+              "tp": 8,
+              "pp": 1,
+              "ep": 3,
+              "dp": 1
+            },
+            "scaleup": "pcie4_x16",
+            "scaleout": "roce_200g",
+            "price_per_device": 20000
+          }
+        }
+      }
+    },
+    "runs": [
+      {
+        "name": "pure_gpu_equal_capex",
+        "system": "pure_gpu_equal_capex",
+        "placement": "all_gpu"
+      },
+      {
+        "name": "pure_gpu_same_count",
+        "system": "pure_gpu_same_count",
+        "placement": "all_gpu"
+      },
+      {
+        "name": "pd_a",
+        "system": "hetero_pda",
+        "placement": {
+          "strategy": "pd_a",
+          "gpu": "gpu",
+          "brain": "brain",
+          "crossing_dtype": "fp8"
+        },
+        "microbatches": 2
+      },
+      {
+        "name": "pd_a_no_quant_crossing",
+        "system": "hetero_pda",
+        "placement": {
+          "strategy": "pd_a",
+          "gpu": "gpu",
+          "brain": "brain"
+        },
+        "microbatches": 2
+      },
+      {
+        "name": "layer_split",
+        "system": "hetero_pda",
+        "placement": {
+          "strategy": "layer_split",
+          "frac_gpu": 0.15,
+          "gpu": "gpu",
+          "brain": "brain",
+          "crossing_dtype": "fp8"
+        },
+        "microbatches": 2
+      },
+      {
+        "name": "moe_offload_only",
+        "system": "hetero_pda",
+        "placement": {
+          "strategy": "moe_offload",
+          "gpu": "gpu",
+          "brain": "brain",
+          "crossing_dtype": "fp8"
+        },
+        "microbatches": 2
+      }
+    ]
+  },
+  "runs": {
+    "pure_gpu_equal_capex": {
+      "meta": {
+        "model": "deepseek_v4_flash_proj",
+        "system": "iluvatar43",
+        "placement": "all_gpu",
+        "microbatches": 1,
+        "tp": 8,
+        "ep": 5,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 145.92224502563477
+        },
+        "iters": 7643
+      },
+      "ttft": {
+        "mean": 9.274051732000162,
+        "p50": 8.405470084287849,
+        "p90": 16.051688920337824,
+        "p99": 18.718972977663995,
+        "max": 19.247815795564136
+      },
+      "tpot": {
+        "mean": 0.07417333284401181,
+        "p50": 0.06391562694889029,
+        "p90": 0.1496393200853194,
+        "p99": 0.2814011675424072,
+        "max": 0.39565797594513585
+      },
+      "e2e": {
+        "mean": 42.55422210948302,
+        "p50": 42.29225872216698,
+        "p90": 75.79328750356588,
+        "p99": 89.44625857849582,
+        "max": 90.18824936216927
+      },
+      "output_throughput": 506.65878664806115,
+      "total_throughput": 8823.807530118896,
+      "request_throughput": 0.9306719639935684,
+      "avg_power": 2930.9735100887374,
+      "energy": 604667.3110493812,
+      "device_energy": 189746.71936881889,
+      "idle_energy": 2315.49035975612,
+      "host_energy": 412605.1013208062,
+      "energy_per_output_token": 5.7849061090588965,
+      "tokens_per_joule": 0.1728636526069189,
+      "slo_attainment": 0.2604166666666667,
+      "goodput": 0.24236249062332513,
+      "wall_time": 206.30255066040309,
+      "t_by_bound": {
+        "memory": 9.84526113718123,
+        "compute": 36.980570276451274,
+        "collective": 153.4807885977731,
+        "latency": 4.943435030926912
+      },
+      "t_by_role": {
+        "embed": 0.019627256105236877,
+        "norm": 1.9061367327732806,
+        "attn": 63.41283789311138,
+        "ffn": 1.6936487957610455,
+        "moe": 138.10360845317302,
+        "lmhead": 0.1141959114077065
+      },
+      "busy_by_pool": {
+        "gpu": 205.25005504233212
+      },
+      "e_by_pool": {
+        "gpu": 192062.209728575
+      },
+      "e_by_source": {
+        "mem:hbm": 56046.684737949654,
+        "mem:l2": 437.6500694718899,
+        "compute": 18068.831414124095,
+        "static": 114535.16267743989,
+        "collective": 658.3904698367926,
+        "idle": 2315.49035975612,
+        "host": 412605.1013208062
+      },
+      "bytes_crossed": 0.0,
+      "prefill_tokens": 1715849,
+      "decode_tokens": 104525,
+      "kv_capacity_tokens": 23026679.916666668,
+      "peak_kv_tokens": 762355.0,
+      "warnings": []
+    },
+    "pure_gpu_same_count": {
+      "meta": {
+        "model": "deepseek_v4_flash_proj",
+        "system": "iluvatar24",
+        "placement": "all_gpu",
+        "microbatches": 1,
+        "tp": 8,
+        "ep": 3,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 145.92224502563477
+        },
+        "iters": 6955
+      },
+      "ttft": {
+        "mean": 11.553572216094393,
+        "p50": 8.538714765570646,
+        "p90": 21.088457621092118,
+        "p99": 24.092741112188563,
+        "max": 24.592815071228173
+      },
+      "tpot": {
+        "mean": 0.07843162429599372,
+        "p50": 0.06707204354762027,
+        "p90": 0.15465641917440795,
+        "p99": 0.26035219119968606,
+        "max": 0.3975288113271334
+      },
+      "e2e": {
+        "mean": 47.37727259434763,
+        "p50": 46.02678518794443,
+        "p90": 86.06778879953896,
+        "p99": 99.53849131216178,
+        "max": 102.7422257846834
+      },
+      "output_throughput": 483.8617256412024,
+      "total_throughput": 8426.781200214093,
+      "request_throughput": 0.8887964728353107,
+      "avg_power": 2017.800857566285,
+      "energy": 435890.3039037073,
+      "device_energy": 175274.0583645535,
+      "idle_energy": 1389.294215853597,
+      "host_energy": 259226.9513233002,
+      "energy_per_output_token": 4.170201424575052,
+      "tokens_per_joule": 0.23979657052222628,
+      "slo_attainment": 0.2604166666666667,
+      "goodput": 0.23145741480086218,
+      "wall_time": 216.0224594360835,
+      "t_by_bound": {
+        "memory": 15.453427486558242,
+        "compute": 57.83629200963318,
+        "collective": 137.24631187502425,
+        "latency": 4.4339324467973915
+      },
+      "t_by_role": {
+        "embed": 0.018076904586026427,
+        "norm": 1.7573414077024276,
+        "attn": 80.4699645656364,
+        "ffn": 1.8737805552517626,
+        "moe": 130.69259189818945,
+        "lmhead": 0.15820848664689535
+      },
+      "busy_by_pool": {
+        "gpu": 214.9699638180126
+      },
+      "e_by_pool": {
+        "gpu": 176663.35258040708
+      },
+      "e_by_source": {
+        "mem:hbm": 54220.44460248331,
+        "mem:l2": 432.2386264146581,
+        "compute": 17855.900943990517,
+        "static": 102338.43345250517,
+        "collective": 427.0407391641464,
+        "idle": 1389.294215853597,
+        "host": 259226.9513233002
+      },
+      "bytes_crossed": 0.0,
+      "prefill_tokens": 1715849,
+      "decode_tokens": 104525,
+      "kv_capacity_tokens": 12540919.916666666,
+      "peak_kv_tokens": 802764.0,
+      "warnings": []
+    },
+    "pd_a": {
+      "meta": {
+        "model": "deepseek_v4_flash_proj",
+        "system": "iluvatar24 + lynxi384",
+        "placement": "pd_a",
+        "microbatches": 2,
+        "tp": 8,
+        "ep": 256,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 7.080265045166016,
+          "brain": 138.84197998046875
+        },
+        "iters": 3769
+      },
+      "ttft": {
+        "mean": 38.77181607457251,
+        "p50": 40.41746248867389,
+        "p90": 64.83575587499368,
+        "p99": 77.47097326819159,
+        "max": 77.94921369797703
+      },
+      "tpot": {
+        "mean": 0.3083244472077651,
+        "p50": 0.26228837406402966,
+        "p90": 0.610844600501679,
+        "p99": 1.0842143037326362,
+        "max": 1.515673047419857
+      },
+      "e2e": {
+        "mean": 170.18402959164163,
+        "p50": 175.32378246460533,
+        "p90": 235.90747272510959,
+        "p99": 251.65412954744608,
+        "max": 256.2212447977325
+      },
+      "output_throughput": 367.9186430315429,
+      "total_throughput": 6407.553522027284,
+      "request_throughput": 0.6758228123612172,
+      "avg_power": 11102.646366790328,
+      "energy": 3154241.116803818,
+      "device_energy": 213993.96895190136,
+      "idle_energy": 1917493.8649536117,
+      "host_energy": 1022753.2828983049,
+      "energy_per_output_token": 30.176906164112108,
+      "tokens_per_joule": 0.033137923237116014,
+      "slo_attainment": 0.03125,
+      "goodput": 0.021119462886288038,
+      "wall_time": 284.098134138418,
+      "t_by_bound": {
+        "memory": 1.484642991778715,
+        "compute": 72.77969366048194,
+        "collective": 209.94126458992775,
+        "latency": 2.4607174305163597,
+        "bridge": 0.2931960836787722,
+        "network": 0.05351849823865578,
+        "pipeline_fill": 3.967394734274968
+      },
+      "t_by_role": {
+        "embed": 0.019057025864683726,
+        "norm": 1.0337483081891692,
+        "attn": 84.38553573399334,
+        "ffn": 1.6053345363000473,
+        "moe": 199.52640010150844,
+        "lmhead": 0.14976146508800758
+      },
+      "busy_by_pool": {
+        "gpu": 279.07824378607216,
+        "brain": 7.641593384871204
+      },
+      "e_by_pool": {
+        "gpu": 196104.5465994713,
+        "brain": 1935383.0693070944
+      },
+      "e_by_source": {
+        "mem:hbm": 17815.033720733074,
+        "mem:l2": 439.58361639193237,
+        "compute": 18102.765063493247,
+        "static": 118089.29687417892,
+        "collective": 56937.6645237983,
+        "bridge": 0.21799895039999626,
+        "mem:sram": 2607.095351096522,
+        "noc": 2.3118032589830926,
+        "idle": 1917493.8649536117,
+        "host": 1022753.2828983049
+      },
+      "bytes_crossed": 43599790080.0,
+      "prefill_tokens": 1715849,
+      "decode_tokens": 104525,
+      "kv_capacity_tokens": 15573969.25,
+      "peak_kv_tokens": 1763658.0,
+      "warnings": []
+    },
+    "pd_a_no_quant_crossing": {
+      "meta": {
+        "model": "deepseek_v4_flash_proj",
+        "system": "iluvatar24 + lynxi384",
+        "placement": "pd_a",
+        "microbatches": 2,
+        "tp": 8,
+        "ep": 256,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 7.080265045166016,
+          "brain": 138.84197998046875
+        },
+        "iters": 3769
+      },
+      "ttft": {
+        "mean": 38.77255161813842,
+        "p50": 40.418226191069806,
+        "p90": 64.83652558989908,
+        "p99": 77.47174298309699,
+        "max": 77.94998341288243
+      },
+      "tpot": {
+        "mean": 0.3083352874087402,
+        "p50": 0.2622942204729065,
+        "p90": 0.6108504095863727,
+        "p99": 1.0842201580827613,
+        "max": 1.515678848654926
+      },
+      "e2e": {
+        "mean": 170.19006101152232,
+        "p50": 175.32807758613134,
+        "p90": 235.91214807221627,
+        "p99": 251.65722238427048,
+        "max": 256.22595552281564
+      },
+      "output_throughput": 367.90556085915546,
+      "total_throughput": 6407.325687093273,
+      "request_throughput": 0.6757987819656336,
+      "avg_power": 11102.6730679038,
+      "energy": 3154360.862914271,
+      "device_energy": 213994.1869508537,
+      "idle_energy": 1917577.0254855487,
+      "host_energy": 1022789.650477869,
+      "energy_per_output_token": 30.178051785833734,
+      "tokens_per_joule": 0.03313666525250721,
+      "slo_attainment": 0.03125,
+      "goodput": 0.02111871193642605,
+      "wall_time": 284.1082362438525,
+      "t_by_bound": {
+        "memory": 1.484642991778715,
+        "compute": 72.77969366048194,
+        "collective": 209.94126458992775,
+        "latency": 2.4607174305163597,
+        "bridge": 0.3134002945510364,
+        "network": 0.05351849823865578,
+        "pipeline_fill": 3.977496839711145
+      },
+      "t_by_role": {
+        "embed": 0.019057025864683726,
+        "norm": 1.0337483081891694,
+        "attn": 84.38553573399334,
+        "ffn": 1.6053345363000473,
+        "moe": 199.52640010150844,
+        "lmhead": 0.14976146508800758
+      },
+      "busy_by_pool": {
+        "gpu": 279.07824378607216,
+        "brain": 7.641593384871204
+      },
+      "e_by_pool": {
+        "gpu": 196117.88137864482,
+        "brain": 1935452.8950598578
+      },
+      "e_by_source": {
+        "mem:hbm": 17815.033720733074,
+        "mem:l2": 439.58361639193237,
+        "compute": 18102.765063493247,
+        "static": 118089.29687417892,
+        "collective": 56937.6645237983,
+        "bridge": 0.4359979007999925,
+        "mem:sram": 2607.095351096522,
+        "noc": 2.3118032589830926,
+        "idle": 1917577.0254855487,
+        "host": 1022789.650477869
+      },
+      "bytes_crossed": 87199580160.0,
+      "prefill_tokens": 1715849,
+      "decode_tokens": 104525,
+      "kv_capacity_tokens": 15573969.25,
+      "peak_kv_tokens": 1763658.0,
+      "warnings": []
+    },
+    "layer_split": {
+      "meta": {
+        "model": "deepseek_v4_flash_proj",
+        "system": "iluvatar24 + lynxi384",
+        "placement": "layer_split@0.15",
+        "microbatches": 2,
+        "tp": 8,
+        "ep": 3,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 16.70317840576172,
+          "brain": 129.21906661987305
+        },
+        "iters": 16249
+      },
+      "ttft": {
+        "mean": 5.070475628254816,
+        "p50": 4.372283897815464,
+        "p90": 9.750026594832903,
+        "p99": 15.094804405486599,
+        "max": 15.275974088880474
+      },
+      "tpot": {
+        "mean": 0.014274816313584375,
+        "p50": 0.013401162857631783,
+        "p90": 0.02080355074685119,
+        "p99": 0.027750587689099222,
+        "max": 0.030679705365893508
+      },
+      "e2e": {
+        "mean": 12.358220167050012,
+        "p50": 11.224154862178958,
+        "p90": 20.80991075390648,
+        "p99": 26.32904213525356,
+        "max": 28.01872251783921
+      },
+      "output_throughput": 544.9211645231899,
+      "total_throughput": 9490.172876802078,
+      "request_throughput": 1.0009554038598656,
+      "avg_power": 11035.558111344679,
+      "energy": 2116804.7539456766,
+      "device_energy": 992203.9694196192,
+      "idle_energy": 434060.5293512442,
+      "host_energy": 690540.2551748134,
+      "energy_per_output_token": 20.251659927727115,
+      "tokens_per_joule": 0.0493786683940348,
+      "slo_attainment": 0.8125,
+      "goodput": 0.8132762656361409,
+      "wall_time": 191.81673754855927,
+      "t_by_bound": {
+        "memory": 13.75109671959149,
+        "compute": 138.6445438871676,
+        "collective": 49.42384527562233,
+        "bridge": 0.017462501711113094,
+        "network": 0.5399486540204339,
+        "latency": 3.508457922327771,
+        "pipeline_fill": 15.121113029951577
+      },
+      "t_by_role": {
+        "embed": 0.08249971489069945,
+        "norm": 1.5630694389324171,
+        "attn": 132.47726159070592,
+        "ffn": 3.225060452400297,
+        "moe": 68.4274536760298,
+        "lmhead": 0.09254758577078148
+      },
+      "busy_by_pool": {
+        "gpu": 49.71101904975741,
+        "brain": 156.15687340897222
+      },
+      "e_by_pool": {
+        "gpu": 262784.54609211587,
+        "brain": 1163479.9026417274
+      },
+      "e_by_source": {
+        "mem:hbm": 37431.19256613616,
+        "mem:l2": 70.34831901570765,
+        "compute": 5181.999158733058,
+        "static": 934797.5366375671,
+        "collective": 161.77427718145807,
+        "bridge": 0.05003704319999502,
+        "mem:sram": 11396.331983912574,
+        "noc": 2031.4197793115397,
+        "mem:dram": 1133.316660815917,
+        "idle": 434060.5293512442,
+        "host": 690540.2551748134
+      },
+      "bytes_crossed": 10007408640.0,
+      "prefill_tokens": 1715849,
+      "decode_tokens": 104525,
+      "kv_capacity_tokens": 15363753.5,
+      "peak_kv_tokens": 253224.0,
+      "warnings": []
+    },
+    "moe_offload_only": {
+      "meta": {
+        "model": "deepseek_v4_flash_proj",
+        "system": "iluvatar24 + lynxi384",
+        "placement": "moe_offload",
+        "microbatches": 2,
+        "tp": 8,
+        "ep": 256,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 7.338260650634766,
+          "brain": 138.583984375
+        },
+        "iters": 17360
+      },
+      "ttft": {
+        "mean": 4.163507531147824,
+        "p50": 4.283997249052405,
+        "p90": 6.558261635357702,
+        "p99": 8.328603160024784,
+        "max": 9.179641754017524
+      },
+      "tpot": {
+        "mean": 0.013724308330152446,
+        "p50": 0.01121168791391332,
+        "p90": 0.023865284838919677,
+        "p99": 0.03983900329902979,
+        "max": 0.05091067352722898
+      },
+      "e2e": {
+        "mean": 10.894574002003239,
+        "p50": 9.813341226356272,
+        "p90": 17.4854270858726,
+        "p99": 23.5765049147397,
+        "max": 24.28314754224911
+      },
+      "output_throughput": 560.2966549091524,
+      "total_throughput": 9757.947504267815,
+      "request_throughput": 1.0291983519976777,
+      "avg_power": 10189.9923329612,
+      "energy": 1900973.2420684686,
+      "device_energy": 228830.36967728686,
+      "idle_energy": 1000552.2128663404,
+      "host_energy": 671590.6595248412,
+      "energy_per_output_token": 18.18678059859812,
+      "tokens_per_joule": 0.05498499278520369,
+      "slo_attainment": 0.9583333333333334,
+      "goodput": 0.9863150873311077,
+      "wall_time": 186.55296097912256,
+      "t_by_bound": {
+        "memory": 11.38456246606171,
+        "compute": 61.60800111119513,
+        "collective": 98.10751878062686,
+        "bridge": 1.6969439157268278,
+        "latency": 21.282458980671116,
+        "pipeline_fill": 8.579019893228315
+      },
+      "t_by_role": {
+        "embed": 0.08815338895411681,
+        "norm": 8.554649066205437,
+        "attn": 129.37426713133868,
+        "ffn": 3.3754545915584506,
+        "moe": 50.28734036961777,
+        "lmhead": 0.7026767908804987
+      },
+      "busy_by_pool": {
+        "gpu": 142.09520096893823,
+        "brain": 50.28734036961777
+      },
+      "e_by_pool": {
+        "gpu": 226269.61157698368,
+        "brain": 1003108.3392265667
+      },
+      "e_by_source": {
+        "mem:hbm": 35450.0131985152,
+        "mem:l2": 387.9648640361354,
+        "compute": 15048.786799949832,
+        "static": 155033.059842618,
+        "collective": 10237.518828994589,
+        "bridge": 4.631740088321346,
+        "mem:sram": 12657.980765953002,
+        "noc": 10.41363714412262,
+        "idle": 1000552.2128663404,
+        "host": 671590.6595248412
+      },
+      "bytes_crossed": 926348017664.0,
+      "prefill_tokens": 1715849,
+      "decode_tokens": 104525,
+      "kv_capacity_tokens": 15568333.25,
+      "peak_kv_tokens": 236034.0,
+      "warnings": []
+    }
+  }
+}

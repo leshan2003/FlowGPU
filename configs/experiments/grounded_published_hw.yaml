@@ -1,0 +1,151 @@
+# =====================================================================
+# The same question as pd_a_reference.yaml, but asked with NOTHING
+# projected: published model config, published hardware specs.
+#
+#   model    : DeepSeek-V3 671B / 37B active (public config.json)
+#   GPU      : NVIDIA H100 SXM (vendor datasheet)
+#   dataflow : Groq LPU v1 (ISCA'20 paper + vendor) and Graphcore IPU
+#              GC200 (vendor datasheet)
+#
+# This is the arm whose conclusions can be defended line by line.  Every
+# spec has a citation in flowgpu/hardware/registry.py.
+#
+# The Groq arm is deliberately brutal: 230 MB of SRAM per chip and NO DRAM
+# AT ALL means 624 GiB of fp8 weights needs >3000 chips.  The simulator is
+# not allowed to pretend otherwise -- watch the capacity warnings.
+# =====================================================================
+name: grounded_published_hardware
+baseline: h100_only
+
+model:
+  name: deepseek_v3
+  w_dtype: fp8
+  a_dtype: bf16
+  kv_dtype: bf16
+  comm_dtype: fp8
+
+workload:
+  n_requests: 192
+  prompt_len: 4096
+  output_len: 256
+  prompt_sigma: 0.4
+  output_sigma: 0.5
+  arrival_rate: 2.0        # Poisson, so TTFT is not pure queueing artefact
+  max_batch: 64
+  max_running: 192
+  chunk_tokens: 8192
+  seed: 11
+
+# 5 s TTFT is a normal long-context SLO; with prompt_sigma=0.4 the p99 prompt
+# is ~2.5x the mean, so a 2 s target is unreachable for any of these systems
+# and would make the comparison degenerate.
+slo: {ttft: 5.0, tpot: 0.05}
+
+defaults:
+  collective_overlap: 0.6
+  jitter: true
+
+systems:
+  h100_32:
+    name: h100x32
+    pools:
+      gpu:
+        device: h100_sxm
+        count: 32
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 4, dp: 1}
+        scaleup: nvlink4
+        scaleout: ib_ndr
+        host_overhead: 500 W
+        price_per_device: 30000
+
+  # H100 for prefill + attention, Groq LPU for the expert stack.
+  # 624 GiB fp8 / (230 MB x 0.82) = ~3400 chips.  That is what the
+  # architecture demands; the experiment reports what it costs.
+  h100_plus_groq:
+    name: h100x16 + groq3456
+    pools:
+      gpu:
+        device: h100_sxm
+        count: 16
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 2, dp: 1}
+        scaleup: nvlink4
+        scaleout: ib_ndr
+        host_overhead: 500 W
+        price_per_device: 30000
+      brain:
+        device: groq_lpu_v1
+        count: 3456
+        devices_per_board: 8
+        parallel: {tp: 1, pp: 1, ep: 3456, dp: 1}
+        scaleup: groq_c2c
+        scaleout: groq_c2c
+        host_overhead: 200 W
+        price_per_device: 20000
+    bridges:
+      - between: [gpu, brain]
+        fabric: pcie5_x16
+        lanes: 16
+
+  # A far more sensible dataflow partner: the IPU has 900 MB of SRAM *and*
+  # 64 GB of streaming DRAM, so it degrades gracefully instead of falling
+  # off a capacity cliff.
+  h100_plus_ipu:
+    name: h100x16 + ipu768
+    pools:
+      gpu:
+        device: h100_sxm
+        count: 16
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 2, dp: 1}
+        scaleup: nvlink4
+        scaleout: ib_ndr
+        host_overhead: 500 W
+        price_per_device: 30000
+      brain:
+        device: ipu_gc200
+        count: 768
+        devices_per_board: 4
+        parallel: {tp: 1, pp: 1, ep: 768, dp: 1}
+        scaleup: ipulink
+        scaleout: ib_ndr
+        host_overhead: 250 W
+        price_per_device: 15000
+    bridges:
+      - between: [gpu, brain]
+        fabric: pcie5_x16
+        lanes: 16
+
+runs:
+  - name: h100_only
+    system: h100_32
+    placement: all_gpu
+
+  - name: h100_groq_pd_a
+    system: h100_plus_groq
+    placement:
+      strategy: pd_a
+      gpu: gpu
+      brain: brain
+      crossing_dtype: fp8
+    microbatches: 2
+
+  - name: h100_ipu_pd_a
+    system: h100_plus_ipu
+    placement:
+      strategy: pd_a
+      gpu: gpu
+      brain: brain
+      crossing_dtype: fp8
+    microbatches: 2
+
+  - name: h100_ipu_layer_split
+    system: h100_plus_ipu
+    placement:
+      strategy: layer_split
+      frac_gpu: 0.2
+      gpu: gpu
+      brain: brain
+      crossing_dtype: fp8
+    microbatches: 2

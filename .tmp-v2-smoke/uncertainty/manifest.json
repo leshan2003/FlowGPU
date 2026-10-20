@@ -1,0 +1,16 @@
+{
+  "bundle_kind": "node-sweep-uncertainty",
+  "command": "python -m flowgpu v2-node-uncertainty C:\\Users\\18474\\Desktop\\清华大学\\类脑计算2\\FlowGPU-main\\configs\\sim_v2\\node_sweep_smoke.yaml",
+  "evaluation_seeds": [
+    17,
+    19
+  ],
+  "execution_mode": "detailed:max-min-fluid",
+  "placement_seeds": [
+    11,
+    13
+  ],
+  "schema_version": 1,
+  "simulator_version": "0.2.0-v2-foundation",
+  "timestamp_utc": "2026-10-19T11:44:06.862602+00:00"
+}

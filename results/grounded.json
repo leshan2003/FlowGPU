@@ -1,0 +1,553 @@
+{
+  "name": "grounded_published_hardware",
+  "config": {
+    "name": "grounded_published_hardware",
+    "baseline": "h100_only",
+    "model": {
+      "name": "deepseek_v3",
+      "w_dtype": "fp8",
+      "a_dtype": "bf16",
+      "kv_dtype": "bf16",
+      "comm_dtype": "fp8"
+    },
+    "workload": {
+      "n_requests": 192,
+      "prompt_len": 4096,
+      "output_len": 256,
+      "prompt_sigma": 0.4,
+      "output_sigma": 0.5,
+      "arrival_rate": 2.0,
+      "max_batch": 64,
+      "max_running": 192,
+      "chunk_tokens": 8192,
+      "seed": 11
+    },
+    "slo": {
+      "ttft": 2.0,
+      "tpot": 0.05
+    },
+    "defaults": {
+      "collective_overlap": 0.6,
+      "jitter": true
+    },
+    "systems": {
+      "h100_32": {
+        "name": "h100x32",
+        "pools": {
+          "gpu": {
+            "device": "h100_sxm",
+            "count": 32,
+            "devices_per_board": 8,
+            "parallel": {
+              "tp": 8,
+              "pp": 1,
+              "ep": 4,
+              "dp": 1
+            },
+            "scaleup": "nvlink4",
+            "scaleout": "ib_ndr",
+            "host_overhead": "500 W",
+            "price_per_device": 30000
+          }
+        }
+      },
+      "h100_plus_groq": {
+        "name": "h100x16 + groq3456",
+        "pools": {
+          "gpu": {
+            "device": "h100_sxm",
+            "count": 16,
+            "devices_per_board": 8,
+            "parallel": {
+              "tp": 8,
+              "pp": 1,
+              "ep": 2,
+              "dp": 1
+            },
+            "scaleup": "nvlink4",
+            "scaleout": "ib_ndr",
+            "host_overhead": "500 W",
+            "price_per_device": 30000
+          },
+          "brain": {
+            "device": "groq_lpu_v1",
+            "count": 3456,
+            "devices_per_board": 8,
+            "parallel": {
+              "tp": 1,
+              "pp": 1,
+              "ep": 3456,
+              "dp": 1
+            },
+            "scaleup": "groq_c2c",
+            "scaleout": "groq_c2c",
+            "host_overhead": "200 W",
+            "price_per_device": 20000
+          }
+        },
+        "bridges": [
+          {
+            "between": [
+              "gpu",
+              "brain"
+            ],
+            "fabric": "pcie5_x16",
+            "lanes": 16
+          }
+        ]
+      },
+      "h100_plus_ipu": {
+        "name": "h100x16 + ipu768",
+        "pools": {
+          "gpu": {
+            "device": "h100_sxm",
+            "count": 16,
+            "devices_per_board": 8,
+            "parallel": {
+              "tp": 8,
+              "pp": 1,
+              "ep": 2,
+              "dp": 1
+            },
+            "scaleup": "nvlink4",
+            "scaleout": "ib_ndr",
+            "host_overhead": "500 W",
+            "price_per_device": 30000
+          },
+          "brain": {
+            "device": "ipu_gc200",
+            "count": 768,
+            "devices_per_board": 4,
+            "parallel": {
+              "tp": 1,
+              "pp": 1,
+              "ep": 768,
+              "dp": 1
+            },
+            "scaleup": "ipulink",
+            "scaleout": "ib_ndr",
+            "host_overhead": "250 W",
+            "price_per_device": 15000
+          }
+        },
+        "bridges": [
+          {
+            "between": [
+              "gpu",
+              "brain"
+            ],
+            "fabric": "pcie5_x16",
+            "lanes": 16
+          }
+        ]
+      }
+    },
+    "runs": [
+      {
+        "name": "h100_only",
+        "system": "h100_32",
+        "placement": "all_gpu"
+      },
+      {
+        "name": "h100_groq_pd_a",
+        "system": "h100_plus_groq",
+        "placement": {
+          "strategy": "pd_a",
+          "gpu": "gpu",
+          "brain": "brain",
+          "crossing_dtype": "fp8"
+        },
+        "microbatches": 2
+      },
+      {
+        "name": "h100_ipu_pd_a",
+        "system": "h100_plus_ipu",
+        "placement": {
+          "strategy": "pd_a",
+          "gpu": "gpu",
+          "brain": "brain",
+          "crossing_dtype": "fp8"
+        },
+        "microbatches": 2
+      },
+      {
+        "name": "h100_ipu_layer_split",
+        "system": "h100_plus_ipu",
+        "placement": {
+          "strategy": "layer_split",
+          "frac_gpu": 0.2,
+          "gpu": "gpu",
+          "brain": "brain",
+          "crossing_dtype": "fp8"
+        },
+        "microbatches": 2
+      }
+    ]
+  },
+  "runs": {
+    "h100_only": {
+      "meta": {
+        "model": "deepseek_v3",
+        "system": "h100x32",
+        "placement": "all_gpu",
+        "microbatches": 1,
+        "tp": 8,
+        "ep": 4,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 644.0044221878052
+        },
+        "iters": 12509
+      },
+      "ttft": {
+        "mean": 0.07145859155028662,
+        "p50": 0.060298124755405524,
+        "p90": 0.12002834152669095,
+        "p99": 0.20108193345324477,
+        "max": 0.2756624057746162
+      },
+      "tpot": {
+        "mean": 0.00795326905590568,
+        "p50": 0.007942268833668685,
+        "p90": 0.008751014400397685,
+        "p99": 0.009343190901354444,
+        "max": 0.009642296338845956
+      },
+      "e2e": {
+        "mean": 2.305024557526812,
+        "p50": 2.0044086280099114,
+        "p90": 3.7369758892739,
+        "p99": 6.763532015346595,
+        "max": 11.576939583971704
+      },
+      "output_throughput": 556.3925138997088,
+      "total_throughput": 9426.677455281324,
+      "request_throughput": 1.964532764514033,
+      "avg_power": 6788.54491818492,
+      "energy": 663465.9639356675,
+      "device_energy": 467999.6388448818,
+      "idle_energy": 0.0,
+      "host_energy": 195466.32509078574,
+      "energy_per_output_token": 12.20099974135988,
+      "tokens_per_joule": 0.08196049677881098,
+      "slo_attainment": 0.9895833333333334,
+      "goodput": 1.944068881550345,
+      "wall_time": 97.73316254539287,
+      "t_by_bound": {
+        "latency": 5.693165293577753,
+        "compute": 35.588162200152155,
+        "collective": 36.86289751429872,
+        "memory": 19.588937537364135
+      },
+      "t_by_role": {
+        "embed": 0.031027535637402247,
+        "norm": 3.8165000747868314,
+        "attn": 50.08428322651724,
+        "ffn": 1.4041008781704085,
+        "moe": 42.26403705576544,
+        "lmhead": 0.13321377451516203
+      },
+      "busy_by_pool": {
+        "gpu": 97.73316254539287
+      },
+      "e_by_pool": {
+        "gpu": 467999.6388448818
+      },
+      "e_by_source": {
+        "mem:hbm": 157250.21503437194,
+        "mem:l2": 350.02017174640736,
+        "compute": 10259.56579053284,
+        "static": 299950.41180257447,
+        "collective": 189.4260455915375,
+        "idle": 0.0,
+        "host": 195466.32509078574
+      },
+      "bytes_crossed": 0.0,
+      "prefill_tokens": 866921,
+      "decode_tokens": 54378,
+      "kv_capacity_tokens": 28298114.608378872,
+      "peak_kv_tokens": 58376.0,
+      "warnings": []
+    },
+    "h100_groq_pd_a": {
+      "meta": {
+        "model": "deepseek_v3",
+        "system": "h100x16 + groq3456",
+        "placement": "pd_a",
+        "microbatches": 2,
+        "tp": 8,
+        "ep": 3456,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 31.41856575012207,
+          "brain": 612.5858564376831
+        },
+        "iters": 1985
+      },
+      "ttft": {
+        "mean": 3.474360764134134,
+        "p50": 3.489334069536497,
+        "p90": 4.974856847305105,
+        "p99": 6.041990196929319,
+        "max": 6.392210700788084
+      },
+      "tpot": {
+        "mean": 0.24410624594940425,
+        "p50": 0.21269637266519673,
+        "p90": 0.4418572554376151,
+        "p99": 0.68247538867148,
+        "max": 0.9197947283587659
+      },
+      "e2e": {
+        "mean": 57.476318519576644,
+        "p50": 58.77289494788732,
+        "p90": 91.59023252103154,
+        "p99": 98.74228409998949,
+        "max": 100.6518457842704
+      },
+      "output_throughput": 463.82680336387784,
+      "total_throughput": 7858.3833556279615,
+      "request_throughput": 1.6376980809493646,
+      "avg_power": 255295.88549729597,
+      "energy": 29930309.246662885,
+      "device_energy": 1060548.9816305074,
+      "idle_energy": 18623182.953131113,
+      "host_energy": 10246577.311901266,
+      "energy_per_output_token": 550.4121013399332,
+      "tokens_per_joule": 0.0018168205196898504,
+      "slo_attainment": 0.0,
+      "goodput": 0.0,
+      "wall_time": 117.2377266807925,
+      "t_by_bound": {
+        "latency": 0.5856106096248858,
+        "compute": 27.631106235215913,
+        "collective": 92.41907757840666,
+        "memory": 0.5191203727794574,
+        "bridge": 0.606845266076848,
+        "pipeline_fill": 4.524033381310964
+      },
+      "t_by_role": {
+        "embed": 0.009693076205122846,
+        "norm": 0.6417680687734298,
+        "attn": 24.774837942739303,
+        "ffn": 0.9363455204000004,
+        "moe": 94.7180045871006,
+        "lmhead": 0.07426560080850765
+      },
+      "busy_by_pool": {
+        "gpu": 112.71369329948175,
+        "brain": 8.441221496545138
+      },
+      "e_by_pool": {
+        "gpu": 670961.5160673796,
+        "brain": 19012769.80391659
+      },
+      "e_by_source": {
+        "mem:hbm": 16797.31684920786,
+        "mem:l2": 451.6032607835659,
+        "compute": 12817.88237336487,
+        "static": 445740.7238583652,
+        "collective": 578019.0797010921,
+        "bridge": 0.6147776839680363,
+        "mem:sram": 6715.653189575154,
+        "noc": 6.107620415359971,
+        "idle": 18623182.953131113,
+        "host": 10246577.311901266
+      },
+      "bytes_crossed": 51231473664.0,
+      "prefill_tokens": 866921,
+      "decode_tokens": 54378,
+      "kv_capacity_tokens": 18589116.123861566,
+      "peak_kv_tokens": 918480.0,
+      "warnings": []
+    },
+    "h100_ipu_pd_a": {
+      "meta": {
+        "model": "deepseek_v3",
+        "system": "h100x16 + ipu768",
+        "placement": "pd_a",
+        "microbatches": 2,
+        "tp": 8,
+        "ep": 768,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 31.41856575012207,
+          "brain": 612.5858564376831
+        },
+        "iters": 1828
+      },
+      "ttft": {
+        "mean": 5.31632988459033,
+        "p50": 5.076493024387291,
+        "p90": 8.84021270259555,
+        "p99": 9.846384836856032,
+        "max": 10.359055069828273
+      },
+      "tpot": {
+        "mean": 0.2896207677631328,
+        "p50": 0.25525845839641514,
+        "p90": 0.5040425384761521,
+        "p99": 0.7389040633199934,
+        "max": 0.991263238158398
+      },
+      "e2e": {
+        "mean": 70.18052627027667,
+        "p50": 69.53274588750827,
+        "p90": 101.36703630456749,
+        "p99": 111.3261819937282,
+        "max": 115.8743025720259
+      },
+      "output_throughput": 386.32211867343415,
+      "total_throughput": 6545.260612963261,
+      "request_throughput": 1.3640414650281245,
+      "avg_power": 86557.0727329846,
+      "energy": 12183616.400833081,
+      "device_energy": 744087.7806489561,
+      "idle_energy": 4542377.586871496,
+      "host_energy": 6897151.033312628,
+      "energy_per_output_token": 224.0541469129626,
+      "tokens_per_joule": 0.0044632068353926335,
+      "slo_attainment": 0.0,
+      "goodput": 0.0,
+      "wall_time": 140.75818435331894,
+      "t_by_bound": {
+        "latency": 0.5357480392851233,
+        "compute": 25.01991322322081,
+        "collective": 112.1677867621034,
+        "memory": 11.55979978471352,
+        "bridge": 0.5602463324491403,
+        "network": 0.011730806373233966,
+        "pipeline_fill": 9.09704059482634
+      },
+      "t_by_role": {
+        "embed": 0.008930585861607145,
+        "norm": 0.6046110497151861,
+        "attn": 24.066449520572995,
+        "ffn": 0.981381162496363,
+        "moe": 123.56537071798724,
+        "lmhead": 0.06823557906291951
+      },
+      "busy_by_pool": {
+        "gpu": 116.6321614098189,
+        "brain": 32.66281720587698
+      },
+      "e_by_pool": {
+        "gpu": 283949.0006424095,
+        "brain": 5002515.762090583
+      },
+      "e_by_source": {
+        "mem:hbm": 16046.648208442399,
+        "mem:l2": 470.59581197869767,
+        "compute": 13357.71477730736,
+        "static": 525068.102746395,
+        "collective": 142793.06738364956,
+        "bridge": 0.6047874416640364,
+        "mem:sram": 9775.885858961285,
+        "mem:dram": 36534.7480103108,
+        "noc": 40.41306448087498,
+        "idle": 4542377.586871496,
+        "host": 6897151.033312628
+      },
+      "bytes_crossed": 50398953472.0,
+      "prefill_tokens": 866921,
+      "decode_tokens": 54378,
+      "kv_capacity_tokens": 18589116.123861566,
+      "peak_kv_tokens": 921299.0,
+      "warnings": []
+    },
+    "h100_ipu_layer_split": {
+      "meta": {
+        "model": "deepseek_v3",
+        "system": "h100x16 + ipu768",
+        "placement": "layer_split@0.20",
+        "microbatches": 2,
+        "tp": 8,
+        "ep": 2,
+        "dp": 1,
+        "weights_by_pool": {
+          "gpu": 102.69620513916016,
+          "brain": 541.308217048645
+        },
+        "iters": 3482
+      },
+      "ttft": {
+        "mean": 0.5113147167938877,
+        "p50": 0.27473838669961737,
+        "p90": 1.1859979864657237,
+        "p99": 2.353612265006399,
+        "max": 2.6474431243251573
+      },
+      "tpot": {
+        "mean": 0.03358661503638344,
+        "p50": 0.03288420369291187,
+        "p90": 0.04476217164917079,
+        "p99": 0.05760623555473159,
+        "max": 0.06872084426682572
+      },
+      "e2e": {
+        "mean": 9.838129594199414,
+        "p50": 8.578772197989878,
+        "p90": 16.5882451756136,
+        "p99": 26.819719446346262,
+        "max": 49.57649153456498
+      },
+      "output_throughput": 523.3156851400648,
+      "total_throughput": 8866.27344521418,
+      "request_throughput": 1.8477437851133263,
+      "avg_power": 62853.29070375053,
+      "energy": 6531117.524164723,
+      "device_energy": 792444.5641266931,
+      "idle_energy": 647057.9451224285,
+      "host_energy": 5091615.014915602,
+      "energy_per_output_token": 120.10587966024355,
+      "tokens_per_joule": 0.008325987060989918,
+      "slo_attainment": 0.9375,
+      "goodput": 1.7322597985437433,
+      "wall_time": 103.91051050848168,
+      "t_by_bound": {
+        "latency": 0.6078668011136886,
+        "compute": 14.419806765587486,
+        "collective": 81.72002990817433,
+        "memory": 8.66404196655543,
+        "bridge": 0.01714113577578848,
+        "network": 6.354218881805341,
+        "pipeline_fill": 7.872594950530005
+      },
+      "t_by_role": {
+        "embed": 0.016912969327793403,
+        "norm": 0.4736720851263955,
+        "attn": 52.87691319072131,
+        "ffn": 0.938559885549213,
+        "moe": 57.454188116326236,
+        "lmhead": 0.005718076185538067
+      },
+      "busy_by_pool": {
+        "gpu": 18.37581593096375,
+        "brain": 93.39014839227256
+      },
+      "e_by_pool": {
+        "gpu": 280012.42623965984,
+        "brain": 1159489.9945846167
+      },
+      "e_by_source": {
+        "mem:hbm": 32574.31434308075,
+        "mem:l2": 78.08242582379599,
+        "compute": 6987.326193185082,
+        "static": 698794.0633218448,
+        "collective": 290.61181708697706,
+        "bridge": 0.08842479206399823,
+        "mem:sram": 20373.034872814136,
+        "mem:dram": 8497.994898041838,
+        "noc": 24849.047829978233,
+        "idle": 647057.9451224285,
+        "host": 5091615.014915602
+      },
+      "bytes_crossed": 7368732672.0,
+      "prefill_tokens": 866921,
+      "decode_tokens": 54378,
+      "kv_capacity_tokens": 17500008.335154828,
+      "peak_kv_tokens": 144326.0,
+      "warnings": []
+    }
+  }
+}

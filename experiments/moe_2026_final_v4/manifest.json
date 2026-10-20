@@ -1,0 +1,84 @@
+{
+  "bundle_kind": "moe-research-combined",
+  "claim_boundary": "paper-constrained synthetic routing and projected hardware; not real router trace or KA200 measurement",
+  "combined_details_sha256": "bab7c39869923e291cda844c478992f42ccf079cd674ab442bb59c9e21afae47",
+  "mechanism_manifest": {
+    "claim_boundary": "paper-constrained synthetic routing and projected hardware; not KA200 or trace measurement",
+    "components": [
+      "community",
+      "node_batch",
+      "ranked_full",
+      "refresh",
+      "seeds",
+      "sensitivity",
+      "skew"
+    ],
+    "expert_bytes": 44040192,
+    "gpu_bytes_per_device": 80000000000,
+    "gpu_count": 16,
+    "gpu_reserve_fraction": 0.2,
+    "platform": "win32",
+    "python": "3.8.3 (tags/v3.8.3:6f8c832, May 13 2020, 22:37:02) [MSC v.1924 64 bit (AMD64)]",
+    "result_rows": {
+      "community": 12,
+      "node_batch": 36,
+      "ranked_full": 24,
+      "refresh": 30,
+      "seed_ci": 2,
+      "seeds": 6,
+      "sensitivity": 18,
+      "skew": 36
+    },
+    "schema_version": 1,
+    "source_sha256": {
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\detailed_network.py": "777ee1abae4fab78a8a0ef848908950d27c47b4867508d5d3af6a0d56e8597f8",
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\layer_engine.py": "9e781b97214e9587ea6e68aa56ef82607924252dc241bad21b8921e7a0f1e3ed",
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\research.py": "e18c9e17f62393d00570d0a0c0f7481c1b6886c5a4e36762fb8b636ee3ddec94",
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\tiering.py": "e1c9179202b871067de592f7ce40895807d157f461687df53d1f86f480e516bc",
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\scripts\\run_moe_research.py": "22d369ec29a6264d668280c082f023ba8f10b9ad596b7b027a4f80b1d6e5d97a"
+    },
+    "suite": "full",
+    "timestamp_utc": "2026-10-20T04:37:43.728042+00:00"
+  },
+  "mechanism_source": "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4",
+  "schema_version": 1,
+  "source_bundle_file_sha256": {
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4\\community.csv": "afb2081c34177b0dda99f5d90597647e4706436b4e24ff4ce27b0f1037848cbf",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4\\node_batch.csv": "35c817de5fed04747c1dc41f8fe4483c5eced56f4c50289808f1aeb8b8a67e7b",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4\\ranked_full.csv": "3d6097ad4f62ff87692ce6288703fec85104e1a84f09099b015f180902bd1521",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4\\refresh.csv": "407e9d404869acadd812b3317df096d8dece1bd68d39964068467277b0bcbb94",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4\\seed_ci.csv": "afc7f6080713ec451201b242b7be45f990b232446972ad6f9517296cb3859d19",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4\\seeds.csv": "e442a02c0c4d655d1ffd076d3ab53fd375668a6ab3b99bcb0cf176198d09b80a",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4\\sensitivity.csv": "56d863bac3131c811d45c8535158850d1c79d3750f867b3bf6539f712fdb8679",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_mechanisms_v4\\skew.csv": "1f36b57e6b6313a1227e0a2dbda259c42c85d89903db544c4650bd552ec7acca",
+    "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_static_final_v1\\static_capacity.csv": "b9a00bc576f358a505f70007036fe30d8cc927bf33db2f0537a6cc69c0a043de"
+  },
+  "static_manifest": {
+    "claim_boundary": "paper-constrained synthetic routing and projected hardware; not KA200 or trace measurement",
+    "components": [
+      "static"
+    ],
+    "expert_bytes": 44040192,
+    "gpu_bytes_per_device": 80000000000,
+    "gpu_count": 16,
+    "gpu_reserve_fraction": 0.2,
+    "platform": "win32",
+    "python": "3.8.3 (tags/v3.8.3:6f8c832, May 13 2020, 22:37:02) [MSC v.1924 64 bit (AMD64)]",
+    "result_rows": {
+      "static_capacity": 80
+    },
+    "schema_version": 1,
+    "source_sha256": {
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\detailed_network.py": "777ee1abae4fab78a8a0ef848908950d27c47b4867508d5d3af6a0d56e8597f8",
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\layer_engine.py": "9e781b97214e9587ea6e68aa56ef82607924252dc241bad21b8921e7a0f1e3ed",
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\research.py": "d894c5876ace3355e3d96c36de1afbcba15ea78d12862c166fa5b33cfd02d200",
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\flowgpu\\sim_v2\\tiering.py": "e1c9179202b871067de592f7ce40895807d157f461687df53d1f86f480e516bc",
+      "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\scripts\\run_moe_research.py": "171c3b81ddf0f47b8eff4b954ec562e413faf28850edf4e2aed3971f88adf66a"
+    },
+    "suite": "full",
+    "timestamp_utc": "2026-10-20T03:47:36.569832+00:00"
+  },
+  "static_manifest_present": true,
+  "static_source": "C:\\Users\\18474\\Desktop\\\u6e05\u534e\u5927\u5b66\\\u7c7b\u8111\u8ba1\u7b972\\FlowGPU-main\\experiments\\moe_2026_static_final_v1",
+  "timestamp_utc": "2026-10-20T04:37:53.523321+00:00"
+}

@@ -1,0 +1,173 @@
+# =====================================================================
+# Reproduce the claim from the 2026 中国算力大会 announcement:
+#
+#   "3台天数较早型号的GPU服务器 + 3台类脑机柜, 运行 DeepSeek V4 Flash,
+#    相较同等投入规模的纯GPU集群, 推理输出和推理能效均提升 1 倍以上"
+#
+#   (3 Iluvatar GPU servers + 3 brain-chip cabinets, running DeepSeek V4
+#    Flash, >2x inference output and >2x energy efficiency vs a pure-GPU
+#    cluster of equivalent investment.)
+#
+# Architecture under test: PD+A split -- prefill and attention on the
+# domestic GPU, FFN/MoE experts on the brain-inspired chip.
+#
+# HONESTY NOTE: the Lynxi part used here (`lynxi_hp300_proj`) and the model
+# (`deepseek_v4_flash_proj`) are BOTH projections.  Neither has published
+# specs.  Treat the absolute numbers as a *what-would-have-to-be-true*
+# analysis, and read configs/experiments/grounded_deepseek_v3.yaml for the
+# same question asked entirely with published hardware and a published model.
+# =====================================================================
+name: pd_a_reference_claim
+baseline: pure_gpu_equal_capex
+
+model:
+  name: deepseek_v4_flash_proj
+  w_dtype: fp8          # experts quantised to fp8
+  a_dtype: bf16
+  kv_dtype: bf16
+  comm_dtype: fp8
+
+workload:
+  n_requests: 192
+  arrival_rate: 1.0     # Poisson; `flowgpu capacity` sweeps this to find the
+                        # SLO-limited ceiling, which is the number the
+                        # "2x inference output" claim is really about
+  prompt_len: 8192      # long-context: the regime the claim targets
+  output_len: 512
+  prompt_sigma: 0.35
+  output_sigma: 0.5
+  max_batch: 64
+  max_running: 256
+  chunk_tokens: 8192
+  seed: 7
+
+slo: {ttft: 8.0, tpot: 0.05}
+
+defaults:
+  collective_overlap: 0.6
+  jitter: true
+  microbatches: 1
+
+# ---------------------------------------------------------------------
+systems:
+  # ---- the heterogeneous system described in the announcement --------
+  # 3 servers x 8 BI-V100 = 24 GPUs, plus 3 cabinets of Lynxi chips.
+  # Cabinet sizing is chosen so aggregate SRAM holds the fp8 expert stack.
+  hetero_pda:
+    name: iluvatar24 + lynxi384
+    host_overhead: 400 W
+    pue: 1.0
+    pools:
+      gpu:
+        device: iluvatar_bi_v100
+        count: 24
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 3, dp: 1}
+        scaleup: pcie4_x16          # BI-V100 has no proprietary scale-up
+        scaleout: roce_200g
+        price_per_device: 20000
+        host_overhead: 400 W
+      brain:
+        device: lynxi_hp300_proj
+        count: 256                  # sized so aggregate SRAM holds the
+        devices_per_board: 16       # fp8 expert stack with ~15% headroom
+        parallel: {tp: 1, pp: 1, ep: 256, dp: 1}
+        host_overhead: 150 W
+        scaleup: custom_serdes_1600g
+        scaleout: custom_serdes_800g
+        price_per_device: 1500
+    bridges:
+      - between: [gpu, brain]
+        fabric: custom_serdes_800g
+        lanes: 24                   # one 800G lane per GPU
+
+  # ---- pure-GPU cluster of equivalent capital investment -------------
+  # 24 x 20k + 256 x 1.5k = 864 k -> 43 BI-V100 at 20k each; rounded to 40
+  # so tp=8 divides evenly.
+  pure_gpu_equal_capex:
+    name: iluvatar43
+    host_overhead: 400 W
+    pue: 1.0
+    pools:
+      gpu:
+        device: iluvatar_bi_v100
+        count: 40
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 5, dp: 1}
+        scaleup: pcie4_x16
+        scaleout: roce_200g
+        price_per_device: 20000
+
+  # ---- pure-GPU cluster of equivalent *power* -----------------------
+  # hetero draws 24*250 + 256*150 = 44.4 kW of device power -> 176 BI-V100.
+  # This arm exists to bound the comparison from the other side: if the
+  # heterogeneous system does not beat this, its energy story is fiction.
+  pure_gpu_equal_power:
+    name: iluvatar176
+    host_overhead: 400 W
+    pools:
+      gpu:
+        device: iluvatar_bi_v100
+        count: 176
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 22, dp: 1}
+        scaleup: pcie4_x16
+        scaleout: roce_200g
+        price_per_device: 20000
+
+  # ---- pure-GPU with the same device count (24) ---------------------
+  pure_gpu_same_count:
+    name: iluvatar24
+    host_overhead: 400 W
+    pools:
+      gpu:
+        device: iluvatar_bi_v100
+        count: 24
+        devices_per_board: 8
+        parallel: {tp: 8, pp: 1, ep: 3, dp: 1}
+        scaleup: pcie4_x16
+        scaleout: roce_200g
+        price_per_device: 20000
+
+# ---------------------------------------------------------------------
+runs:
+  - name: pure_gpu_equal_capex
+    system: pure_gpu_equal_capex
+    placement: all_gpu
+
+  - name: pure_gpu_same_count
+    system: pure_gpu_same_count
+    placement: all_gpu
+
+  - name: pd_a
+    system: hetero_pda
+    placement:
+      strategy: pd_a
+      gpu: gpu
+      brain: brain
+      crossing_dtype: fp8       # quantise the hidden state on the bridge
+    microbatches: 2             # overlap GPU attention with brain-chip FFN
+
+  - name: pd_a_no_quant_crossing
+    system: hetero_pda
+    placement: {strategy: pd_a, gpu: gpu, brain: brain}
+    microbatches: 2
+
+  - name: layer_split
+    system: hetero_pda
+    placement:
+      strategy: layer_split
+      frac_gpu: 0.15
+      gpu: gpu
+      brain: brain
+      crossing_dtype: fp8
+    microbatches: 2
+
+  - name: moe_offload_only
+    system: hetero_pda
+    placement:
+      strategy: moe_offload
+      gpu: gpu
+      brain: brain
+      crossing_dtype: fp8
+    microbatches: 2

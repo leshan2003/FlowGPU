@@ -1,0 +1,17 @@
+
+SLO-CONSTRAINED CAPACITY (baseline = h100_only; TTFT<5.0s, TPOT<50ms, 95% attainment)
+
+metric              h100_only      h100_groq_pd_a       h100_ipu_pd_a  h100_ipu_layer_split
+------------------  ---------  ------------------  ------------------  --------------------
+max req/s @ SLO         2.000       1.625 (0.81x)       1.188 (0.59x)         5.125 (2.56x)
+output tok/s @ SLO      545.1       448.0 (0.82x)       328.0 (0.60x)       1,279.2 (2.35x)
+TTFT p99 there        5.869 s     7.434 s (0.79x)     7.243 s (0.81x)       4.826 s (1.22x)
+TPOT p99 there      13.794 ms   11.887 ms (1.16x)   13.442 ms (1.03x)     65.148 ms (0.21x)
+avg power (W)           7,304     248,380 (0.03x)      86,396 (0.08x)        83,121 (0.09x)
+J / output token       13.397     554.451 (0.02x)     263.383 (0.05x)        64.980 (0.21x)
+tok/s per kW             74.6         1.8 (0.02x)         3.8 (0.05x)          15.4 (0.21x)
+system TDP (kW)          24.4     1,049.0 (0.02x)       290.6 (0.08x)         290.6 (0.08x)
+capex                 960,000  69,600,000 (0.01x)  12,000,000 (0.08x)    12,000,000 (0.08x)
+tok/s per Mcapex        567.9         6.4 (0.01x)        27.3 (0.05x)         106.6 (0.19x)
+
+[saved] results/grounded_capacity.json

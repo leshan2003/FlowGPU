@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Raw EDA artefacts: large, and the reports embed absolute paths from
+# whichever machine ran the flow.  The distilled result that the simulator
+# actually consumes -- eda/results/energy_db.json -- is committed.
+eda/results/reports/
+eda/results/power/
+eda/results/energy_raw.json
+eda/results/*.log
+eda/work/
+
+# Run logs (may contain host-specific paths)
+*.log
+results/*.log
+
+# OS
+.DS_Store

@@ -1,0 +1,141 @@
+schema_version: 1
+
+sweep:
+  node_counts: [1, 2]
+  chips_per_node: 2
+  ingress_modes: [distributed, concentrated]
+  concentrated_ingress_count: 1
+
+chip:
+  sram_capacity_bytes: 200000000
+  runtime_reserve_fraction: 0.15
+  fixed_reserved_bytes: 0
+  provenance:
+    confidence: projected
+    source: synthetic smoke-test chip; not KA200
+
+links:
+  scale_up:
+    bandwidth_bytes_per_s: 90000000000
+    latency_s: 0.0000004
+    efficiency: 0.85
+    energy_per_byte: 0.000000000002
+    duplex: full
+    provenance:
+      confidence: projected
+      source: synthetic smoke-test scale-up; not KA200
+  scale_out:
+    bandwidth_bytes_per_s: 39000000000
+    latency_s: 0.000007
+    efficiency: 0.85
+    energy_per_byte: 0.000000000005
+    duplex: full
+    provenance:
+      confidence: projected
+      source: synthetic smoke-test scale-out; not KA200
+  bridge:
+    bandwidth_bytes_per_s: 25000000000
+    latency_s: 0.00001
+    efficiency: 0.80
+    energy_per_byte: 0.000000000008
+    duplex: full
+    provenance:
+      confidence: projected
+      source: synthetic smoke-test GPU bridge; not KA200
+
+model:
+  n_layers: 1
+  n_experts: 8
+  top_k: 2
+  expert_weight_bytes: 40000000
+  hidden_bytes: 14336
+  expert_provenance:
+    confidence: derived
+    source: synthetic eight-expert smoke workload
+
+kernel:
+  expert_shape: smoke-ffn
+  dtype: bf16
+  concurrent_experts: 1
+  residency: sram
+  samples:
+    - {m: 1, latency_s: 0.00010}
+    - {m: 2, latency_s: 0.00016}
+    - {m: 4, latency_s: 0.00027}
+    - {m: 8, latency_s: 0.00048}
+    - {m: 16, latency_s: 0.00090}
+  provenance:
+    confidence: projected
+    source: synthetic smoke-test kernel curve; not KA200
+
+workload:
+  placement_tokens: 16
+  evaluation_tokens: 16
+  placement_seed: 17
+  evaluation_seed: 23
+  scaling_mode: strong
+  routing_model: uniform
+  routing_provenance:
+    confidence: projected
+    source: deterministic uniform synthetic routing
+
+execution:
+  strategies:
+    - unique-balanced
+    - ingress-local
+  max_total_replicas: null
+  dispatcher_policy: earliest_finish
+  ingress_semantics: home-node-resident
+  capabilities:
+    dispatch_dedup_chip: false
+    dispatch_dedup_node: false
+    combine_reduce_chip: false
+    combine_reduce_node: false
+    hardware_multicast: false
+  chip_reduce_latency_s: 0.0
+  node_reduce_latency_s: 0.0
+
+serving:
+  offered_rates_per_s: [0.1, 20.0]
+  seeds: [31, 37]
+  n_requests: 4
+  output_tokens: 1
+  max_batch: 4
+  slo_ttft_s: 1.0
+  slo_tpot_s: 0.0
+  target_attainment: 0.5
+  max_outstanding_requests: 8
+  compute_block_windows:
+    - {start_s: 0.0, finish_s: 0.00005, source: projected-prefill}
+
+uncertainty:
+  placement_seeds: [11, 13]
+  evaluation_seeds: [17, 19]
+
+tiered:
+  max_brain_replicas: null
+  gpu_capacity_bytes: null
+  gpu_provenance:
+    confidence: projected
+    source: synthetic smoke-test GPU capacity; not measured hardware
+  gpu_kernel:
+    expert_shape: smoke-ffn
+    dtype: bf16
+    concurrent_experts: 1
+    residency: hbm
+    samples:
+      - {m: 1, latency_s: 0.00020}
+      - {m: 2, latency_s: 0.00032}
+      - {m: 4, latency_s: 0.00054}
+      - {m: 8, latency_s: 0.00096}
+      - {m: 16, latency_s: 0.00180}
+    provenance:
+      confidence: projected
+      source: synthetic smoke-test GPU kernel; not measured hardware
+
+power:
+  idle_power_w: 10.0
+  compute_dynamic_power_w: 20.0
+  provenance:
+    confidence: projected
+    source: synthetic smoke-test power; not KA200
