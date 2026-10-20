@@ -1,0 +1,481 @@
+{
+  "batches": [
+    1,
+    16
+  ],
+  "c_max": 2,
+  "claim_boundary": "D0 synthetic/projected EPLB screen; not a real request-ordered router trace and not measured KA200 hardware evidence",
+  "contrast_vs_coverage": {
+    "1|16|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage completion"
+    },
+    "1|16|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage-rebalanced completion"
+    },
+    "1|16|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / eplb-0.000 completion"
+    },
+    "1|16|eplb-0.125": {
+      "high95": 1.0081520001609523,
+      "low95": 0.9782202308399143,
+      "mean": 0.9931861155004333,
+      "ratio": "coverage completion / eplb-0.125 completion"
+    },
+    "1|16|eplb-0.250": {
+      "high95": 1.0163097804465737,
+      "low95": 0.9429345732806584,
+      "mean": 0.9796221768636161,
+      "ratio": "coverage completion / eplb-0.250 completion"
+    },
+    "1|16|eplb-0.500": {
+      "high95": 0.9984819754565875,
+      "low95": 0.8963138765781762,
+      "mean": 0.9473979260173818,
+      "ratio": "coverage completion / eplb-0.500 completion"
+    },
+    "1|1|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage completion"
+    },
+    "1|1|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage-rebalanced completion"
+    },
+    "1|1|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / eplb-0.000 completion"
+    },
+    "1|1|eplb-0.125": {
+      "high95": 1.0071397215821127,
+      "low95": 0.9728104652173892,
+      "mean": 0.989975093399751,
+      "ratio": "coverage completion / eplb-0.125 completion"
+    },
+    "1|1|eplb-0.250": {
+      "high95": 0.9991094907038145,
+      "low95": 0.9509323254085982,
+      "mean": 0.9750209080562063,
+      "ratio": "coverage completion / eplb-0.250 completion"
+    },
+    "1|1|eplb-0.500": {
+      "high95": 1.0047237063170003,
+      "low95": 0.9334618753673513,
+      "mean": 0.9690927908421757,
+      "ratio": "coverage completion / eplb-0.500 completion"
+    },
+    "2|16|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage completion"
+    },
+    "2|16|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage-rebalanced completion"
+    },
+    "2|16|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / eplb-0.000 completion"
+    },
+    "2|16|eplb-0.125": {
+      "high95": 0.9860204982140575,
+      "low95": 0.9388684331051695,
+      "mean": 0.9624444656596135,
+      "ratio": "coverage completion / eplb-0.125 completion"
+    },
+    "2|16|eplb-0.250": {
+      "high95": 0.9706800603863173,
+      "low95": 0.8891764125145665,
+      "mean": 0.9299282364504419,
+      "ratio": "coverage completion / eplb-0.250 completion"
+    },
+    "2|16|eplb-0.500": {
+      "high95": 0.9077759020593507,
+      "low95": 0.853856792157979,
+      "mean": 0.8808163471086649,
+      "ratio": "coverage completion / eplb-0.500 completion"
+    },
+    "2|1|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage completion"
+    },
+    "2|1|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage-rebalanced completion"
+    },
+    "2|1|eplb-0.000": {
+      "high95": 1.001624184690158,
+      "low95": 0.9992360826245444,
+      "mean": 1.0004301336573511,
+      "ratio": "coverage completion / eplb-0.000 completion"
+    },
+    "2|1|eplb-0.125": {
+      "high95": 1.0145190130516393,
+      "low95": 0.9434772665684898,
+      "mean": 0.9789981398100646,
+      "ratio": "coverage completion / eplb-0.125 completion"
+    },
+    "2|1|eplb-0.250": {
+      "high95": 1.0116752213720637,
+      "low95": 0.9332394359775442,
+      "mean": 0.972457328674804,
+      "ratio": "coverage completion / eplb-0.250 completion"
+    },
+    "2|1|eplb-0.500": {
+      "high95": 1.0007666233912984,
+      "low95": 0.8887173382617943,
+      "mean": 0.9447419808265464,
+      "ratio": "coverage completion / eplb-0.500 completion"
+    },
+    "4|16|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage completion"
+    },
+    "4|16|coverage-rebalanced": {
+      "high95": 1.0015476398801175,
+      "low95": 0.9992720846326566,
+      "mean": 1.000409862256387,
+      "ratio": "coverage completion / coverage-rebalanced completion"
+    },
+    "4|16|eplb-0.000": {
+      "high95": 1.0015476398801175,
+      "low95": 0.9992720846326566,
+      "mean": 1.000409862256387,
+      "ratio": "coverage completion / eplb-0.000 completion"
+    },
+    "4|16|eplb-0.125": {
+      "high95": 1.0035376865522292,
+      "low95": 0.9386677634256406,
+      "mean": 0.9711027249889349,
+      "ratio": "coverage completion / eplb-0.125 completion"
+    },
+    "4|16|eplb-0.250": {
+      "high95": 0.9896757669603191,
+      "low95": 0.9146044117833292,
+      "mean": 0.9521400893718241,
+      "ratio": "coverage completion / eplb-0.250 completion"
+    },
+    "4|16|eplb-0.500": {
+      "high95": 0.9380737910537235,
+      "low95": 0.8413558842425689,
+      "mean": 0.8897148376481462,
+      "ratio": "coverage completion / eplb-0.500 completion"
+    },
+    "4|1|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage completion"
+    },
+    "4|1|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / coverage-rebalanced completion"
+    },
+    "4|1|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage completion / eplb-0.000 completion"
+    },
+    "4|1|eplb-0.125": {
+      "high95": 1.002861737324332,
+      "low95": 0.9514155164386214,
+      "mean": 0.9771386268814768,
+      "ratio": "coverage completion / eplb-0.125 completion"
+    },
+    "4|1|eplb-0.250": {
+      "high95": 0.9922720892324107,
+      "low95": 0.9294399352588761,
+      "mean": 0.9608560122456434,
+      "ratio": "coverage completion / eplb-0.250 completion"
+    },
+    "4|1|eplb-0.500": {
+      "high95": 0.986517765943787,
+      "low95": 0.9254154545053691,
+      "mean": 0.9559666102245781,
+      "ratio": "coverage completion / eplb-0.500 completion"
+    }
+  },
+  "contrast_vs_coverage_rebalanced": {
+    "1|16|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage completion"
+    },
+    "1|16|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage-rebalanced completion"
+    },
+    "1|16|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / eplb-0.000 completion"
+    },
+    "1|16|eplb-0.125": {
+      "high95": 1.0081520001609523,
+      "low95": 0.9782202308399143,
+      "mean": 0.9931861155004333,
+      "ratio": "coverage-rebalanced completion / eplb-0.125 completion"
+    },
+    "1|16|eplb-0.250": {
+      "high95": 1.0163097804465737,
+      "low95": 0.9429345732806584,
+      "mean": 0.9796221768636161,
+      "ratio": "coverage-rebalanced completion / eplb-0.250 completion"
+    },
+    "1|16|eplb-0.500": {
+      "high95": 0.9984819754565875,
+      "low95": 0.8963138765781762,
+      "mean": 0.9473979260173818,
+      "ratio": "coverage-rebalanced completion / eplb-0.500 completion"
+    },
+    "1|1|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage completion"
+    },
+    "1|1|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage-rebalanced completion"
+    },
+    "1|1|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / eplb-0.000 completion"
+    },
+    "1|1|eplb-0.125": {
+      "high95": 1.0071397215821127,
+      "low95": 0.9728104652173892,
+      "mean": 0.989975093399751,
+      "ratio": "coverage-rebalanced completion / eplb-0.125 completion"
+    },
+    "1|1|eplb-0.250": {
+      "high95": 0.9991094907038145,
+      "low95": 0.9509323254085982,
+      "mean": 0.9750209080562063,
+      "ratio": "coverage-rebalanced completion / eplb-0.250 completion"
+    },
+    "1|1|eplb-0.500": {
+      "high95": 1.0047237063170003,
+      "low95": 0.9334618753673513,
+      "mean": 0.9690927908421757,
+      "ratio": "coverage-rebalanced completion / eplb-0.500 completion"
+    },
+    "2|16|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage completion"
+    },
+    "2|16|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage-rebalanced completion"
+    },
+    "2|16|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / eplb-0.000 completion"
+    },
+    "2|16|eplb-0.125": {
+      "high95": 0.9860204982140575,
+      "low95": 0.9388684331051695,
+      "mean": 0.9624444656596135,
+      "ratio": "coverage-rebalanced completion / eplb-0.125 completion"
+    },
+    "2|16|eplb-0.250": {
+      "high95": 0.9706800603863173,
+      "low95": 0.8891764125145665,
+      "mean": 0.9299282364504419,
+      "ratio": "coverage-rebalanced completion / eplb-0.250 completion"
+    },
+    "2|16|eplb-0.500": {
+      "high95": 0.9077759020593507,
+      "low95": 0.853856792157979,
+      "mean": 0.8808163471086649,
+      "ratio": "coverage-rebalanced completion / eplb-0.500 completion"
+    },
+    "2|1|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage completion"
+    },
+    "2|1|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage-rebalanced completion"
+    },
+    "2|1|eplb-0.000": {
+      "high95": 1.001624184690158,
+      "low95": 0.9992360826245444,
+      "mean": 1.0004301336573511,
+      "ratio": "coverage-rebalanced completion / eplb-0.000 completion"
+    },
+    "2|1|eplb-0.125": {
+      "high95": 1.0145190130516393,
+      "low95": 0.9434772665684898,
+      "mean": 0.9789981398100646,
+      "ratio": "coverage-rebalanced completion / eplb-0.125 completion"
+    },
+    "2|1|eplb-0.250": {
+      "high95": 1.0116752213720637,
+      "low95": 0.9332394359775442,
+      "mean": 0.972457328674804,
+      "ratio": "coverage-rebalanced completion / eplb-0.250 completion"
+    },
+    "2|1|eplb-0.500": {
+      "high95": 1.0007666233912984,
+      "low95": 0.8887173382617943,
+      "mean": 0.9447419808265464,
+      "ratio": "coverage-rebalanced completion / eplb-0.500 completion"
+    },
+    "4|16|coverage": {
+      "high95": 1.000726426692926,
+      "low95": 0.9984555252294545,
+      "mean": 0.9995909759611903,
+      "ratio": "coverage-rebalanced completion / coverage completion"
+    },
+    "4|16|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage-rebalanced completion"
+    },
+    "4|16|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / eplb-0.000 completion"
+    },
+    "4|16|eplb-0.125": {
+      "high95": 1.002713778826767,
+      "low95": 0.9386824212363797,
+      "mean": 0.9706981000315734,
+      "ratio": "coverage-rebalanced completion / eplb-0.125 completion"
+    },
+    "4|16|eplb-0.250": {
+      "high95": 0.9891724479285886,
+      "low95": 0.9143236750774821,
+      "mean": 0.9517480615030354,
+      "ratio": "coverage-rebalanced completion / eplb-0.250 completion"
+    },
+    "4|16|eplb-0.500": {
+      "high95": 0.9370120644532722,
+      "low95": 0.8416529250204752,
+      "mean": 0.8893324947368737,
+      "ratio": "coverage-rebalanced completion / eplb-0.500 completion"
+    },
+    "4|1|coverage": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage completion"
+    },
+    "4|1|coverage-rebalanced": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / coverage-rebalanced completion"
+    },
+    "4|1|eplb-0.000": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "coverage-rebalanced completion / eplb-0.000 completion"
+    },
+    "4|1|eplb-0.125": {
+      "high95": 1.002861737324332,
+      "low95": 0.9514155164386214,
+      "mean": 0.9771386268814768,
+      "ratio": "coverage-rebalanced completion / eplb-0.125 completion"
+    },
+    "4|1|eplb-0.250": {
+      "high95": 0.9922720892324107,
+      "low95": 0.9294399352588761,
+      "mean": 0.9608560122456434,
+      "ratio": "coverage-rebalanced completion / eplb-0.250 completion"
+    },
+    "4|1|eplb-0.500": {
+      "high95": 0.986517765943787,
+      "low95": 0.9254154545053691,
+      "mean": 0.9559666102245781,
+      "ratio": "coverage-rebalanced completion / eplb-0.500 completion"
+    }
+  },
+  "controlled_boundary": "within each seed/node/batch cell all strategies share the GPU plan, planning/evaluation split, effective Brain copy budget, C, kernels and evaluation trace",
+  "copy_budget": 32,
+  "dispatch_mode": "D0-shared",
+  "dispatch_policy": "brain-first",
+  "dtype": "fp8",
+  "eplb_semantics": "coverage reserves 1-r of the fixed copy budget for distinct experts; the remaining r is assigned progressively to covered experts by peak-load reduction, then Brain copies are moved to reduce mean per-step node/chip max/mean load",
+  "execution_jobs": 5,
+  "kind": "moe-d0-eplb",
+  "layer_limit": 0,
+  "model": "mixtral_8x7b",
+  "nodes": [
+    1,
+    2,
+    4
+  ],
+  "redundancy_fractions": [
+    0.0,
+    0.125,
+    0.25,
+    0.5
+  ],
+  "schema_version": 1,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "strategies": [
+    "coverage",
+    "coverage-rebalanced",
+    "eplb-0.000",
+    "eplb-0.125",
+    "eplb-0.250",
+    "eplb-0.500"
+  ]
+}

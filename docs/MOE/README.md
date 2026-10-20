@@ -13,6 +13,8 @@
 5. C 只有在限制 hot coverage 时才产生影响，不存在“C 越大越好”。
 6. 当前 D0 聚类降低了 node cut，但没有稳定转化为 completion 收益。
 7. M1 全类脑 DRAM/SRAM 路径在当前 projected profile 下显著慢于 GPU/HBM。
+8. DeepInfer 式 EPLB 已实现并同预算对照；当前 16/32 份 Brain 副本下，
+   优先 coverage 仍优于给热点专家预留 12.5%–50% 冗余副本。
 
 ## 文档导航
 
@@ -23,6 +25,7 @@
 | [03 实验结果](03_实验结果.md) | 20-seed、node/batch、C、聚类、D0/D1、M1/per-GPU |
 | [04 结论与缺口](04_结论与缺口.md) | 可以支持/不能支持的结论及下一阶段优先级 |
 | [05 复现与结果索引](05_复现与结果索引.md) | canonical 目录、运行命令、manifest 与并行执行 |
+| [06 DeepInfer 与 EPLB](06_DeepInfer借鉴与EPLB.md) | 开源框架审计、两阶段 EPLB、固定预算对照与限制 |
 | [项目汇报](项目汇报_2026-10-20.md) | 上传内容、关键结果和可直接发送的微信短版 |
 
 ## 当前 canonical 版本
@@ -37,6 +40,7 @@
 | D0 clustering | `v3` |
 | D0 per-GPU | `v1` |
 | M1 full B-stage | `v1` |
+| DeepInfer-informed EPLB | `v1` |
 
 完整目录见 [05 复现与结果索引](05_复现与结果索引.md) 和
 [experiments/README](../../experiments/README.md)。
@@ -50,7 +54,8 @@ docs/MOE/
 ├── 02_实验方法与可信度.md
 ├── 03_实验结果.md
 ├── 04_结论与缺口.md
-└── 05_复现与结果索引.md
+├── 05_复现与结果索引.md
+└── 06_DeepInfer借鉴与EPLB.md
 ```
 
 历史详细报告保存在

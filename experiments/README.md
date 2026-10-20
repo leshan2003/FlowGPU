@@ -9,6 +9,9 @@
 > `moe_2026_final_*`、`static_final_*`、`mechanisms_*` 是早期开发结果，
 > 不再作为最终证据。
 
+DeepInfer-informed EPLB 使用独立版本 `moe_2026_eplb_v1`，审计见
+[`docs/MOE/06_DeepInfer借鉴与EPLB.md`](../docs/MOE/06_DeepInfer借鉴与EPLB.md)。
+
 完整执行和审计见
 [`docs/MOE/03_实验结果.md`](../docs/MOE/03_实验结果.md) 和
 [`docs/MOE/05_复现与结果索引.md`](../docs/MOE/05_复现与结果索引.md)。
@@ -84,6 +87,12 @@ canonical 结果。
 结果解释：
 [`docs/MOE/03_实验结果.md`](../docs/MOE/03_实验结果.md)。
 
+## DeepInfer-informed EPLB
+
+- `moe_2026_eplb_v1`：Mixtral 32 层、5 seeds、nodes=1/2/4、
+  batch=1/16、C=2、固定 copy budget；比较 coverage、位置重排以及
+  12.5%/25%/50% 热点冗余副本。
+
 Heavy D0 sweeps can be sharded across seed workers:
 
 ```powershell
@@ -144,4 +153,4 @@ experiments/archive/legacy_2026/
 experiments/archive/tracked_legacy_2026/
 ```
 
-顶层现在只保留 46 个 canonical bundle。本 README 中列出的目录均未移动。
+顶层现在只保留 47 个 canonical bundle。本 README 中列出的目录均未移动。
