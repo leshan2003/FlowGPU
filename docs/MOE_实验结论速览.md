@@ -462,6 +462,40 @@ D0 下 C 与聚类网格：
 同一个 expert kernel 做跨设备张量并行
 ```
 
+### 12. D0 下 C 和聚类
+
+D0 的 C 实验使用 32-copy budget、Mixtral 完整 32 层、5 seeds：
+
+| Nodes | C=1 hot experts | C=2 hot experts | C=4 hot experts |
+|---:|---:|---:|---:|
+| 1 | 8 | 16 | 24 |
+| 2 | 16 | 24 | 24 |
+| 4 | 24 | 24 | 24 |
+
+结论：
+
+- C 的主要作用是决定能覆盖多少 hot experts；
+- 1 node：C=4 通常最好，但 C2/C4 不总是显著不同；
+- 2 nodes：C=1→C=2 扩大覆盖并提高性能，C=2 与 C=4 布局相同；
+- 4 nodes：C=1 已足够，C=1/2/4 结果相同；
+- batch 增大通常会放大更多 hot coverage 的价值；
+- 不存在“C 越大永远越好”。
+
+D0 聚类实验固定 hot set、GPU 布局、copy budget、node、batch 和 C，只改变
+Brain 专家位置：
+
+- full-hyperedge 能把 2-node 的 node cut 从约 `11.8` 降到 `5.4`；
+- 但 completion 与 unique 基本相同，CI 跨 1 或略偏慢；
+- pair clustering 在多 node、高 batch 下反而慢约 3.7%–3.8%；
+- 1 node 下没有 node-level 聚类空间，三种方法一致。
+
+因此当前结论是：
+
+> D0 下聚类确实降低了 node fanout，但没有形成稳定的端到端 completion 收益。
+
+详细结果：
+[`MOE_D0_C与聚类结果_v1.md`](MOE_D0_C与聚类结果_v1.md)
+
 ## 刷新实验做到什么程度
 
 已经实现：
