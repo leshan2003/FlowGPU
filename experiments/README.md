@@ -1,7 +1,7 @@
 # MoE experiment bundles
 
 文档入口：
-[`docs/MOE_文件与结果索引.md`](../docs/MOE_文件与结果索引.md)。
+[`docs/MOE/README.md`](../docs/MOE/README.md)。
 
 > **最终 canonical 版本（2026-10-20）：**
 > Stage 0 为 `v13`，下游 screen/matrix/C/20-seed 为 `v9`。
@@ -10,7 +10,8 @@
 > 不再作为最终证据。
 
 完整执行和审计见
-[`docs/MOE_最终实验执行与审计_v1.md`](../docs/MOE_最终实验执行与审计_v1.md)。
+[`docs/MOE/03_实验结果.md`](../docs/MOE/03_实验结果.md) 和
+[`docs/MOE/05_复现与结果索引.md`](../docs/MOE/05_复现与结果索引.md)。
 
 ## Stage 0 canonical bundles
 
@@ -49,7 +50,7 @@ batch 表示同时 admitted 的 request 数。九个点均已生成；旧版本�
   分开测试对齐、home-node 排列和 expert-to-community 映射。
 
 该实验用于修正原 Stage 0 聚类微基准的退化对照。重验证计划见
-[`docs/MOE_聚类与层级调度重验证计划_v1.md`](../docs/MOE_聚类与层级调度重验证计划_v1.md)。
+[`docs/MOE/01_研究模型与设计.md`](../docs/MOE/01_研究模型与设计.md)。
 
 ## D0 / D1 dispatch
 
@@ -65,14 +66,13 @@ batch 表示同时 admitted 的 request 数。九个点均已生成；旧版本�
 - `moe_2026_d0_cluster_v3`：相同 D0/C/node/batch 边界下比较
   unique、pair 和 full-hyperedge。
 
-D0-per-GPU 没有进入 canonical 结果。当前每个专家只有一份 GPU 副本时，
-无法公平表示“16 个独立 GPU 入口各自持有专家副本”，需要另建
-request-to-GPU placement 和 full/partitioned GPU replicas。
-
-Valid owner-GPU follow-up:
+D0-per-GPU 使用合法 owner-GPU 模型：
 
 - `moe_2026_d0_pergpu_v1`：4 个 owner GPU，每个 GPU 持有全部 Mixtral experts；
   比较 shared-minimal、shared-replicated 和 per-GPU ingress。
+
+更早的“只有一份 expert GPU 副本却使用多个 GPU ingress”方案无效，不进入
+canonical 结果。
 
 ## M1 full-model B-stage
 
@@ -82,7 +82,7 @@ Valid owner-GPU follow-up:
 - `moe_2026_m1_full_hot24_highbatch_v1`：hot=24，batch 16/64。
 
 结果解释：
-[`docs/MOE_M1与D0_PerGPU结果_v1.md`](../docs/MOE_M1与D0_PerGPU结果_v1.md)。
+[`docs/MOE/03_实验结果.md`](../docs/MOE/03_实验结果.md)。
 
 Heavy D0 sweeps can be sharded across seed workers:
 

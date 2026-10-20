@@ -2,7 +2,7 @@
 
 > **MoE 研究口径更新：** 本文是早期通用 v2 规范，其中“所有专家至少一份
 > SRAM 主副本”和 MVP 不含迁移的描述不再是当前 MoE 主模式。MoE 设计与实验以
-> [`docs/MOE_高置信度实验设计_v2_冻结版.md`](../MOE_高置信度实验设计_v2_冻结版.md)
+> [`docs/MOE/02_实验方法与可信度.md`](../MOE/02_实验方法与可信度.md)
 > 为准；当前主模式是 HBM fallback + selective brain-SRAM overlay。
 
 ## 1. 状态
