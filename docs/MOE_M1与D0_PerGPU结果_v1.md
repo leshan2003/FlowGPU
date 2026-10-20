@@ -119,7 +119,7 @@ batch = 1 / 4，另测 hot24 的 16 / 64
    batch 64、hot=24 时达到 `0.1573×`，但仍远低于 GPU-only。
 
 4. 该比较是 **mode-only hardware frontier**：
-   M1 使用 Brain DRAM/SRAM，GPU-only 使用 16 张 H100。  
+   M1 使用 Brain DRAM/SRAM，GPU-only 使用 16 张 H100。
    因此不能据此声称相同成本、相同功耗下 GPU 更优。
 
 5. 结论严格依赖 projected profile：
