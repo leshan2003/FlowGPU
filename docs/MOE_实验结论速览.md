@@ -69,6 +69,31 @@ GPU-only 的 SLO goodput
 - 完整模型、长窗口的动态刷新收益实验
 - 真实 TCO
 
+## 控制变量和比较对象
+
+不同表格回答不同问题，不能混在一起解释。
+
+| 实验组 | 保持不变 | 主动变化 | 比较 baseline | 指标 |
+|---|---|---|---|---|
+| 20-seed 策略比较 | 2 nodes、batch 2、16 copies、C=2、相同模型和 workload | 随机 seed | GPU-only | Coverage 看总完成时间；Overlay 看 SLO 请求吞吐 |
+| Node × batch | Mixtral 完整 32 层、5 seeds、16 copies、C=2 | nodes=`1/2/4`，batch=`1/2/4` | 每个实验点各自的 GPU-only | 总完成时间和 SLO 请求吞吐 |
+| C 隔离 | workload、copy budget、node/chip 数固定 | 每芯片专家上限 C | 每个实验点各自的 GPU-only | 总完成时间和 SLO 请求吞吐 |
+| 聚类隔离 | 相同 copy multiset、C=1、相同 node 和访问序列 | unique、pair、full-hyperedge | unique placement | event-model completion |
+| 迁移重放 | 模型、hardware、placement 版本固定 | 迁移流量是否与 serving 共享链路 | 无迁移的 serving flow | 迁移时间、逐 serving-flow 延迟和总 makespan |
+
+必须明确的控制边界：
+
+1. `20-seed` 是 20 个随机 workload，不是 20 个 node。
+2. `20-seed` 表固定为 2 个 node、batch 2；node 扫描是另一组实验。
+3. Qwen、DeepSeek、gpt-oss 的四层结果不能和 Mixtral 的完整 32 层结果直接比较。
+4. 两组 C 扫描的 node/chip/copy 总数不同，不能把两个 panel 的点混成一条曲线。
+5. Coverage 列和 Overlay 列使用不同指标，不能直接相减，也不能据此说某一个策略
+   在同一指标上更好。
+6. GPU-only baseline 只使用 16 个 GPU；默认 Overlay 还增加了 16 个类脑 chips。
+   因此两端到端结果表示“增加类脑层后的收益”，不是相同总硬件资源下的效率比较。
+7. node/batch 增加时总硬件也会增加。该实验回答系统趋势，不能直接证明
+   “每节点效率”或“每瓦效率”提高。
+
 ## 主要结果
 
 ### 1. “20-seed”是什么意思

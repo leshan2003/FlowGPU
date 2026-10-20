@@ -146,6 +146,35 @@ GPU/HBM 经 bridge 搬运。迁移 flow 与 serving flow 进入同一个
 - 每个 paired seed 同时应用于所有策略；
 - 不能用某个 node 数的最优 placement 外推到另一个 node 数。
 
+各组实验的变量关系如下：
+
+| 实验组 | 固定变量 | 主动变量 | 比较对象 | 主指标 |
+|---|---|---|---|---|
+| 20-seed 边界 | 2 nodes、batch 2、16 copies、C=2、相同模型/workload | seed 和模型/workload family | 每个 seed 的 GPU-only | Coverage 用总完成时间；Overlay 用 SLO goodput |
+| Node × batch | Mixtral 32 层、5 seeds、16 copies、C=2 | nodes 1/2/4，batch 1/2/4 | 每个点各自的 GPU-only | 总完成时间、SLO goodput |
+| C 64-chip panel | 8 nodes×8 chips、64 copies、相同 workload | C=1/2/4/8/14 | 每个 C 点各自的 GPU-only | 总完成时间、SLO goodput |
+| C 16-chip panel | 2 nodes×8 chips、32 copies、相同 workload | C=2/4/8/14 | 每个 C 点各自的 GPU-only | 总完成时间、SLO goodput |
+| C=1 聚类 | 相同 copy multiset、8 chips、2 nodes、同一 seed | unique/pair/full-hyperedge | unique placement | event-model completion |
+| migration 共流 | 模型、hardware 和版本 | 迁移 flow 是否与 serving flow 竞争 | 无迁移 serving | 迁移时间、逐 flow 延迟、makespan |
+
+控制边界必须和结果一起报告：
+
+1. 20-seed 指 20 个 paired synthetic routing seeds，不是 20 个 node，
+   也不是真实 trace block。
+2. 20-seed 结果固定在 2 个 Brain node、batch 2；node/batch 趋势来自独立的
+   9 点矩阵，且该矩阵只有 5 个 seeds。
+3. Mixtral 使用完整 32 层；Qwen、DeepSeek、gpt-oss 的 screen 和 20-seed
+   只使用前 4 个 MoE 层，不能跨层数直接比较。
+4. 两个 C panel 的 node、chip 和 copy budget 不同，只能分别解释，不能拼成
+   一条统一的 C 曲线。
+5. 默认 GPU-only 使用 16 个 H100；Overlay 使用相同 16 个 H100，另加
+   2 nodes×8 chips 的类脑 SRAM。端到端加速包含新增类脑硬件，不是
+   iso-resource/iso-cost 比较。
+6. Node/batch 扫描同样增加总硬件；结果可用于系统趋势，不能直接证明
+   per-node、per-watt 或 per-dollar efficiency 提高。
+7. Coverage 总完成时间比和 Overlay SLO goodput 比使用不同 metric，
+   不能直接相减或据此给两种机制排序。
+
 ## 4. 输入数据和证据等级
 
 | 输入 | 当前值/来源 | 等级 |
@@ -176,6 +205,10 @@ routed experts。实验比较的是“全量 HBM + selective Brain overlay”“
 Mixtral 使用完整 32 层；Qwen、DeepSeek、gpt-oss 使用前 4 个 MoE 层。
 区间为 paired seed 95% CI。
 
+这里的 20-seed 是 20 个随机 synthetic workload seed，不是 20 个 node。
+固定配置为 2 个 Brain node、batch 2、16 copies、C=2；node/batch 的变化趋势
+来自下一节的独立 9 点矩阵。
+
 | Model/workload | Coverage | Joint-marginal | Replica-first |
 |---|---:|---:|---:|
 | Mixtral Zipf 0.5 | 1.053 [1.041, 1.065] | 1.053 [1.041, 1.065] | 1.003 [1.000, 1.006] |
@@ -204,6 +237,10 @@ Mixtral 使用完整 32 层；Qwen、DeepSeek、gpt-oss 使用前 4 个 MoE 层�
   已建立显著优势；
 - H-exclusive 明显依赖模型和 workload，DeepSeek/Qwen/Mixtral 的部分 CI 跨 1；
 - 四层 fast screen 不能外推为完整模型结论。
+
+表中的 Coverage、Joint、Replica 都是相对 GPU-only 的总完成时间比；
+Overlay/H-exclusive serving 是相对 GPU-only 的 SLO goodput 比。两个指标不能
+直接比较大小。
 
 ## 6. Node × batch 矩阵
 
