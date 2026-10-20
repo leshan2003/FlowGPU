@@ -134,6 +134,86 @@ home-node、D0/D1/D2 和专家聚类首先是**系统级拓扑 + runtime 调度�
 返回 partial output”，那么 D0/D1 的差别主要是运行时路径选择和 placement 目标，
 不需要重新设计芯片计算架构。
 
+### Q1.4 D0 必须单独冻结的实验语义
+
+D0 不是“D1 改一个延迟参数”。它改变请求的数据流：
+
+```text
+D0：
+GPU activation
+→ bridge / fabric
+→ 专家 node
+→ 专家 chip
+→ partial output
+→ bridge / fabric
+→ GPU combine
+```
+
+D0 没有 token home node 参与 expert dispatch/combine。node 仍是专家放置的
+scale-up locality domain，但不是请求状态位置。
+
+#### D0 的四个实现变体
+
+| 变体 | GPU 入口 | 到专家 node 的路径 | 是否支持 multicast |
+|---|---|---|---|
+| D0-shared | 所有 GPU 共用一个 bridge endpoint | 共享全局 bridge | 否 |
+| D0-per-gpu | 每个 GPU/NIC 有独立 endpoint | 独立 bridge/port | 否 |
+| D0-multicast | 共享或多入口 | 一份 activation fanout 到多 node | 是 |
+| D0-local-reduce | 专家 partial output 在 node 内先 reduce | 每 node 只回一份 | 取决于实现 |
+
+当前 topology 中多个 `gpu0..gpu15` 逻辑 chip 都映射到单一
+`cluster.gpu_endpoint`，因此现有 D1 结果不能被解释为“16 个独立 GPU bridge”。
+后续 D0-per-gpu 必须建立独立 GPU endpoint，或在统计中明确共享 bridge。
+
+#### D0 聚类目标
+
+对每个 layer/hyperedge，至少计入：
+
+```text
+bridge activation bytes to distinct expert nodes
++ bridge partial-output bytes
++ node-local chip fanout
++ per-node/chip queueing
++ combine at GPU
+```
+
+双副本 D0 的目标是：
+
+```text
+选择 GPU 或 Brain 副本
+并使 GPU 入口到专家 node 的总 dispatch/combine 时间最小
+```
+
+D0 不需要 home-node affinity，但需要：
+
+- GPU ingress 数；
+- 每个 GPU 的 bridge 数；
+- GPU 到各 node 的连通矩阵；
+- multicast 能力；
+- node-local reduce 能力；
+- 返回 GPU 的关联/路由关系。
+
+#### D0 核心对照
+
+| 实验 | 固定变量 | 主动变化 | 目的 |
+|---|---|---|---|
+| D0 vs D1 | 同一 plan、trace、GPU/Brain/node 数 | dispatch 路径 | 量化 home hop 的纯开销 |
+| D0 shared vs per-GPU | 同一 workload、总 GPU 数 | GPU endpoint 数 | 检查共享 bridge 瓶颈 |
+| D0 no-multicast vs multicast | 同一 hyperedge 和 plan | fanout 能力 | 判断聚类收益是否依赖 multicast |
+| D0 cluster vs unique | 同 C、副本、node/chip | 专家位置 | 判断专家共置收益 |
+| D0 cluster × M2/M3 | 同一设备集合 | tier policy | 判断并行 GPU/Brain 与聚类能否叠加 |
+| D0 × batch | 同一 model/placement | batch 1..64 | 判断 GPU/Brain 是否真饱和 |
+
+#### D0 预注册假设
+
+- 若 GPU bridge 充足且无 multicast，共激活专家在同一专家 node 可减少目标
+  node 数、fanout 和 combine 路径；
+- 若所有 GPU 共享一个已饱和 bridge，专家聚类对 completion 的帮助可能被
+  bridge 总量限制；
+- 若 GPU 能对多 node multicast，则不同 node 共置的收益可能下降；
+- M3 在 D0 下应比 M2 更容易利用 GPU 空闲算力，但前提是不存在双副本调度开销；
+- D0 下 home-node 不对齐不应造成 D1 中的额外绕行。
+
 ### Q2：聚类到底优化什么
 
 聚类不是单纯最小化 pair cut，也不是只要把共激活专家放在同一位置。
@@ -674,15 +754,17 @@ M3/M2 vs M1：
 
 ### 执行顺序
 
-1. 修正 M1 全模型执行语义；
-2. 增加 scheduler policies；
-3. 建立小拓扑 oracle；
-4. 跑共激活和 home-affinity 受控实验；
-5. 跑 C×node×batch 主矩阵；
-6. 跑 M1/M2/M3 的 iso-resource 比较；
-7. 跑 cluster×replica；
-8. 真实 trace 接入后做 block bootstrap；
-9. 汇总 canonical bundle 和负结果。
+1. 实现 D0 shared/per-GPU dispatch 和 D0/D1 门控；
+2. 修正 M1 全模型执行语义；
+3. 增加 scheduler policies；
+4. 建立小拓扑 oracle；
+5. 跑 D0/D1 路由隔离；
+6. 跑共激活和 dispatch-aware locality 受控实验；
+7. 跑 C×node×batch 主矩阵；
+8. 跑 M1/M2/M3 的 iso-resource 比较；
+9. 跑 cluster×replica；
+10. 真实 trace 接入后做 block bootstrap；
+11. 汇总 canonical bundle 和负结果。
 
 ### 停止条件
 
@@ -697,6 +779,8 @@ M3/M2 vs M1：
 
 | 假设 | 当前状态 | 判决实验 |
 |---|---|---|
+| D0 比 D1 少一次 home round-trip，但共享 GPU bridge 可能成为瓶颈 | 待验证 | same-plan D0/D1 |
+| D0-per-GPU 与 D0-shared 的结果不能互相外推 | 待验证 | bridge topology sweep |
 | M3 在 HBM 充足、GPU 未饱和时不劣于 M2 | 理论预期，未验证 | iso-resource M2/M3 |
 | M3 的并行分派对高 batch 更有价值 | 理论预期 | batch sweep |
 | M1 在高 SRAM hit、GPU 饱和时可能胜出 | 理论预期 | M1 stress |
@@ -707,7 +791,54 @@ M3/M2 vs M1：
 | 副本和聚类收益可以相加 | 不应预设 | cluster×replica factorial |
 | 一个固定聚类布局可在 task 漂移后一直有效 | 不应预设 | temporal drift |
 
-## 11. 最终证据等级
+## 11. 额外必须补齐的风险清单
+
+### P0：不补齐就不能裁决 M1/M2/M3 或聚类
+
+| 风险 | 当前缺口 | 必须补齐 |
+|---|---|---|
+| D0 未实测 | 主结果全部为 D1 | D0/D1 同 trace 对照 |
+| GPU ingress 被合并 | 16 个 GPU 逻辑 chip 共用一个 `gpu_endpoint` | D0-per-gpu 与 shared bridge 两种模型 |
+| scheduler 非全局最优 | `earliest_finish` 是逐 assignment 贪心 | per-layer load-aware 与 small-batch oracle |
+| 硬件不等价 | GPU-only 少 16 个 Brain chips | iso-resource 与 mode-only 两套比较 |
+| M1 不完整 | B-stage 只做单层 grouped staging | 全模型 B-stage、prefetch/overlap |
+| 聚类目标不完整 | 全局 cut 未含 home affinity/GPU bridge/node load | dispatch-aware objective |
+| 聚类缺少 oracle | 无法判断启发式与真实最优差多远 | 6–12 expert exhaustive oracle |
+| 多模型层数不等 | 三个大模型只测前 4 个 MoE 层 | 全模型或明确分层 screen |
+
+### P1：会显著改变结论
+
+| 风险 | 当前缺口 | 必须补齐 |
+|---|---|---|
+| multicast/fanout | topology 有能力位，但主实验未系统扫描 | no-multicast vs node/chip multicast |
+| node-local reduce | 未与全部回 GPU combine 对照 | local reduce vs central reduce |
+| GPU 真正利用率 | 未输出时间加权 GPU/Brain utilization | timeline 和 per-node utilization |
+| bridge 竞争 | GPU 侧共享 endpoint 可能隐藏/集中瓶颈 | shared/per-GPU bridge sensitivity |
+| C 活跃边界 | 当前 C≥4 从未成为约束 | 构造每 chip 候选数超过 C 的 stress |
+| pair vs full hyperedge | pair 在压力实验中未改变布局 | fixed-community pair/full decomposition |
+| 副本与聚类交互 | 尚无相同 SRAM budget 的 factorial | cluster × replica matrix |
+| batch 构成 | 大部分主实验 batch 很小 | batch 1..64 与 mixed request length |
+| 时间漂移 | refresh 只做前两层代表重放 | task phase 长窗口完整 replay |
+
+### P2：提高外部有效性，但不阻塞第一轮 revalidation
+
+- 真实 request-ordered router trace；
+- request/task block bootstrap；
+- KA200 kernel、链路、并发、功耗实测；
+- 多租户、故障、抢占和重试；
+- prefill/decode 交互；
+- 真实 acquisition price、功率和 TCO；
+- 芯片内 multicast/reduction/RTL 能力核验。
+
+### 当前最不妥的三件事
+
+1. 把 D1 的 home-node 结论写成通用聚类结论；
+2. 把增加类脑硬件后的 Overlay 加速写成类脑芯片效率；
+3. 把 C 未成为约束写成 C 永远无用。
+
+这三条在最终论文和汇报中必须明确禁止。
+
+## 12. 最终证据等级
 
 全部 synthetic/projected 门控通过后，最高可写：
 
