@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import statistics
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -250,6 +252,29 @@ def run_seed(args, seed):
     return rows
 
 
+def _run_seed_job(payload):
+    local, seed = payload
+    return run_seed(local, seed)
+
+
+def run_seeds(local, seeds, jobs):
+    """Run independent seeds in worker processes while preserving row order."""
+
+    workers = min(max(1, jobs), len(seeds))
+    if workers == 1:
+        return [
+            row
+            for seed in seeds
+            for row in run_seed(local, seed)
+        ]
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        per_seed = executor.map(
+            _run_seed_job,
+            ((local, seed) for seed in seeds),
+        )
+        return [row for rows in per_seed for row in rows]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True)
@@ -266,6 +291,12 @@ def main() -> int:
     parser.add_argument("--gpu-profile", default="h100_sxm")
     parser.add_argument("--brain-profile", default="lynxi_hp300_proj")
     parser.add_argument("--bridge-fabric", default="pcie5_x16")
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        default=min(5, os.cpu_count() or 1),
+        help="parallel seed workers; use 1 for serial execution",
+    )
     args = parser.parse_args()
     args.seeds = tuple(
         int(value) for value in args.seeds.split(",") if value
@@ -283,6 +314,8 @@ def main() -> int:
         args.seeds, args.nodes, args.batches, args.c_values,
     )):
         raise SystemExit("all experiment axes must be non-empty")
+    if args.jobs < 1:
+        raise SystemExit("--jobs must be at least 1")
     output = Path(args.output).resolve()
     if output.exists():
         raise SystemExit("output directory already exists: %s" % output)
@@ -292,9 +325,7 @@ def main() -> int:
     temp.mkdir(parents=True)
     local = argparse.Namespace(**vars(args))
     local.requests = 2
-    raw = []
-    for seed in args.seeds:
-        raw.extend(run_seed(local, seed))
+    raw = run_seeds(local, args.seeds, args.jobs)
     write_csv(temp / "raw.csv", raw)
     grouped = {}
     for row in raw:
@@ -368,6 +399,7 @@ def main() -> int:
         "model": args.model,
         "dtype": effective_dtype(local),
         "seeds": list(args.seeds),
+        "execution_jobs": args.jobs,
         "nodes": list(args.nodes),
         "batches": list(args.batches),
         "c_values": list(args.c_values),

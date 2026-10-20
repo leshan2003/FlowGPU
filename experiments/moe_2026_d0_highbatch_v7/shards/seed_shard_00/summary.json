@@ -1,0 +1,135 @@
+{
+  "batches": [
+    64
+  ],
+  "c_max": 2,
+  "claim_boundary": "D0/D1 static event-model comparison with synthetic routing and projected hardware; no multicast or local-reduce claim",
+  "copies": 8,
+  "d0_vs_d1": {
+    "M2-tier-exclusive|earliest_finish": {
+      "high95": 1.0727563290527584,
+      "low95": 0.9595435070538841,
+      "mean": 1.0161499180533213,
+      "ratio": "D1 completion / D0 completion"
+    },
+    "M3-overlay|brain-first": {
+      "high95": 1.0727563290527584,
+      "low95": 0.9595435070538841,
+      "mean": 1.0161499180533213,
+      "ratio": "D1 completion / D0 completion"
+    },
+    "M3-overlay|earliest_finish": {
+      "high95": 1.0758814139616346,
+      "low95": 0.9180283402026386,
+      "mean": 0.9969548770821366,
+      "ratio": "D1 completion / D0 completion"
+    },
+    "M3-overlay|least_loaded": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "D1 completion / D0 completion"
+    },
+    "M3-overlay|nearest": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "D1 completion / D0 completion"
+    },
+    "M3-overlay|split": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "D1 completion / D0 completion"
+    }
+  },
+  "dtype": "fp8",
+  "execution_jobs": 1,
+  "kind": "moe-d0-d1-dispatch",
+  "layer_limit": 4,
+  "m3_vs_m2": {
+    "D0-shared|brain-first": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D0-shared|earliest_finish": {
+      "high95": 1.3170127102504976,
+      "low95": 1.024506058804651,
+      "mean": 1.1707593845275743,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D0-shared|least_loaded": {
+      "high95": 1.4315897661346488,
+      "low95": 0.7343760259641261,
+      "mean": 1.0829828960493875,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D0-shared|nearest": {
+      "high95": 0.6758091762741761,
+      "low95": 0.49119495017025205,
+      "mean": 0.5835020632222141,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D0-shared|split": {
+      "high95": 1.4403988864951192,
+      "low95": 0.7347482894251458,
+      "mean": 1.0875735879601325,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D1-shared|brain-first": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D1-shared|earliest_finish": {
+      "high95": 1.2051280206971986,
+      "low95": 1.1813823495517497,
+      "mean": 1.1932551851244741,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D1-shared|least_loaded": {
+      "high95": 1.5161358301650645,
+      "low95": 0.6850545953868736,
+      "mean": 1.100595212775969,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D1-shared|nearest": {
+      "high95": 0.653661115923817,
+      "low95": 0.5321253004163906,
+      "mean": 0.5928932081701038,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D1-shared|split": {
+      "high95": 1.5253485587941893,
+      "low95": 0.6851744873828501,
+      "mean": 1.1052615230885197,
+      "ratio": "M2 completion / M3 completion"
+    }
+  },
+  "model": "mixtral_8x7b",
+  "nodes": [
+    2
+  ],
+  "not_included": "D0-per-gpu requires request-to-GPU placement and full/partitioned expert replicas; the shared-endpoint experiment cannot represent it",
+  "policies": [
+    "earliest_finish",
+    "least_loaded",
+    "nearest",
+    "brain-first",
+    "split"
+  ],
+  "schema_version": 1,
+  "seeds": [
+    101,
+    106
+  ],
+  "tokens": 4,
+  "variants": [
+    "D1-shared",
+    "D0-shared"
+  ],
+  "zipf_exponent": 1.3
+}

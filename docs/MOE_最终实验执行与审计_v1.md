@@ -20,10 +20,10 @@
 | C isolation | 64 copies/64 chips、32 copies/16 chips | 9 points | `cscan*_final_v9_*` |
 | 20-seed boundary | 6 workload/model boundary points | 120 paired seed runs | `boundary20_v9_*` |
 | C=1 clustering diagnostic | aligned + six home permutations + 20 community partitions | 1 bundle | `c1_cluster_stress_v5` |
-| D0/D1 full matrix | Mixtral 32 layers, 3 nodes × 3 batches × 5 seeds | 1 bundle | `d0_matrix_v6` |
-| D0/D1 high-batch screen | Mixtral 4 layers, batch 64, 10 seeds | 1 bundle | `d0_highbatch_v6` |
-| D0 C grid | C=1/2/4, 3 nodes × 3 batches × 5 seeds | 3 bundles | `d0_matrix_c*_v2` |
-| D0 clustering grid | 3 algorithms × C × nodes × batches | 1 bundle | `d0_cluster_v2` |
+| D0/D1 full matrix | Mixtral 32 layers, 3 nodes × 3 batches × 5 seeds | 1 bundle | `d0_matrix_v7` |
+| D0/D1 high-batch screen | Mixtral 4 layers, batch 64, 10 seeds | 1 bundle | `d0_highbatch_v7` |
+| D0 C grid | C=1/2/4, 3 nodes × 3 batches × 5 seeds | 3 bundles | `d0_matrix_c*_v3` |
+| D0 clustering grid | 3 algorithms × C × nodes × batches | 1 bundle | `d0_cluster_v3` |
 
 合计 41 个 canonical bundle。41 个 bundle 的 `manifest.json` 均覆盖 runner、
 `flowgpu/units.py` 和全部 31 个 `flowgpu/sim_v2/*.py` 文件；
@@ -498,12 +498,12 @@ experiments/moe_2026_cscan_final_v9_*/
 experiments/moe_2026_cscan32_final_v9_*/
 experiments/moe_2026_boundary20_v9_*/
 experiments/moe_2026_c1_cluster_stress_v5/
-experiments/moe_2026_d0_matrix_v6/
-experiments/moe_2026_d0_highbatch_v6/
-experiments/moe_2026_d0_matrix_c1_v2/
-experiments/moe_2026_d0_matrix_c2_v2/
-experiments/moe_2026_d0_matrix_c4_v2/
-experiments/moe_2026_d0_cluster_v2/
+experiments/moe_2026_d0_matrix_v7/
+experiments/moe_2026_d0_highbatch_v7/
+experiments/moe_2026_d0_matrix_c1_v3/
+experiments/moe_2026_d0_matrix_c2_v3/
+experiments/moe_2026_d0_matrix_c4_v3/
+experiments/moe_2026_d0_cluster_v3/
 ```
 
 `v11`、`v7` 及更早目录保留作审计或开发检查点，不作为最终引用。

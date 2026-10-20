@@ -1,0 +1,106 @@
+{
+  "batches": [
+    1,
+    4,
+    16
+  ],
+  "c_max": 2,
+  "claim_boundary": "D0/D1 static event-model comparison with synthetic routing and projected hardware; no multicast or local-reduce claim",
+  "copies": 32,
+  "d0_vs_d1": {
+    "M2-tier-exclusive|earliest_finish": {
+      "high95": 1.0005900809459545,
+      "low95": 1.0000253709628673,
+      "mean": 1.0003077259544109,
+      "ratio": "D1 completion / D0 completion"
+    },
+    "M3-overlay|brain-first": {
+      "high95": 1.0005900809459545,
+      "low95": 1.0000253709628673,
+      "mean": 1.0003077259544109,
+      "ratio": "D1 completion / D0 completion"
+    },
+    "M3-overlay|earliest_finish": {
+      "high95": 1.0314660226114212,
+      "low95": 1.0094528289881137,
+      "mean": 1.0204594257997675,
+      "ratio": "D1 completion / D0 completion"
+    }
+  },
+  "dtype": "fp8",
+  "execution_jobs": 1,
+  "kind": "moe-d0-d1-dispatch-sharded",
+  "layer_limit": 0,
+  "m3_vs_m2": {
+    "D0-shared|brain-first": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D0-shared|earliest_finish": {
+      "high95": 0.9957984990382881,
+      "low95": 0.9860121344680869,
+      "mean": 0.9909053167531875,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D1-shared|brain-first": {
+      "high95": 1.0,
+      "low95": 1.0,
+      "mean": 1.0,
+      "ratio": "M2 completion / M3 completion"
+    },
+    "D1-shared|earliest_finish": {
+      "high95": 0.982579795376639,
+      "low95": 0.9621947138523151,
+      "mean": 0.9723872546144771,
+      "ratio": "M2 completion / M3 completion"
+    }
+  },
+  "model": "mixtral_8x7b",
+  "nodes": [
+    1,
+    2,
+    4
+  ],
+  "not_included": "D0-per-gpu requires request-to-GPU placement and full/partitioned expert replicas; the shared-endpoint experiment cannot represent it",
+  "parallel_execution": {
+    "jobs": 5,
+    "merge_is_row_identical_to_canonical_seed_order": true,
+    "seed_shards": [
+      [
+        101
+      ],
+      [
+        102
+      ],
+      [
+        103
+      ],
+      [
+        104
+      ],
+      [
+        105
+      ]
+    ]
+  },
+  "policies": [
+    "brain-first",
+    "earliest_finish"
+  ],
+  "schema_version": 1,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "tokens": 4,
+  "variants": [
+    "D1-shared",
+    "D0-shared"
+  ],
+  "zipf_exponent": 1.3
+}

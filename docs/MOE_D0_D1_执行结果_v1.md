@@ -248,8 +248,8 @@ M3 不是所有 node/batch 下都自动优于 M2；
 ## 8. Artifacts
 
 - 全模型矩阵：
-  [`moe_2026_d0_matrix_v6`](../experiments/moe_2026_d0_matrix_v6/)
+  [`moe_2026_d0_matrix_v7`](../experiments/moe_2026_d0_matrix_v7/)
 - 高 batch 四层 screen：
-  [`moe_2026_d0_highbatch_v6`](../experiments/moe_2026_d0_highbatch_v6/)
+  [`moe_2026_d0_highbatch_v7`](../experiments/moe_2026_d0_highbatch_v7/)
 - 冻结计划：
   [`MOE_聚类与层级调度重验证计划_v1.md`](MOE_聚类与层级调度重验证计划_v1.md)

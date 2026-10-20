@@ -191,12 +191,12 @@ C 有用。
 ## 8. Artifacts
 
 - D0 C=1：
-  [`moe_2026_d0_matrix_c1_v2`](../experiments/moe_2026_d0_matrix_c1_v2/)
+  [`moe_2026_d0_matrix_c1_v3`](../experiments/moe_2026_d0_matrix_c1_v3/)
 - D0 C=2：
-  [`moe_2026_d0_matrix_c2_v2`](../experiments/moe_2026_d0_matrix_c2_v2/)
+  [`moe_2026_d0_matrix_c2_v3`](../experiments/moe_2026_d0_matrix_c2_v3/)
 - D0 C=4：
-  [`moe_2026_d0_matrix_c4_v2`](../experiments/moe_2026_d0_matrix_c4_v2/)
+  [`moe_2026_d0_matrix_c4_v3`](../experiments/moe_2026_d0_matrix_c4_v3/)
 - D0 聚类网格：
-  [`moe_2026_d0_cluster_v2`](../experiments/moe_2026_d0_cluster_v2/)
+  [`moe_2026_d0_cluster_v3`](../experiments/moe_2026_d0_cluster_v3/)
 - D0/D1 基础结果：
   [`MOE_D0_D1_执行结果_v1.md`](MOE_D0_D1_执行结果_v1.md)

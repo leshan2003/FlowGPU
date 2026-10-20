@@ -5,9 +5,11 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import statistics
 import sys
 from collections import Counter
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -328,6 +330,29 @@ def run_seed(args, seed):
     return rows
 
 
+def _run_seed_job(payload):
+    local, seed = payload
+    return run_seed(local, seed)
+
+
+def run_seeds(local, seeds, jobs):
+    """Run independent seeds in worker processes while preserving row order."""
+
+    workers = min(max(1, jobs), len(seeds))
+    if workers == 1:
+        return [
+            row
+            for seed in seeds
+            for row in run_seed(local, seed)
+        ]
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        per_seed = executor.map(
+            _run_seed_job,
+            ((local, seed) for seed in seeds),
+        )
+        return [row for rows in per_seed for row in rows]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True)
@@ -348,6 +373,12 @@ def main() -> int:
     parser.add_argument("--gpu-profile", default="h100_sxm")
     parser.add_argument("--brain-profile", default="lynxi_hp300_proj")
     parser.add_argument("--bridge-fabric", default="pcie5_x16")
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        default=min(5, os.cpu_count() or 1),
+        help="parallel seed workers; use 1 for serial execution",
+    )
     args = parser.parse_args()
     output = Path(args.output).resolve()
     if output.exists():
@@ -370,6 +401,8 @@ def main() -> int:
         raise SystemExit("at least one node count is required")
     if not policies:
         raise SystemExit("at least one scheduler is required")
+    if args.jobs < 1:
+        raise SystemExit("--jobs must be at least 1")
     local = argparse.Namespace(**vars(args))
     local.requests = 2
     local.hot_experts = args.copies
@@ -377,9 +410,7 @@ def main() -> int:
     local.batches = batches
     local.nodes = nodes
     local.policies = policies
-    raw = []
-    for seed in seeds:
-        raw.extend(run_seed(local, seed))
+    raw = run_seeds(local, seeds, args.jobs)
     write_csv(temp / "raw.csv", raw)
     grouped = {}
     for row in raw:
@@ -517,6 +548,7 @@ def main() -> int:
             "expert replicas; the shared-endpoint experiment cannot represent it"
         ),
         "policies": list(policies),
+        "execution_jobs": args.jobs,
         "d0_vs_d1": d0_d1_contrasts,
         "m3_vs_m2": m3_m2_contrasts,
         "claim_boundary": (

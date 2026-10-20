@@ -39,12 +39,12 @@ experiments/moe_2026_boundary*/
 experiments/moe_2026_c1_cluster_stress_*/
 !experiments/moe_2026_c1_cluster_stress_v5/
 experiments/moe_2026_d0_*/
-!experiments/moe_2026_d0_matrix_v6/
-!experiments/moe_2026_d0_highbatch_v6/
-!experiments/moe_2026_d0_matrix_c1_v2/
-!experiments/moe_2026_d0_matrix_c2_v2/
-!experiments/moe_2026_d0_matrix_c4_v2/
-!experiments/moe_2026_d0_cluster_v2/
+!experiments/moe_2026_d0_matrix_v7/
+!experiments/moe_2026_d0_highbatch_v7/
+!experiments/moe_2026_d0_matrix_c1_v3/
+!experiments/moe_2026_d0_matrix_c2_v3/
+!experiments/moe_2026_d0_matrix_c4_v3/
+!experiments/moe_2026_d0_cluster_v3/
 
 # OS
 .DS_Store
