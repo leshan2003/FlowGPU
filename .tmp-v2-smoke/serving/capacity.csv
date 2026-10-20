@@ -1,9 +1,0 @@
-case_id,node_count,ingress_mode,strategy,capacity_rate_per_s,capacity_per_node_per_s,target_attainment,right_censored,monotonic_attainment,warning
-nodes-1__chips-2__ingress-concentrated-1,1,concentrated,unique-balanced,20.0,20.0,0.5,True,True,capacity is right-censored by the largest tested load
-nodes-1__chips-2__ingress-concentrated-1,1,concentrated,ingress-local,20.0,20.0,0.5,True,True,capacity is right-censored by the largest tested load
-nodes-1__chips-2__ingress-distributed-1,1,distributed,unique-balanced,20.0,20.0,0.5,True,True,capacity is right-censored by the largest tested load
-nodes-1__chips-2__ingress-distributed-1,1,distributed,ingress-local,20.0,20.0,0.5,True,True,capacity is right-censored by the largest tested load
-nodes-2__chips-2__ingress-concentrated-1,2,concentrated,unique-balanced,20.0,10.0,0.5,True,True,capacity is right-censored by the largest tested load
-nodes-2__chips-2__ingress-concentrated-1,2,concentrated,ingress-local,20.0,10.0,0.5,True,True,capacity is right-censored by the largest tested load
-nodes-2__chips-2__ingress-distributed-2,2,distributed,unique-balanced,20.0,10.0,0.5,True,True,capacity is right-censored by the largest tested load
-nodes-2__chips-2__ingress-distributed-2,2,distributed,ingress-local,20.0,10.0,0.5,True,True,capacity is right-censored by the largest tested load

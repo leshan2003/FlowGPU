@@ -1,9 +1,0 @@
-case_id,node_count,ingress_mode,policy,brain_replicas,brain_unique_experts,gpu_fallback_experts,completion_s,tokens_per_s,tokens_per_s_per_node,speedup_vs_unique_first,local_assignment_fraction,network_energy_j
-nodes-1__chips-2__ingress-concentrated-1,1,concentrated,tiered-unique-first,8,8,8,0.0011450176000000001,13973.584336170901,13973.584336170901,1.0,0.8125,2.8671999999999977e-06
-nodes-1__chips-2__ingress-concentrated-1,1,concentrated,tiered-hot-replica-first,8,4,8,0.0023850528,6708.446873796672,6708.446873796672,0.4800806086976355,0.46875,4.759551999999995e-06
-nodes-1__chips-2__ingress-distributed-1,1,distributed,tiered-unique-first,8,8,8,0.0011450176000000001,13973.584336170901,13973.584336170901,1.0,0.8125,2.8671999999999977e-06
-nodes-1__chips-2__ingress-distributed-1,1,distributed,tiered-hot-replica-first,8,4,8,0.0023850528,6708.446873796672,6708.446873796672,0.4800806086976355,0.46875,4.759551999999995e-06
-nodes-2__chips-2__ingress-concentrated-1,2,concentrated,tiered-unique-first,16,8,8,0.0006978613856209151,22927.189166318698,11463.594583159349,1.0,0.53125,6.021120000000005e-06
-nodes-2__chips-2__ingress-concentrated-1,2,concentrated,tiered-hot-replica-first,16,4,8,0.0021843360000000003,7324.8804213271205,3662.4402106635603,0.31948445002092857,0.3125,6.307839999999997e-06
-nodes-2__chips-2__ingress-distributed-2,2,distributed,tiered-unique-first,16,8,8,0.0006672596681749624,23978.670917968077,11989.335458984038,1.0,0.5,6.193152000000002e-06
-nodes-2__chips-2__ingress-distributed-2,2,distributed,tiered-hot-replica-first,16,4,8,0.0021786016,7344.160584477677,3672.0802922388384,0.3062788846638883,0.46875,4.874239999999995e-06

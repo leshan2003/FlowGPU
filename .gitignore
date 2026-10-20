@@ -20,6 +20,7 @@ eda/work/
 *.log
 results/*.log
 .tmp-stage0-config-v*/
+.tmp-*/
 
 # Superseded Stage 0 development checkpoints; canonical bundles are listed
 # explicitly in docs/MOE_STAGE0_执行审计.md.
