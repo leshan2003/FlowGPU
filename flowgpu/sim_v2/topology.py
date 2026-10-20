@@ -289,6 +289,7 @@ class ClusterTopology:
     chip_endpoints: Mapping[str, str]
     gpu_endpoint: str
     ingress_nodes: Tuple[str, ...]
+    gpu_endpoints: Tuple[str, ...] = ()
 
 
 def build_hierarchical_cluster(
@@ -298,6 +299,7 @@ def build_hierarchical_cluster(
     scale_up: LinkProfile,
     scale_out: LinkProfile,
     bridge: LinkProfile,
+    gpu_ingress_count: int = 1,
 ) -> ClusterTopology:
     """Expand a regular cluster into an inspectable directed graph.
 
@@ -308,13 +310,18 @@ def build_hierarchical_cluster(
 
     if n_nodes <= 0 or chips_per_node <= 0:
         raise ValidationError("node and chips-per-node counts must be positive")
+    if gpu_ingress_count <= 0:
+        raise ValidationError("gpu ingress count must be positive")
     ingress_indices = tuple(sorted(set(ingress_node_indices)))
     if not ingress_indices:
         raise ValidationError("at least one ingress node is required")
     if any(index < 0 or index >= n_nodes for index in ingress_indices):
         raise ValidationError("ingress node index is outside cluster")
 
-    endpoints = [Endpoint("gpu0", "gpu")]
+    gpu_endpoints = tuple(
+        "gpu%d" % index for index in range(gpu_ingress_count)
+    )
+    endpoints = [Endpoint(endpoint, "gpu") for endpoint in gpu_endpoints]
     links = []
     if n_nodes > 1:
         endpoints.append(Endpoint("fabric0", "fabric_switch"))
@@ -343,10 +350,13 @@ def build_hierarchical_cluster(
                 switch_id, "fabric0", scale_out,
             )
         if node_index in ingress_indices:
-            add_pair(
-                "bridge:%s" % node_id,
-                "gpu0", switch_id, bridge,
-            )
+            for gpu_index, gpu_endpoint in enumerate(gpu_endpoints):
+                prefix = (
+                    "bridge:%s" % node_id
+                    if gpu_ingress_count == 1
+                    else "bridge:gpu%d:%s" % (gpu_index, node_id)
+                )
+                add_pair(prefix, gpu_endpoint, switch_id, bridge)
         for chip_index in range(chips_per_node):
             chip_id = "%s:chip%d" % (node_id, chip_index)
             endpoint_id = chip_id
@@ -367,4 +377,5 @@ def build_hierarchical_cluster(
         chip_endpoints=MappingProxyType(chip_endpoints),
         gpu_endpoint="gpu0",
         ingress_nodes=ingress_nodes,
+        gpu_endpoints=gpu_endpoints,
     )

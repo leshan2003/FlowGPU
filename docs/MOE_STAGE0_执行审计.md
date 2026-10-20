@@ -16,7 +16,7 @@ synthetic/projected 仿真实验，只限制证据等级。
 
 ```text
 python -m pytest tests -q
-140 passed
+144 passed
 
 python -m compileall -q flowgpu scripts
 COMPILEALL_OK
@@ -74,10 +74,10 @@ first-MoE-layer 模型上不再出现 key mismatch。
 
 当前源码对应的门控 bundles：
 
-- `experiments/moe_2026_stage0_final_v12_mixtral/`；
-- `experiments/moe_2026_stage0_final_v12_deepseek/`；
-- `experiments/moe_2026_stage0_final_v12_qwen/`；
-- `experiments/moe_2026_stage0_final_v12_gptoss/`。
+- `experiments/moe_2026_stage0_final_v13_mixtral/`；
+- `experiments/moe_2026_stage0_final_v13_deepseek/`；
+- `experiments/moe_2026_stage0_final_v13_qwen/`；
+- `experiments/moe_2026_stage0_final_v13_gptoss/`。
 
 每个 bundle 包含：
 
@@ -93,7 +93,7 @@ manifest.json
 
 `manifest.json` 记录 runner、`flowgpu/units.py` 和全部 31 个
 `flowgpu/sim_v2/*.py` 的 SHA-256。`v11` 及更早目录是过程检查点，不可作为最终
-引用；以当前审计列出的 `v12` 目录为准。
+引用；以当前审计列出的 `v13` 目录为准。
 
 ## 4. 门控观察
 

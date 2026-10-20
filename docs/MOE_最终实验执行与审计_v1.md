@@ -4,7 +4,7 @@
 >
 > 证据类型：synthetic workload + projected/estimated hardware
 >
-> 最终 canonical 版本：Stage 0 `v12`，下游 screen/matrix/C/20-seed 为 `v8`
+> 最终 canonical 版本：Stage 0 `v13`，下游 screen/matrix/C/20-seed 为 `v9`
 >
 > 结论边界：这是可复现的软件仿真证据，不是 KA200 实测，也不是真实 TCO。
 
@@ -14,19 +14,21 @@
 
 | 实验组 | 内容 | 规模 | 最终目录版本 |
 |---|---|---:|---|
-| Stage 0 | 四模型语义与机制门控 | 4 bundles | `stage0_final_v12_*` |
-| Stage 1 screen | Mixtral 三种 skew、三种大模型四层 fast screen | 6 bundles | `screen_final_v8_*` |
-| Node × batch | 1/2/4 nodes × 1/2/4 request batch | 9 points | `matrix_final_v8_*` |
-| C isolation | 64 copies/64 chips、32 copies/16 chips | 9 points | `cscan*_final_v8_*` |
-| 20-seed boundary | 6 workload/model boundary points | 120 paired seed runs | `boundary20_v8_*` |
-| C=1 clustering diagnostic | aligned + six home permutations + 20 community partitions | 1 bundle | `c1_cluster_stress_v4` |
+| Stage 0 | 四模型语义与机制门控 | 4 bundles | `stage0_final_v13_*` |
+| Stage 1 screen | Mixtral 三种 skew、三种大模型四层 fast screen | 6 bundles | `screen_final_v9_*` |
+| Node × batch | 1/2/4 nodes × 1/2/4 request batch | 9 points | `matrix_final_v9_*` |
+| C isolation | 64 copies/64 chips、32 copies/16 chips | 9 points | `cscan*_final_v9_*` |
+| 20-seed boundary | 6 workload/model boundary points | 120 paired seed runs | `boundary20_v9_*` |
+| C=1 clustering diagnostic | aligned + six home permutations + 20 community partitions | 1 bundle | `c1_cluster_stress_v5` |
+| D0/D1 full matrix | Mixtral 32 layers, 3 nodes × 3 batches × 5 seeds | 1 bundle | `d0_matrix_v5` |
+| D0/D1 high-batch screen | Mixtral 4 layers, batch 64, 10 seeds | 1 bundle | `d0_highbatch_v5` |
 
-合计 35 个 canonical bundle。35 个 bundle 的 `manifest.json` 均覆盖 runner、
+合计 37 个 canonical bundle。37 个 bundle 的 `manifest.json` 均覆盖 runner、
 `flowgpu/units.py` 和全部 31 个 `flowgpu/sim_v2/*.py` 文件；
 逐文件 SHA-256 审计结果为：
 
 ```text
-BUNDLES=35
+BUNDLES=37
 SOURCE_HASH_MISMATCH=0
 MISSING_MIGRATION_RUNTIME=0
 ```
@@ -35,7 +37,7 @@ MISSING_MIGRATION_RUNTIME=0
 
 ```text
 python -m pytest tests -q
-140 passed
+144 passed
 
 python -m compileall -q flowgpu scripts
 PASS
@@ -315,6 +317,25 @@ C 永远无影响：当每 chip 实际候选数超过 C，或 task trace 产生�
 因此当前没有完整实验证明“全部专家都放类脑”更好或更差。M3 对 M2 的理论
 支配关系也尚未验证，因为它依赖 GPU 未饱和、HBM 容量充足和调度器有效。
 
+### 8.1.1 D0/D1 新结果
+
+已修正 D0 的实际 event flow，并完成 Mixtral 全模型
+`1/2/4 nodes × batch 1/4/16 × 5 seeds` 的 D0/D1 对照：
+
+- 低/中 batch 下 D0 将平均 bridge bytes 降低约 45%，但 completion 与 D1
+  基本相同；
+- 2-node、batch 64 的四层专项中，M2 的 D0 比 D1 completion 快约 3.9%，
+  paired 95% CI `[1.0244, 1.0528]`；
+- 同一高 batch screen 中，M3 使用 `earliest_finish` 并行 GPU/Brain 热副本，
+  比 M2 快约 8.2%（D0）和 11.6%（D1），CI 均不跨 1；
+- 低/中 batch 下同一 scheduler 没有并行收益，`brain-first` 与 M2 完全等价；
+  `nearest`、`least_loaded`、`split` 可明显退化；
+- D0-per-GPU 尚无有效实现，当前不报告。
+
+因此“GPU 并行必然更好”不成立；它是 batch、node、路径和 scheduler 条件性
+成立。完整数据见
+[`MOE_D0_D1_执行结果_v1.md`](MOE_D0_D1_执行结果_v1.md)。
+
 ### 8.2 聚类
 
 原 Stage 0 C=1 固定资源微基准中，unique、pair、full-hyperedge 的 completion
@@ -431,6 +452,8 @@ Stage 0 中已执行从 GPU-primary plan 到 overlay plan 的 source-aware migra
 - 热专家不要求固定 0/1 分类，连续边际规划可以改变 copy 选择；
 - `R_unique < 1` 时允许 extra copies 已实现；
 - H-exclusive 的收益依赖模型和 workload；
+- D0 在低/中 batch 主要降低 bridge 流量，completion 收益不明显；
+- D0 与 M3 并行在 batch 64 四层 screen 中出现正收益，但尚未外推全模型；
 - node 数和 batch 存在非单调交互；
 - C=1 不会自动造成额外串行成本；
 - 迁移和 serving 可以共享同一个 flow-level 网络；
@@ -444,6 +467,9 @@ Stage 0 中已执行从 GPU-primary plan 到 overlay plan 的 source-aware migra
 - 真实 TCO、采购成本或最小 node 数；
 - 聚类一定优于 non-clustering；
 - 某一固定 refresh 周期；
+- D0 在所有 batch/node 下优于 D1；
+- D0-per-GPU 已有性能结论；
+- M3 在低/中 batch 下稳定优于 M2；
 - 完整模型 refresh 的净收益或 P99；
 - 把 synthetic seed CI 当作真实 trace sampling CI。
 
@@ -452,20 +478,20 @@ Stage 0 中已执行从 GPU-primary plan 到 overlay plan 的 source-aware migra
 Stage 0：
 
 ```text
-experiments/moe_2026_stage0_final_v12_mixtral/
-experiments/moe_2026_stage0_final_v12_deepseek/
-experiments/moe_2026_stage0_final_v12_qwen/
-experiments/moe_2026_stage0_final_v12_gptoss/
+experiments/moe_2026_stage0_final_v13_mixtral/
+experiments/moe_2026_stage0_final_v13_deepseek/
+experiments/moe_2026_stage0_final_v13_qwen/
+experiments/moe_2026_stage0_final_v13_gptoss/
 ```
 
 Stage 1 / matrix / C / boundary：
 
 ```text
-experiments/moe_2026_screen_final_v8_*/
-experiments/moe_2026_matrix_final_v8_*/
-experiments/moe_2026_cscan_final_v8_*/
-experiments/moe_2026_cscan32_final_v8_*/
-experiments/moe_2026_boundary20_v8_*/
+experiments/moe_2026_screen_final_v9_*/
+experiments/moe_2026_matrix_final_v9_*/
+experiments/moe_2026_cscan_final_v9_*/
+experiments/moe_2026_cscan32_final_v9_*/
+experiments/moe_2026_boundary20_v9_*/
 ```
 
 `v11`、`v7` 及更早目录保留作审计或开发检查点，不作为最终引用。

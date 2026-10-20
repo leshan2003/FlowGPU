@@ -121,23 +121,12 @@ class MoELayerEngine:
         self, binding: AssignmentBinding, earliest_start_s: float = 0.0
     ) -> Flow:
         assignment = binding.assignment
-        chip_endpoint = self.dispatcher.chip_endpoints[
-            binding.replica.chip_id
-        ]
-        home_endpoint = self.dispatcher.home_endpoints[
-            assignment.home_node
-        ]
-        if (self.dispatcher.ingress_source_endpoint is not None and
-                chip_endpoint ==
-                self.dispatcher.ingress_source_endpoint):
-            source = chip_endpoint
-            waypoints = tuple()
-        elif self.dispatcher.ingress_source_endpoint is None:
-            source = home_endpoint
-            waypoints = tuple()
-        else:
-            source = self.dispatcher.ingress_source_endpoint
-            waypoints = (home_endpoint,)
+        source, chip_endpoint, waypoints = (
+            self.dispatcher.flow_endpoints(
+                assignment,
+                binding.replica,
+            )
+        )
         return Flow(
             flow_id="dispatch:" + assignment.assignment_id,
             src=source,
@@ -154,31 +143,20 @@ class MoELayerEngine:
         earliest_start_s: float,
     ) -> Flow:
         assignment = binding.assignment
-        chip_endpoint = self.dispatcher.chip_endpoints[
-            binding.replica.chip_id
-        ]
-        home_endpoint = self.dispatcher.home_endpoints[
-            assignment.home_node
-        ]
-        if (self.dispatcher.ingress_source_endpoint is not None and
-                chip_endpoint ==
-                self.dispatcher.ingress_source_endpoint):
-            destination = chip_endpoint
-            waypoints = tuple()
-        elif self.dispatcher.ingress_source_endpoint is None:
-            destination = home_endpoint
-            waypoints = tuple()
-        else:
-            destination = self.dispatcher.ingress_source_endpoint
-            waypoints = (home_endpoint,)
+        source, destination, waypoints = (
+            self.dispatcher.flow_endpoints(
+                assignment,
+                binding.replica,
+            )
+        )
         return Flow(
             flow_id="combine:" + assignment.assignment_id,
-            src=chip_endpoint,
-            dst=destination,
+            src=destination,
+            dst=source,
             nbytes=self.dispatcher.hidden_bytes,
             earliest_start_s=earliest_start_s,
             traffic_class="combine",
-            waypoints=waypoints,
+            waypoints=tuple(reversed(waypoints)),
         )
 
     def run(

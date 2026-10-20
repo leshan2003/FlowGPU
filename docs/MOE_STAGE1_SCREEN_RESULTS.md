@@ -119,14 +119,14 @@ DeepSeek-V3，前 4 个 MoE 层，5 seeds：
 
 ## 6. Artifacts
 
-- `experiments/moe_2026_screen_final_v8_mixtral_zipf05/`
-- `experiments/moe_2026_screen_final_v8_mixtral/`
-- `experiments/moe_2026_screen_final_v8_mixtral_zipf20/`
-- `experiments/moe_2026_screen_final_v8_gptoss4/`（4-layer）
-- `experiments/moe_2026_screen_final_v8_qwen4/`（4-layer fast screen）
-- `experiments/moe_2026_screen_final_v8_deepseek4/`（4-layer fast screen）
-- `experiments/moe_2026_boundary20_v8_*`（关键点 20 seeds）
-- `experiments/moe_2026_stage0_final_v12_*`
+- `experiments/moe_2026_screen_final_v9_mixtral_zipf05/`
+- `experiments/moe_2026_screen_final_v9_mixtral/`
+- `experiments/moe_2026_screen_final_v9_mixtral_zipf20/`
+- `experiments/moe_2026_screen_final_v9_gptoss4/`（4-layer）
+- `experiments/moe_2026_screen_final_v9_qwen4/`（4-layer fast screen）
+- `experiments/moe_2026_screen_final_v9_deepseek4/`（4-layer fast screen）
+- `experiments/moe_2026_boundary20_v9_*`（关键点 20 seeds）
+- `experiments/moe_2026_stage0_final_v13_*`
 
 最终三模型四层 20-seed CI、node/batch 矩阵、C 隔离、聚类限制和 shared
 migration 结果见

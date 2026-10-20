@@ -18,10 +18,10 @@ Routing:       paper-constrained synthetic task/community trace
 Kernel:        projected hardware-relative curve
 ```
 
-最终 35 个 canonical bundle 的源码哈希均为零差异。当前测试：
+最终 37 个 canonical bundle 的源码哈希均为零差异。当前测试：
 
 ```text
-140 passed
+144 passed
 COMPILEALL_OK
 ```
 
@@ -99,6 +99,24 @@ Mixtral 使用完整 32 层；Qwen、DeepSeek、gpt-oss 使用前 4 个 MoE 层�
 
 20-seed CI 均为 paired seed interval；它不覆盖 trace sampling 或硬件误差。
 
+## 4.1 D0/D1 与 M2/M3
+
+D0 和 D1 的实际 event flow 已完成分离。Mixtral 全模型
+`1/2/4 nodes × batch 1/4/16 × 5 seeds` 中：
+
+- D0 将平均 bridge bytes 降低约 45%，但低/中 batch 的 completion 基本不变；
+- `brain-first` 的 M3 与 M2 完全等价；
+- 低/中 batch 中 eager GPU parallel 的 M3 没有稳定收益。
+
+batch 64、2-node、Mixtral 四层 10-seed 专项中：
+
+- M2 的 D0 比 D1 completion 快约 3.9%，CI `[1.0244, 1.0528]`；
+- M3 `earliest_finish` 比 M2 快约 8.2%（D0）和 11.6%（D1），CI 不跨 1；
+- 该结果只是四层 fast screen，不能外推完整模型。
+
+详见
+[`MOE_D0_D1_执行结果_v1.md`](MOE_D0_D1_执行结果_v1.md)。
+
 ## 5. Initial mechanism conclusions
 
 ### Coverage vs replication
@@ -138,12 +156,14 @@ Mixtral 使用完整 32 层；Qwen、DeepSeek、gpt-oss 使用前 4 个 MoE 层�
 
 ## 6. Result artifacts
 
-- `experiments/moe_2026_stage0_final_v12_*`
-- `experiments/moe_2026_screen_final_v8_*`
-- `experiments/moe_2026_matrix_final_v8_n*_b*`
-- `experiments/moe_2026_cscan_final_v8_c*`
-- `experiments/moe_2026_cscan32_final_v8_c*`
-- `experiments/moe_2026_boundary20_v8_*`
+- `experiments/moe_2026_stage0_final_v13_*`
+- `experiments/moe_2026_screen_final_v9_*`
+- `experiments/moe_2026_matrix_final_v9_n*_b*`
+- `experiments/moe_2026_cscan_final_v9_c*`
+- `experiments/moe_2026_cscan32_final_v9_c*`
+- `experiments/moe_2026_boundary20_v9_*`
+- `experiments/moe_2026_d0_matrix_v5/`
+- `experiments/moe_2026_d0_highbatch_v5/`
 
 ## 7. Remaining limitations
 

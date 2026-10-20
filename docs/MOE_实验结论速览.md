@@ -84,8 +84,8 @@ node、batch 或 C，而不是模型场景。
 - 6 个关键场景，每个 20 个 paired seeds
 - HBM overlay、类脑独占、Brain DRAM staging
 - 副本策略、聚类、迁移和版本切换
-- 140 个测试通过
-- 35 个最终结果目录，源码哈希差异为 0
+- 144 个测试通过
+- 37 个最终结果目录，源码哈希差异为 0
 
 尚未完成的是：
 
@@ -403,9 +403,44 @@ multicast、reduction、动态权重切换或 load/compute overlap 时，才涉�
 芯片配套固件/RTL 的改动。
 
 详细数据：
-[`moe_2026_c1_cluster_stress_v4`](../experiments/moe_2026_c1_cluster_stress_v4/)
+[`moe_2026_c1_cluster_stress_v5`](../experiments/moe_2026_c1_cluster_stress_v5/)
 
-### 10. GPU 和类脑可以并行，但粒度有限
+### 10. D0/D1 与 GPU/Brain 并行结果
+
+已实际分离：
+
+```text
+D0：GPU → 专家 node → GPU
+D1：GPU → home node → 专家 node → home node → GPU
+```
+
+Mixtral 完整 32 层、5 seeds、`1/2/4 nodes × batch 1/4/16`：
+
+- D0 平均 bridge bytes 比 D1 少约 45%；
+- 但低/中 batch 的总 completion 几乎相同；
+- M3 的 `brain-first` 与 M2 完全等价；
+- 低/中 batch 中让 GPU 并行 hot expert 的其他启发式平均会变慢。
+
+高 batch 四层 screen：Mixtral 前 4 层、2 nodes、batch 64、10 seeds：
+
+| 对比 | 结果 | 95% CI |
+|---|---:|---:|
+| M2：D0 vs D1 | D0 快约 3.9% | [1.0244, 1.0528] |
+| D0 下 M3 earliest vs M2 | M3 快约 8.2% | [1.0085, 1.1556] |
+| D1 下 M3 earliest vs M2 | M3 快约 11.6% | [1.0408, 1.1908] |
+
+因此：
+
+- 你的“GPU/Brain 并行可能有效”在高 batch 下得到支持；
+- 但它不是所有 batch 下自动成立；
+- 只有合适的 `earliest_finish` 找到并行区间；
+- `nearest`、`least_loaded` 和平均分摊会明显变差；
+- 高 batch 结果仍是四层 screen，不能直接外推完整模型。
+
+详细结果：
+[`MOE_D0_D1_执行结果_v1.md`](MOE_D0_D1_执行结果_v1.md)
+
+### 11. GPU 和类脑可以并行，但粒度有限
 
 在 HBM overlay 模式下：
 

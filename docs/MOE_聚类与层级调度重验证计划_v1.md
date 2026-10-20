@@ -76,7 +76,19 @@ GPU → expert node → GPU
 
 - D1：已用于主 MoE 实验和聚类压力实验；
 - D2：foundation 支持，但未进入本轮 MoE canonical matrix；
-- D0：尚未实现同 trace 的正式实验入口，尚未有实验结论。
+- D0-shared：已实现实际 event flow，并完成 Mixtral 全模型
+  `1/2/4 nodes × batch 1/4/16 × 5 seeds` 对照；
+- D0-per-GPU：当前一份 GPU expert 副本无法服务多个独立 GPU ingress，
+  该尝试无效，需重建 request-to-GPU placement 后再测。
+
+当前 D0 初步结果：
+
+- 低/中 batch 下，D0 比 D1 减少约 45% bridge bytes，但 completion 基本不变；
+- 2-node、batch 64 的四层 screen 中，M2 的 D0 completion 比 D1 快约 3.9%，
+  paired 95% CI `[1.0244, 1.0528]`；
+- 同条件下 M3 `earliest_finish` 比 M2 快约 8.2%（D0）和 11.6%（D1）；
+- 低/中 batch 下 eager parallel 仍会变差，`brain-first` 与 M2 等价；
+- 高 batch 结果目前只覆盖前 4 个 MoE 层。
 
 ### Q1.2 home node 有什么潜在优势
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Dict, Iterable, Mapping, Tuple
 
@@ -11,7 +12,14 @@ from .schema import Assignment, ExpertKey, ReplicaSpec, ValidationError
 from .topology import Topology
 
 
-DISPATCH_POLICIES = frozenset(("nearest", "least_loaded", "earliest_finish"))
+DISPATCH_POLICIES = frozenset((
+    "nearest",
+    "least_loaded",
+    "earliest_finish",
+    "brain-first",
+    "split",
+))
+DISPATCH_MODES = frozenset(("gpu-direct", "gpu-to-home", "home-resident"))
 
 
 @dataclass(frozen=True)
@@ -64,9 +72,14 @@ class Dispatcher:
         hidden_bytes: int,
         policy: str = "earliest_finish",
         ingress_source_endpoint: str = None,
+        dispatch_mode: str = "gpu-to-home",
+        gpu_ingress_endpoints: Iterable[str] = (),
+        gpu_endpoint_ids: Iterable[str] = (),
     ) -> None:
         if policy not in DISPATCH_POLICIES:
             raise ValidationError("unknown dispatcher policy: %s" % policy)
+        if dispatch_mode not in DISPATCH_MODES:
+            raise ValidationError("unknown dispatch mode: %s" % dispatch_mode)
         if hidden_bytes <= 0:
             raise ValidationError("hidden_bytes must be positive")
         self.replica_plan = replica_plan
@@ -77,6 +90,9 @@ class Dispatcher:
         self.hidden_bytes = hidden_bytes
         self.policy = policy
         self.ingress_source_endpoint = ingress_source_endpoint
+        self.dispatch_mode = dispatch_mode
+        self.gpu_ingress_endpoints = tuple(gpu_ingress_endpoints)
+        self.gpu_endpoint_ids = frozenset(gpu_endpoint_ids)
         if (ingress_source_endpoint is not None and
                 ingress_source_endpoint not in topology.endpoints):
             raise ValidationError(
@@ -111,12 +127,46 @@ class Dispatcher:
                 assignment.home_node
             ) from exc
         chip = self.chip_endpoints[replica.chip_id]
-        if (self.ingress_source_endpoint is not None and
-                chip == self.ingress_source_endpoint):
+        source = self._ingress_source(assignment)
+        if (
+            self.dispatch_mode == "gpu-direct" and
+            chip in self.gpu_endpoint_ids
+        ):
+            # A GPU-resident expert must execute on the ingress GPU that owns
+            # the activation. Remote GPU replicas are not silently selected.
+            return (
+                (0.0, 0.0)
+                if source is not None and chip == source
+                else (math.inf, math.inf)
+            )
+        if (source is not None and chip == source):
             # The activation and GPU-resident fallback expert share the GPU
             # endpoint; routing through home and back would double-count the
             # bridge and create an artificial loop.
             return 0.0, 0.0
+        if self.dispatch_mode == "gpu-direct":
+            if source is None:
+                raise ValidationError(
+                    "gpu-direct dispatch requires an ingress source"
+                )
+            dispatch_local = estimate_unloaded(
+                self.topology,
+                Flow(
+                    "dispatch:%s:%s" %
+                    (assignment.assignment_id, replica.replica_id),
+                    source, chip, self.hidden_bytes,
+                ),
+            )
+            combine_local = estimate_unloaded(
+                self.topology,
+                Flow(
+                    "combine:%s:%s" %
+                    (assignment.assignment_id, replica.replica_id),
+                    chip, source, self.hidden_bytes,
+                    traffic_class="combine",
+                ),
+            )
+            return dispatch_local.duration_s, combine_local.duration_s
         dispatch_local = estimate_unloaded(
             self.topology,
             Flow(
@@ -136,7 +186,8 @@ class Dispatcher:
         )
         dispatch_s = dispatch_local.duration_s
         combine_s = combine_local.duration_s
-        if self.ingress_source_endpoint is not None:
+        if (self.dispatch_mode == "gpu-to-home" and
+                source is not None):
             # Force the route through the record's home/ingress node.  A plain
             # shortest path from the GPU would be free to choose a different
             # ingress when several exist, destroying node-conditional demand.
@@ -144,7 +195,7 @@ class Dispatcher:
                 self.topology,
                 Flow(
                     "ingress:%s" % assignment.assignment_id,
-                    self.ingress_source_endpoint, home, self.hidden_bytes,
+                    source, home, self.hidden_bytes,
                     traffic_class="bridge-dispatch",
                 ),
             )
@@ -152,13 +203,40 @@ class Dispatcher:
                 self.topology,
                 Flow(
                     "egress:%s" % assignment.assignment_id,
-                    home, self.ingress_source_endpoint, self.hidden_bytes,
+                    home, source, self.hidden_bytes,
                     traffic_class="bridge-combine",
                 ),
             )
             dispatch_s += bridge_out.duration_s
             combine_s += bridge_back.duration_s
         return dispatch_s, combine_s
+
+    def _ingress_source(self, assignment: Assignment):
+        if self.gpu_ingress_endpoints:
+            index = int(assignment.request_id) % len(
+                self.gpu_ingress_endpoints
+            )
+            return self.gpu_ingress_endpoints[index]
+        return self.ingress_source_endpoint
+
+    def flow_endpoints(self, assignment: Assignment, replica: ReplicaSpec):
+        """Return (source, destination, waypoints) for dispatch.
+
+        Combine is the reverse path with the same waypoints.
+        """
+
+        home = self.home_endpoints[assignment.home_node]
+        chip = self.chip_endpoints[replica.chip_id]
+        source = self._ingress_source(assignment)
+        if self.dispatch_mode == "home-resident":
+            return home, chip, tuple()
+        if source is None:
+            return home, chip, tuple()
+        if source == chip:
+            return source, chip, tuple()
+        if self.dispatch_mode == "gpu-direct":
+            return source, chip, tuple()
+        return source, chip, (home,)
 
     def plan(
         self,
@@ -206,6 +284,23 @@ class Dispatcher:
                         dispatch_s + combine_s,
                         len(assigned[replica.replica_id]),
                         finish,
+                        replica.replica_id,
+                    )
+                elif self.policy == "brain-first":
+                    is_brain = self.replica_plan.chip(
+                        replica.chip_id
+                    ).role.startswith("brain")
+                    score = (
+                        0 if is_brain else 1,
+                        finish,
+                        dispatch_s + combine_s,
+                        replica.replica_id,
+                    )
+                elif self.policy == "split":
+                    score = (
+                        len(assigned[replica.replica_id]),
+                        finish,
+                        dispatch_s + combine_s,
                         replica.replica_id,
                     )
                 elif self.policy == "least_loaded":

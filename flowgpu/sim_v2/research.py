@@ -1213,13 +1213,28 @@ def build_plan_dispatcher(
     hidden_bytes: int,
     capabilities: RuntimeCapabilities = RuntimeCapabilities(),
     policy: str = "earliest_finish",
+    dispatch_mode: str = "gpu-to-home",
 ) -> Dispatcher:
     """Build the common dispatcher used by execution and serving."""
 
-    gpu_ids = frozenset(gpu_chip_ids)
+    gpu_ids = tuple(gpu_chip_ids)
+    gpu_id_set = frozenset(gpu_ids)
     chip_endpoints = dict(cluster.chip_endpoints)
-    for chip_id in gpu_ids:
-        chip_endpoints[chip_id] = cluster.gpu_endpoint
+    gpu_endpoints = (
+        tuple(cluster.gpu_endpoints)
+        if cluster.gpu_endpoints
+        else (cluster.gpu_endpoint,)
+    )
+    def gpu_order(chip_id):
+        suffix = chip_id[3:] if chip_id.startswith("gpu") else ""
+        return (int(suffix), chip_id) if suffix.isdigit() else (
+            len(gpu_ids), chip_id
+        )
+
+    for index, chip_id in enumerate(sorted(gpu_ids, key=gpu_order)):
+        chip_endpoints[chip_id] = gpu_endpoints[
+            index % len(gpu_endpoints)
+        ]
     return Dispatcher(
         replica_plan=plan,
         topology=cluster.topology,
@@ -1229,6 +1244,9 @@ def build_plan_dispatcher(
         hidden_bytes=hidden_bytes,
         policy=policy,
         ingress_source_endpoint=cluster.gpu_endpoint,
+        dispatch_mode=dispatch_mode,
+        gpu_ingress_endpoints=gpu_endpoints,
+        gpu_endpoint_ids=gpu_endpoints,
     )
 
 
@@ -1241,6 +1259,8 @@ def execute_hbm_fallback_plan(
     hidden_bytes: int,
     capabilities: RuntimeCapabilities = RuntimeCapabilities(),
     allow_placement_trace: bool = False,
+    dispatch_mode: str = "gpu-to-home",
+    dispatch_policy: str = "earliest_finish",
 ) -> PlanExecution:
     """Run one held-out trace through the existing detailed v2 event engine."""
 
@@ -1253,7 +1273,8 @@ def execute_hbm_fallback_plan(
     dispatcher = build_plan_dispatcher(
         plan, cluster, gpu_ids, kernel_models, hidden_bytes,
         capabilities=capabilities,
-        policy="earliest_finish",
+        policy=dispatch_policy,
+        dispatch_mode=dispatch_mode,
     )
     engine = MoELayerEngine(
         dispatcher=dispatcher,
