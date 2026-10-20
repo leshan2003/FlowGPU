@@ -375,6 +375,22 @@ community→home-node 对应关系：
 - 当前 full-hyperedge 聚类会改善 cut，但不能稳定转化为 completion 收益；
 - 在加入 home-aware、load-aware 目标和完整对比矩阵前，不能声称聚类有效。
 
+这些聚类结果使用当前的 D1 路由假设：
+
+```text
+GPU → token home node → expert node → home node → GPU
+```
+
+如果系统允许 GPU-direct：
+
+```text
+GPU → expert node → GPU
+```
+
+则不存在“先绕到 home node”的必然路径，聚类应改为优化 GPU bridge、
+专家 node fanout、combine 和 node load。D0/D1 必须使用独立 case 和结果，
+当前 D1 结论不能外推到 D0。
+
 重验证计划见
 [`MOE_聚类与层级调度重验证计划_v1.md`](MOE_聚类与层级调度重验证计划_v1.md)。
 

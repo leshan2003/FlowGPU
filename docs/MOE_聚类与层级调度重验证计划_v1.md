@@ -25,6 +25,53 @@
 - M2 ↔ `H-exclusive`；
 - M3 ↔ `G-overlay` 与 `earliest_finish` dispatcher。
 
+### Q1.1 GPU 到底能否直接发到专家 node
+
+这是本轮审计新增的独立架构轴，不能和聚类策略混在一起。
+
+| Dispatch 模式 | 数据路径 | 适用假设 |
+|---|---|---|
+| D0 GPU-direct | GPU/Bridge → 专家所在 node → GPU | GPU 持有 activation，并可直接选择专家 node |
+| D1 GPU-to-home | GPU/Bridge → token home node → 专家 node → home node → GPU | 分布式 token/router 状态固定在 home node |
+| D2 home-resident | token home node → 专家 node → home node | router 输出已经位于 home node，不含 GPU→home bridge |
+
+当前 MoE 主实验的 `run_gate` / `run_serving_gate` 使用：
+
+```text
+gpu-origin + forced home-node route
+```
+
+即对 Brain 专家副本：
+
+```text
+GPU → home node → expert node → home node → GPU
+```
+
+如果专家位于 home node，则只保留必要的 bridge 和 node-local 路径；如果专家在
+另一个 node，则额外经过 scale-out。
+
+这一强制路径用于表达以下系统：
+
+- router/activation 的 request state 与 home node 绑定；
+- 远端 expert 结果需要回到原 home node 做 combine；
+- node-conditional routing trace 有意义。
+
+如果真实系统采用 D0：
+
+```text
+GPU → expert node → GPU
+```
+
+则“聚类必须靠近 home node”的结论需要重新计算。D0 下更重要的是：
+
+- 共激活专家尽量在同一专家 node；
+- GPU bridge 到该 node 的流量；
+- 返回 GPU 的 combine 流量；
+- 专家 node 的负载与出口带宽。
+
+因此后续所有聚类结论必须标注 dispatch mode。当前 `1.297×` 受控收益和
+“home-node 不对齐时无收益”的结论，严格属于 D1，不可直接外推到 D0。
+
 ### Q2：聚类到底优化什么
 
 聚类不是单纯最小化 pair cut，也不是只要把共激活专家放在同一位置。
@@ -293,6 +340,14 @@ Secondary：
 - 每层完成时间单调；
 - 小拓扑 oracle 可复现。
 
+同时实现 dispatch-mode 门控：
+
+- D0 只在 GPU 与目标专家 node 之间计费；
+- D1 强制经过 home node；
+- D2 从 home node 开始计费；
+- 禁止“拓扑里有 bridge 但从 home node 免费开始”的漏算；
+- 同一 trace 在三种模式下分别生成 case id，不得混用结果。
+
 ### Stage M1：batch × node 网格
 
 第一阶段：
@@ -419,6 +474,15 @@ C=1/2/4
 目的：
 
 > 验证 home-aware 目标是否必要。
+
+这一实验只适用于 D1/D2。必须同时运行 D0：
+
+```text
+D0：GPU 直接到专家 node
+D0 + cluster：只优化共激活专家的目标 node 和 GPU bridge/combine
+```
+
+否则会把“home-node 架构的通信成本”误写成“聚类算法固有成本”。
 
 ### Stage C3：C × cluster 隔离
 
@@ -575,7 +639,8 @@ M3/M2 vs M1：
 | M3 的并行分派对高 batch 更有价值 | 理论预期 | batch sweep |
 | M1 在高 SRAM hit、GPU 饱和时可能胜出 | 理论预期 | M1 stress |
 | 聚类收益来自共激活而非 marginal popularity | 尚未验证 | fixed-marginal experiment |
-| 聚类必须显式考虑 home affinity | 当前压力实验支持 | home-affinity sweep |
+| D1 聚类必须显式考虑 home affinity | 当前压力实验支持 | D1 home-affinity sweep |
+| D0 聚类不需要强制靠近 home node | 待验证 | D0/D1 same-trace comparison |
 | C=1 只限制 chip 共驻，不禁止 node 聚类 | 代码语义支持，需端到端验证 | C×cluster matrix |
 | 副本和聚类收益可以相加 | 不应预设 | cluster×replica factorial |
 | 一个固定聚类布局可在 task 漂移后一直有效 | 不应预设 | temporal drift |

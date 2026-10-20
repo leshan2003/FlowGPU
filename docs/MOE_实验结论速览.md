@@ -373,6 +373,28 @@ Node × batch 实验单独测试了全部 9 个组合：
 > 仅把共激活专家放在一起、但忽略 home node 时，node cut 的降低不会稳定转化为
 > completion 改善。
 
+上述 home-node 结论有一个明确适用条件：
+
+```text
+当前主实验使用 gpu-origin + home-node route
+```
+
+即 Brain 专家路径为：
+
+```text
+GPU → token home node → expert node → home node → GPU
+```
+
+这不是唯一可能的架构。如果真实系统允许：
+
+```text
+GPU → expert node → GPU
+```
+
+那么请求不会先绕到 node1，聚类目标应改成直接优化 GPU bridge、专家 node
+之间 fanout、combine 和 node load。后续必须把 D0 GPU-direct 与当前 D1
+home-node 模式分开实验，不能混用结论。
+
 详细数据：
 [`moe_2026_c1_cluster_stress_v4`](../experiments/moe_2026_c1_cluster_stress_v4/)
 
