@@ -395,6 +395,13 @@ GPU → expert node → GPU
 之间 fanout、combine 和 node load。后续必须把 D0 GPU-direct 与当前 D1
 home-node 模式分开实验，不能混用结论。
 
+home-node 首先是系统级逻辑位置和路由选择，不是类脑芯片内部的计算单元。
+若板卡、bridge、switch 和 runtime 已支持把 activation 送到指定 chip，并取回
+partial output，那么修改 placement、routing table、combine 位置和 home-node
+映射通常不需要改芯片内部 MAC/SRAM/core。只有真实芯片缺少 chip-level
+multicast、reduction、动态权重切换或 load/compute overlap 时，才涉及芯片或
+芯片配套固件/RTL 的改动。
+
 详细数据：
 [`moe_2026_c1_cluster_stress_v4`](../experiments/moe_2026_c1_cluster_stress_v4/)
 

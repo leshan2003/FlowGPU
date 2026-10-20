@@ -72,6 +72,68 @@ GPU → expert node → GPU
 因此后续所有聚类结论必须标注 dispatch mode。当前 `1.297×` 受控收益和
 “home-node 不对齐时无收益”的结论，严格属于 D1，不可直接外推到 D0。
 
+当前执行状态：
+
+- D1：已用于主 MoE 实验和聚类压力实验；
+- D2：foundation 支持，但未进入本轮 MoE canonical matrix；
+- D0：尚未实现同 trace 的正式实验入口，尚未有实验结论。
+
+### Q1.2 home node 有什么潜在优势
+
+home node 只有在真实系统确实存在 request-affine 状态时才有意义。典型优势：
+
+1. attention/KV cache、router 状态或残差累加器位于该 node；
+2. expert 输出可在 home node 本地 weighted reduce，不必全部回传中心 GPU；
+3. token 的后续 layer 仍可在同一 node 继续执行，减少跨 node 往返；
+4. 多个 node 可各自作为请求入口，形成分布式 serving；
+5. `lambda[layer, home_node, expert]` 可以表达不同 ingress 的专家偏好；
+6. 多副本可以用来为不同 home node 提供就近服务。
+
+home node 的代价：
+
+- 一个全局 placement 难同时最优匹配所有 home node；
+- expert 不在 home node 时仍需 scale-out；
+- 多 home node 会削弱“把共激活专家放在单一 node”的收益；
+- 如果真实系统没有 home-local 状态，强制 home 路由只会增加一次额外跳转。
+
+因此，“设计 home node”本身不是优势；只有它对应真实 request state 时才是优势。
+
+### Q1.3 硬件修改边界
+
+home-node、D0/D1/D2 和专家聚类首先是**系统级拓扑 + runtime 调度问题**，
+原则上不需要修改类脑芯片内部的 MAC、SRAM、core 或神经形态计算单元。
+
+可能只改软件/配置的部分：
+
+- placement compiler；
+- dispatcher 和 routing table；
+- home-node 映射；
+- node/chip 选择；
+- GPU bridge 使用策略；
+- combine 位置；
+- trace 字段和 runtime API。
+
+可能需要板卡/系统硬件或固件配合的部分：
+
+- GPU bridge 是否真正能访问每个目标 node；
+- ingress NIC/switch 数量与拓扑；
+- 是否支持 GPU→目标 node 直达；
+- DMA、地址映射、队列和 completion notification；
+- 多播、fan-in/reduction、同步和背压；
+- 跨 node 链路、交换机端口和带宽预算。
+
+只有以下能力缺失时才可能需要芯片内部或芯片配套 RTL/runtime 改动：
+
+- chip 级 multicast/fanout；
+- chip 内或 node 内 reduction；
+- per-expert 动态权重切换；
+- 多专家并发 resident/eviction；
+- expert 流式加载与计算 overlap。
+
+如果目标芯片和 SoC 已经支持“由板级网络把 activation 送到指定 chip、执行 expert、
+返回 partial output”，那么 D0/D1 的差别主要是运行时路径选择和 placement 目标，
+不需要重新设计芯片计算架构。
+
 ### Q2：聚类到底优化什么
 
 聚类不是单纯最小化 pair cut，也不是只要把共激活专家放在同一位置。
