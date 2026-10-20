@@ -9,22 +9,38 @@
 
 当前源码对应的语义/机制门控结果：
 
-- `moe_2026_stage0_final_v4_mixtral`：Mixtral-8x7B；
-- `moe_2026_stage0_final_v4_deepseek`：DeepSeek-V3；
-- `moe_2026_stage0_final_v4_qwen`：Qwen3-235B-A22B；
-- `moe_2026_stage0_final_v4_gptoss`：gpt-oss-120B。
+- `moe_2026_stage0_final_v5_mixtral`：Mixtral-8x7B；
+- `moe_2026_stage0_final_v5_deepseek`：DeepSeek-V3；
+- `moe_2026_stage0_final_v5_qwen`：Qwen3-235B-A22B；
+- `moe_2026_stage0_final_v5_gptoss`：gpt-oss-120B。
 
 这些 bundle 验证模型驱动几何、显式 C、C=1、H/B 模式、版本迁移和小规模 serving，
 不是最终性能结论。更早的 Stage 0 开发检查点已被忽略。
 
 Stage 1 fast-screen bundles：
 
-- `moe_2026_screen_final_v4_mixtral_zipf05`；
-- `moe_2026_screen_final_v4_mixtral`；
-- `moe_2026_screen_final_v4_mixtral_zipf20`；
-- `moe_2026_screen_final_v4_gptoss4`（4-layer）。
-- `moe_2026_screen_final_v4_qwen4`（前 4 个 MoE 层）；
-- `moe_2026_screen_final_v4_deepseek4`（前 4 个 MoE 层）。
+- `moe_2026_screen_final_v5_mixtral_zipf05`；
+- `moe_2026_screen_final_v5_mixtral`；
+- `moe_2026_screen_final_v5_mixtral_zipf20`；
+- `moe_2026_screen_final_v5_gptoss4`（4-layer）。
+- `moe_2026_screen_final_v5_qwen4`（前 4 个 MoE 层）；
+- `moe_2026_screen_final_v5_deepseek4`（前 4 个 MoE 层）。
+
+矩阵实验：
+
+- `moe_2026_matrix_final_v5_n{1,2,4}_b{1,2,4}`；
+- `moe_2026_cscan_final_v5_c{1,2,4,8,14}`（64 copies / 64 chips）；
+- `moe_2026_cscan32_final_v5_c{2,4,8,14}`（32 copies / 16 chips）。
+
+20-seed 边界实验：
+
+- `moe_2026_boundary20_v5_mixtral*`；
+- `moe_2026_boundary20_v5_gptoss4`；
+- `moe_2026_boundary20_v5_qwen4`；
+- `moe_2026_boundary20_v5_deepseek4`。
+
+完整汇总见
+[`docs/MOE_仿真完整矩阵结果_v1.md`](../docs/MOE_仿真完整矩阵结果_v1.md)。
 
 解释见
 [`docs/MOE_STAGE1_SCREEN_RESULTS.md`](../docs/MOE_STAGE1_SCREEN_RESULTS.md)。

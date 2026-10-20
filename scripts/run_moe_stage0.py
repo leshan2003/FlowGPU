@@ -321,7 +321,12 @@ class OffsetWeightedRouter:
 def run_gate(args, temp: Path):
     geometry, experts, used_layers = model_case(args)
     gpu_profile, brain_profile, bridge_profile = runtime_profiles(args)
-    cluster = make_cluster(2, 8, brain_profile, bridge_profile)
+    brain_nodes = int(getattr(args, "brain_nodes", 2) or 2)
+    if brain_nodes <= 0:
+        raise ValidationError("brain_nodes must be positive")
+    cluster = make_cluster(
+        brain_nodes, 8, brain_profile, bridge_profile
+    )
     home_nodes = cluster.ingress_nodes
     placement_tokens = max(2, args.tokens)
     evaluation_tokens = placement_tokens
@@ -555,7 +560,7 @@ def run_h_b_gate(args):
     gpu_profile, brain_profile, bridge_profile = runtime_profiles(args)
     dram_capacity_bytes = brain_profile.dram_capacity_bytes
     brain_nodes = max(
-        2,
+        int(getattr(args, "brain_nodes", 2) or 2),
         int(math.ceil(
             geometry.routed_expert_weight_bytes /
             (dram_capacity_bytes * 0.8)
@@ -771,7 +776,12 @@ def run_refresh_gate(args):
 def run_serving_gate(args):
     geometry, experts, used_layers = model_case(args)
     gpu_profile, brain_profile, bridge_profile = runtime_profiles(args)
-    cluster = make_cluster(2, 8, brain_profile, bridge_profile)
+    brain_nodes = int(getattr(args, "brain_nodes", 2) or 2)
+    if brain_nodes <= 0:
+        raise ValidationError("brain_nodes must be positive")
+    cluster = make_cluster(
+        brain_nodes, 8, brain_profile, bridge_profile
+    )
     gpu = make_gpu_chips(profile=gpu_profile)
     brain = make_brain_chips(
         cluster,
@@ -958,6 +968,7 @@ def main() -> int:
     parser.add_argument("--gpu-profile", default="h100_sxm")
     parser.add_argument("--brain-profile", default="lynxi_hp300_proj")
     parser.add_argument("--bridge-fabric", default="pcie5_x16")
+    parser.add_argument("--brain-nodes", type=int, default=2)
     args = parser.parse_args()
     output = Path(args.output).resolve()
     if output.exists():
@@ -1016,6 +1027,7 @@ def main() -> int:
         "gpu_profile": args.gpu_profile,
         "brain_profile": args.brain_profile,
         "bridge_fabric": args.bridge_fabric,
+        "brain_nodes": args.brain_nodes,
         "claim_boundary": (
             "Stage 0 semantic/mechanism gate; projected hardware and "
             "synthetic routing; not a final performance claim"

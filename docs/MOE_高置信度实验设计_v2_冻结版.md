@@ -796,7 +796,7 @@ Stage 0 最低语义已通过，当前状态为
 
 | 检查项 | 当前状态 |
 |---|---|
-| 现有单元/回归测试 | 136 passed，compileall 通过 |
+| 现有单元/回归测试 | 137 passed，compileall 通过 |
 | HBM fallback | G 模式已实现并有事件模型门控 |
 | 显式 C、异构 expert 容量 | 已实现并通过测试 |
 | marginal-event 连续规划 | surrogate 与 event callback 已实现；尚需完整网格 |

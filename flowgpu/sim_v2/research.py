@@ -359,10 +359,15 @@ def _copy_allowed(
     size: int,
     used: Mapping[str, int],
     locations: set,
+    resident_experts: int = 0,
 ) -> bool:
     return (
         (key, chip.chip_id) not in locations and
-        used[chip.chip_id] + size <= chip.usable_weight_bytes
+        used[chip.chip_id] + size <= chip.usable_weight_bytes and
+        (
+            chip.max_experts is None or
+            resident_experts + 1 <= chip.max_experts
+        )
     )
 
 
@@ -472,6 +477,7 @@ def build_hbm_fallback_plan(
     for values in brains_by_node.values():
         values.sort(key=lambda item: item.chip_id)
     used = {chip.chip_id: 0 for chip in brain}
+    counts = {chip.chip_id: 0 for chip in brain}
     locations = set()
     node_residents = {node_id: set() for node_id in brains_by_node}
     node_copy_count = {}
@@ -508,7 +514,7 @@ def build_hbm_fallback_plan(
             for chip in chips:
                 if _copy_allowed(
                         expert.key, chip, expert.weight_bytes,
-                        used, locations):
+                        used, locations, counts[chip.chip_id]):
                     feasible.append((
                         -(
                             demand_value / (copies + 1) +
@@ -533,6 +539,7 @@ def build_hbm_fallback_plan(
         ))
         locations.add((expert.key, chip.chip_id))
         used[chip.chip_id] += expert.weight_bytes
+        counts[chip.chip_id] += 1
         node_residents[node_id].add(expert.key)
         pair = (node_id, expert.key)
         node_copy_count[pair] = node_copy_count.get(pair, 0) + 1

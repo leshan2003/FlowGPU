@@ -208,6 +208,40 @@ def test_marginal_event_plan_places_extra_copies_below_full_coverage():
     ) == 20
 
 
+def test_hbm_fallback_plan_obeys_explicit_chip_expert_limit():
+    experts = tuple(
+        ExpertSpec(ExpertKey(0, expert), 10, _prov())
+        for expert in range(4)
+    )
+    gpu = (ChipSpec("g", "gpu", 100, 0, 0, _prov(), role="gpu"),)
+    brain = (
+        ChipSpec("n0:c0", "n0", 100, 0, 0, _prov(), max_experts=1),
+        ChipSpec("n0:c1", "n0", 100, 0, 0, _prov(), max_experts=1),
+    )
+    records = [
+        RoutingRecord(
+            index, index, index, 0, "n0",
+            (index % len(experts),), (1.0,),
+        )
+        for index in range(8)
+    ]
+    demand = profile_demand(RoutingTrace(
+        records, _prov(), "placement"
+    ))
+    plan = build_hbm_fallback_plan(
+        experts, gpu, brain, demand, "coverage-first",
+        max_brain_replicas=4,
+    )
+    assert len([
+        replica for replica in plan.replicas if not replica.is_primary
+    ]) == 2
+    assert all(
+        usage.max_experts is None or
+        usage.resident_experts <= usage.max_experts
+        for usage in plan.capacity_usage.values()
+    )
+
+
 def test_marginal_event_plan_respects_heterogeneous_bytes_and_c():
     experts = (
         ExpertSpec(ExpertKey(0, 0), 7, _prov()),

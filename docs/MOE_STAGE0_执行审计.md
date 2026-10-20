@@ -16,7 +16,7 @@ synthetic/projected 仿真实验，只限制证据等级。
 
 ```text
 python -m pytest tests -q
-136 passed
+137 passed
 
 python -m compileall -q flowgpu scripts
 COMPILEALL_OK
@@ -72,10 +72,10 @@ first-MoE-layer 模型上不再出现 key mismatch。
 
 当前源码对应的门控 bundles：
 
-- `experiments/moe_2026_stage0_final_v4_mixtral/`；
-- `experiments/moe_2026_stage0_final_v4_deepseek/`；
-- `experiments/moe_2026_stage0_final_v4_qwen/`；
-- `experiments/moe_2026_stage0_final_v4_gptoss/`。
+- `experiments/moe_2026_stage0_final_v5_mixtral/`；
+- `experiments/moe_2026_stage0_final_v5_deepseek/`；
+- `experiments/moe_2026_stage0_final_v5_qwen/`；
+- `experiments/moe_2026_stage0_final_v5_gptoss/`。
 
 每个 bundle 包含：
 

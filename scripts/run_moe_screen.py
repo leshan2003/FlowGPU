@@ -53,6 +53,7 @@ def main() -> int:
     parser.add_argument("--gpu-profile", default="h100_sxm")
     parser.add_argument("--brain-profile", default="lynxi_hp300_proj")
     parser.add_argument("--bridge-fabric", default="pcie5_x16")
+    parser.add_argument("--brain-nodes", type=int, default=2)
     args = parser.parse_args()
     output = Path(args.output).resolve()
     if output.exists():
@@ -81,6 +82,7 @@ def main() -> int:
             gpu_profile=args.gpu_profile,
             brain_profile=args.brain_profile,
             bridge_fabric=args.bridge_fabric,
+            brain_nodes=args.brain_nodes,
         )
         g_rows, _, _ = run_gate(local, temp)
         serving_rows, _, _ = run_serving_gate(local)
@@ -110,6 +112,7 @@ def main() -> int:
         gpu_profile=args.gpu_profile,
         brain_profile=args.brain_profile,
         bridge_fabric=args.bridge_fabric,
+        brain_nodes=args.brain_nodes,
     ))
     for row in c1_rows:
         raw_rows.append({
@@ -152,6 +155,7 @@ def main() -> int:
         "gpu_profile": args.gpu_profile,
         "brain_profile": args.brain_profile,
         "bridge_fabric": args.bridge_fabric,
+        "brain_nodes": args.brain_nodes,
         "raw_rows": len(raw_rows),
         "c1": c1_meta,
         "claim_boundary": (
