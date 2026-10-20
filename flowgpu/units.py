@@ -38,14 +38,16 @@ _SI = {
     "p": 1e-12,
     "f": 1e-15,
 }
-# binary prefixes for memory capacities
+# Binary prefixes are accepted only when explicitly requested with "i".
+# Plain KB/MB/GB/TB spellings are decimal, matching datasheet usage and
+# avoiding silent 7.4% inflation at GB scale.
 _BIN = {"": 1.0, "K": 2**10, "Ki": 2**10, "M": 2**20, "Mi": 2**20,
         "G": 2**30, "Gi": 2**30, "T": 2**40, "Ti": 2**40, "P": 2**50}
 
-KB = 2**10
-MB = 2**20
-GB = 2**30
-TB = 2**40
+KB = 1e3
+MB = 1e6
+GB = 1e9
+TB = 1e12
 
 TFLOPS = 1e12
 GFLOPS = 1e9
@@ -91,8 +93,8 @@ def parse(value, kind: str | None = None) -> float:
         return num / 100.0
 
     # Strip an optional "/s" (or "ps" as in "Gbps") rate tail first.
-    # Rates always use DECIMAL prefixes (a 3.35 TB/s HBM3 stack moves
-    # 3.35e12 B/s, not 3.35*2^40); capacities use BINARY ones.
+    # Rates and plain capacity prefixes are decimal. IEC spellings
+    # (KiB/MiB/GiB/TiB) explicitly request binary.
     tail = suf
     is_rate = False
     if tail.endswith("/s") or tail.endswith("/S"):
@@ -111,8 +113,8 @@ def parse(value, kind: str | None = None) -> float:
         pfx = tail[: -3] if low.endswith("ops") else tail[: -2]
     elif low.endswith("ib"):                 # KiB / MiB / GiB / TiB
         binary, base, pfx = True, "B", tail[:-2]
-    elif tail.endswith("B"):                 # bytes: capacities are 2^n
-        binary, base, pfx = (not is_rate), "B", tail[:-1]
+    elif tail.endswith("B"):                 # bytes
+        binary, base, pfx = False, "B", tail[:-1]
     elif tail.endswith("b"):                 # bits
         base, pfx = "b", tail[:-1]
     elif low.endswith("hz"):

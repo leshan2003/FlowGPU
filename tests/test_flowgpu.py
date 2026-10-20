@@ -38,13 +38,13 @@ from flowgpu.workload.models import get_model, list_models
 # =========================================================================
 # units
 # =========================================================================
-def test_units_capacity_is_binary_bandwidth_is_decimal():
-    # datasheets: "80 GB" of HBM is 80 GiB; "3.35 TB/s" is 3.35e12 B/s
-    assert parse("80 GB") == 80 * 2**30
+def test_units_capacity_is_decimal_unless_iec_suffix_is_explicit():
+    assert parse("80 GB") == 80e9
+    assert parse("74.5 GiB") == 74.5 * 2**30
     assert parse("3350 GB/s") == 3350e9
     assert parse("1 TB/s") == 1e12
     assert abs(parse("200 Gbps") - 25e9) < 1
-    assert parse("230 MB") == 230 * 2**20
+    assert parse("230 MB") == 230e6
 
 
 def test_units_time_power_energy():

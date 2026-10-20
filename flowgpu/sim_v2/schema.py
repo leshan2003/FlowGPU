@@ -92,6 +92,8 @@ class ChipSpec:
     runtime_reserve_fraction: float = 0.15
     fixed_reserved_bytes: int = 0
     provenance: Optional[Provenance] = None
+    role: str = "brain_sram"
+    max_experts: Optional[int] = None
 
     def __post_init__(self) -> None:
         if not self.chip_id or not self.node_id:
@@ -108,6 +110,12 @@ class ChipSpec:
             raise ValidationError(
                 "fixed reserved bytes leave no usable chip SRAM"
             )
+        if self.role not in ("gpu", "brain_sram", "brain_dram"):
+            raise ValidationError(
+                "chip role must be gpu, brain_sram, or brain_dram"
+            )
+        if self.max_experts is not None and self.max_experts <= 0:
+            raise ValidationError("chip max_experts must be positive")
         if self.usable_weight_bytes <= 0:
             raise ValidationError("chip has no SRAM available for weights")
 
@@ -171,6 +179,10 @@ class RoutingRecord:
     home_node: str
     experts: Tuple[int, ...]
     gate_weights: Tuple[float, ...]
+    task_family: Optional[str] = None
+    stage: Optional[str] = None
+    timestamp_s: Optional[float] = None
+    window: Optional[str] = None
 
     def __post_init__(self) -> None:
         if min(self.request_id, self.token_id, self.step, self.layer_id) < 0:
@@ -191,6 +203,24 @@ class RoutingRecord:
                for weight in self.gate_weights):
             raise ValidationError(
                 "gate weights must be finite and non-negative"
+            )
+        for field_name, value in (
+            ("task_family", self.task_family),
+            ("stage", self.stage),
+            ("window", self.window),
+        ):
+            if value is not None and (
+                not isinstance(value, str) or not value.strip()
+            ):
+                raise ValidationError(
+                    "%s must be a non-empty string when provided" %
+                    field_name
+                )
+        if self.timestamp_s is not None and (
+            not math.isfinite(self.timestamp_s) or self.timestamp_s < 0
+        ):
+            raise ValidationError(
+                "timestamp_s must be finite and non-negative"
             )
 
     @property
@@ -225,4 +255,3 @@ class RuntimeCapabilities:
     combine_reduce_chip: bool = False
     combine_reduce_node: bool = False
     hardware_multicast: bool = False
-

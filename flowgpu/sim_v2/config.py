@@ -110,7 +110,7 @@ def _load_node_sweep_config(config_path):
     _keys(chip, (
         "sram_capacity_bytes", "runtime_reserve_fraction",
         "fixed_reserved_bytes", "provenance",
-    ))
+    ), ("max_experts",))
     links = _mapping(config["links"], "links")
     _keys(links, ("scale_up", "scale_out", "bridge"))
     model = _mapping(config["model"], "model")
@@ -155,6 +155,10 @@ def _load_node_sweep_config(config_path):
             chip["runtime_reserve_fraction"]
         ),
         fixed_reserved_bytes=int(chip["fixed_reserved_bytes"]),
+        chip_max_experts=(
+            int(chip["max_experts"])
+            if chip.get("max_experts") is not None else None
+        ),
         chip_provenance=_provenance(
             chip["provenance"], "chip.provenance"
         ),

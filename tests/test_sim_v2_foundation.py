@@ -37,6 +37,8 @@ from flowgpu.sim_v2 import (AdmissionPolicy, AnalyticExpertKernel,
                             audit_oracle_gap,
                             capacity_ratio,
                             coactivation_clustered,
+                            full_hyperedge_cut,
+                            hyperedge_clustered,
                             compare_fast_detailed_direction,
                             classify_capacity_regime,
                             aggregate_serving_results,
@@ -153,6 +155,34 @@ def test_unique_balanced_places_one_primary_and_respects_capacity():
         for usage in plan.capacity_usage.values()
     )
     assert set(plan.capacity_usage) == {"c0", "c1"}
+
+
+def test_replica_plan_enforces_explicit_chip_expert_limit():
+    experts = [_expert(0, 0), _expert(0, 1)]
+    chip = ChipSpec(
+        "c0", "n0", 1000,
+        runtime_reserve_fraction=0.0,
+        provenance=_derived("test chip"),
+        role="brain_sram",
+        max_experts=1,
+    )
+    with pytest.raises(ValidationError, match="expert-count exceeded"):
+        ReplicaPlan(
+            experts, [chip],
+            [
+                ReplicaSpec("r0", experts[0].key, "c0", True),
+                ReplicaSpec("r1", experts[1].key, "c0", True),
+            ],
+            "bad",
+        )
+
+    usage = ReplicaPlan(
+        experts[:1], [chip],
+        [ReplicaSpec("r0", experts[0].key, "c0", True)],
+        "valid",
+    ).capacity_usage["c0"]
+    assert usage.resident_experts == 1
+    assert usage.max_experts == 1
 
 
 def test_replica_plan_rejects_missing_primary_duplicate_and_overflow():
@@ -1084,6 +1114,51 @@ def test_coactivation_clustered_reduces_cut_without_adding_replicas():
     assert primary_coactivation_cut(
         clustered, demand
     ) < primary_coactivation_cut(baseline, demand)
+
+
+def test_full_hyperedge_clustering_uses_fanout_and_preserves_copy_multiset():
+    experts = [_expert(0, expert_id, 40) for expert_id in range(6)]
+    chips = [
+        ChipSpec(
+            "c%d" % index,
+            "n%d" % (index // 2),
+            sram_capacity_bytes=40,
+            runtime_reserve_fraction=0.0,
+            provenance=_derived("full hyperedge chip"),
+            max_experts=1,
+        )
+        for index in range(6)
+    ]
+    records = []
+    for token_id, hyperedge in enumerate((
+        (0, 1, 2), (0, 1, 2), (0, 1, 2),
+        (3, 4, 5), (3, 4, 5), (3, 4, 5),
+    )):
+        records.append(RoutingRecord(
+            0, token_id, token_id, 0, "n0",
+            hyperedge, (1 / 3,) * 3,
+        ))
+    demand = profile_demand(RoutingTrace(
+        records, _derived("full hyperedge trace"), "placement"
+    ))
+    expected = {
+        expert.key: demand.global_for(expert.key) for expert in experts
+    }
+    baseline = unique_balanced(experts, chips, expected)
+    clustered = hyperedge_clustered(
+        experts, chips, demand, max_passes=8
+    )
+    assert len(clustered.replicas) == len(baseline.replicas) == 6
+    assert sorted(
+        replica.expert for replica in clustered.replicas
+    ) == sorted(replica.expert for replica in baseline.replicas)
+    assert full_hyperedge_cut(clustered, demand) <= full_hyperedge_cut(
+        baseline, demand
+    )
+    assert all(
+        usage.resident_experts <= usage.max_experts
+        for usage in clustered.capacity_usage.values()
+    )
 
 
 def test_joint_greedy_uses_objective_and_stops_without_gain():
@@ -2380,6 +2455,23 @@ def test_strict_jsonl_router_trace_loader_preserves_real_fields(tmp_path):
     assert trace.records[0].experts == (2, 1)
     assert trace.records[0].gate_weights == (0.7, 0.3)
     assert trace.summary().home_nodes == 2
+
+    enriched = tmp_path / "router-enriched.jsonl"
+    enriched.write_text(
+        '{"request_id":7,"token_id":0,"step":0,"layer_id":0,'
+        '"home_node":"node0","experts":[2,1],'
+        '"gate_weights":[0.7,0.3],"task_family":"code",'
+        '"stage":"decode","timestamp_s":1.25,"window":"w0"}\n',
+        encoding="utf-8",
+    )
+    enriched_trace = load_routing_trace_jsonl(
+        enriched, _derived("captured router"), "evaluation"
+    )
+    record = enriched_trace.records[0]
+    assert record.task_family == "code"
+    assert record.stage == "decode"
+    assert record.timestamp_s == 1.25
+    assert record.window == "w0"
 
     bad = tmp_path / "bad-router.jsonl"
     bad.write_text(

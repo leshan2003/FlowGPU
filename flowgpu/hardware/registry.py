@@ -12,9 +12,9 @@ can be read with the right amount of salt:
 Anything tagged ``estimate`` is flagged in reports.  Do not quote those numbers
 as vendor specs.
 
-Units follow :mod:`flowgpu.units`: ``GB`` is binary, ``GB/s`` is decimal,
-``TFLOPS`` are *dense* (no 2:1 structured-sparsity doubling) unless the note
-says otherwise.
+Units follow :mod:`flowgpu.units`: plain ``MB/GB/TB`` are decimal,
+``MiB/GiB/TiB`` are binary, and bandwidth is always decimal. ``TFLOPS`` are
+*dense* (no 2:1 structured-sparsity doubling) unless the note says otherwise.
 """
 
 from __future__ import annotations
@@ -523,7 +523,7 @@ DATAFLOW = {
         cores=30, clock="1 GHz",
         sram_per_core="1.6 MB",            # ESTIMATE: 48 MB total
         sram_bw_per_core="80 GB/s",        # ESTIMATE
-        peak={"fp16": "16 TFLOPS", "bf16": "16 TFLOPS", "int8": "32 TOPS",
+        peak={"fp16": "24 TFLOPS", "bf16": "24 TFLOPS", "int8": "48 TOPS",
               "spike": "64 TOPS"},
         pe_rows=32, pe_cols=32,
         memory={
@@ -539,7 +539,7 @@ DATAFLOW = {
         inter_chip_bw="50 GB/s", inter_chip_latency="1.5 us",
         inter_board_bw="25 GB/s", inter_board_latency="5 us",
         chips_per_board=2,
-        tdp="15 W", achievable_peak=0.70, jitter_sigma=0.01,
+        tdp="12 W", achievable_peak=0.70, jitter_sigma=0.01,
         kernel_launch_overhead="200 ns",
         spiking=False, spike_rate=0.05,
         supported_dtypes=("int8", "fp16", "bf16", "spike"),

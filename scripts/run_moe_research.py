@@ -65,11 +65,18 @@ def provenance() -> Provenance:
     )
 
 
+def link_provenance() -> Provenance:
+    return Provenance(
+        Confidence.PROJECTED,
+        "projected brain topology; not vendor or measured link data",
+    )
+
+
 def links(
     fast: bool = False,
     bridge_scale: float = 1.0,
 ) -> Tuple[LinkProfile, LinkProfile, LinkProfile]:
-    p = provenance()
+    p = link_provenance()
     scale_up = LinkProfile(
         200e9 if fast else 90e9,
         4e-7,
@@ -121,6 +128,7 @@ def make_chips(
     capacity: int,
     reserve: float,
     count_per_node: int,
+    max_experts: Optional[int] = None,
 ) -> Tuple[ChipSpec, ...]:
     p = provenance()
     chips = []
@@ -137,6 +145,8 @@ def make_chips(
                 runtime_reserve_fraction=reserve,
                 fixed_reserved_bytes=0,
                 provenance=p,
+                role="brain_sram",
+                max_experts=max_experts,
             ))
     return tuple(chips)
 
@@ -151,6 +161,7 @@ def make_gpu_chips() -> Tuple[ChipSpec, ...]:
             runtime_reserve_fraction=GPU_RESERVE,
             fixed_reserved_bytes=0,
             provenance=p,
+            role="gpu",
         )
         for index in range(GPU_COUNT)
     )
@@ -394,6 +405,7 @@ def run_static_suite(
             capacity=max(1, EXPERT_BYTES) * 14,
             reserve=0.0,
             count_per_node=CHIPS_PER_NODE,
+            max_experts=14,
         )
         kernels = make_kernels(experts, gpu, brain)
         placement = generate_task_community_trace(
@@ -449,6 +461,7 @@ def run_static_suite(
                 capacity=capacity * EXPERT_BYTES,
                 reserve=0.0,
                 count_per_node=CHIPS_PER_NODE,
+                max_experts=capacity,
             )
             kernels = make_kernels(experts, gpu, brain)
             max_copies = nodes * CHIPS_PER_NODE * capacity
@@ -533,6 +546,7 @@ def run_community_suite(quick: bool) -> Tuple[list, list]:
                 capacity=capacity * EXPERT_BYTES,
                 reserve=0.0,
                 count_per_node=CHIPS_PER_NODE,
+                max_experts=capacity,
             )
             gpu = make_gpu_chips()
             kernels = make_kernels(experts, gpu, brain)
@@ -635,6 +649,7 @@ def run_refresh_suite(quick: bool) -> Tuple[list, list]:
         capacity=capacity * EXPERT_BYTES,
         reserve=0.0,
         count_per_node=CHIPS_PER_NODE,
+        max_experts=capacity,
     )
     gpu = make_gpu_chips()
     experts = make_experts(n_layers, n_experts)
@@ -825,7 +840,8 @@ def run_node_batch_suite(quick: bool) -> list:
         print("node_batch: nodes=%d" % nodes, flush=True)
         cluster = make_cluster(nodes, CHIPS_PER_NODE)
         brain = make_chips(
-            cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE
+            cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE,
+            max_experts=capacity,
         )
         kernels = make_kernels(experts, gpu, brain)
         placement = generate_task_community_trace(
@@ -882,7 +898,8 @@ def run_skew_suite(quick: bool) -> list:
     cluster = make_cluster(nodes, CHIPS_PER_NODE)
     gpu = make_gpu_chips()
     brain = make_chips(
-        cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE
+        cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE,
+        max_experts=capacity,
     )
     rows = []
     for exponent in (0.2, 1.0, 2.0, 3.0):
@@ -955,7 +972,8 @@ def run_ranked_full_suite(quick: bool) -> list:
         demand = demand_for_plan(placement)
         for capacity in (4, 14):
             brain = make_chips(
-                cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE
+                cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE,
+                max_experts=capacity,
             )
             kernels = make_kernels(experts, gpu, brain)
             base = gpu_only_plan(experts, gpu, demand)
@@ -1000,7 +1018,8 @@ def run_seed_suite(quick: bool) -> Tuple[list, list]:
     cluster = make_cluster(nodes, CHIPS_PER_NODE)
     gpu = make_gpu_chips()
     brain = make_chips(
-        cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE
+        cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE,
+        max_experts=capacity,
     )
     kernels = make_kernels(experts, gpu, brain)
     seed_pairs = ((11, 17), (19, 29), (31, 37))
@@ -1098,7 +1117,8 @@ def run_sensitivity_suite(quick: bool) -> list:
             nodes, CHIPS_PER_NODE, bridge_scale=bridge_scale
         )
         brain = make_chips(
-            cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE
+            cluster, capacity * EXPERT_BYTES, 0.0, CHIPS_PER_NODE,
+            max_experts=capacity,
         )
         placement = generate_task_community_trace(
             16 if quick else 8, n_layers, n_experts,

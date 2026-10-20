@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Dict, Iterable, Mapping, Tuple
+from typing import Dict, Iterable, Mapping, Optional, Tuple
 
 from .schema import (Assignment, ChipSpec, ExpertKey, ExpertSpec, ReplicaSpec,
                      ValidationError)
@@ -15,6 +15,8 @@ class CapacityUsage:
     chip_id: str
     weight_bytes: int
     usable_weight_bytes: int
+    resident_experts: int = 0
+    max_experts: Optional[int] = None
 
     @property
     def utilization(self) -> float:
@@ -62,6 +64,7 @@ class ReplicaPlan:
         }
         seen_locations = set()
         used = {chip_id: 0 for chip_id in chip_map}
+        resident_experts = {chip_id: 0 for chip_id in chip_map}
         for replica in self.replicas:
             if replica.expert not in expert_map:
                 raise ValidationError(
@@ -83,6 +86,7 @@ class ReplicaPlan:
             used[replica.chip_id] += expert_map[
                 replica.expert
             ].weight_bytes
+            resident_experts[replica.chip_id] += 1
 
         for key, placed in by_expert.items():
             if not placed:
@@ -104,8 +108,24 @@ class ReplicaPlan:
                     "chip %s capacity exceeded: %d > %d usable bytes" %
                     (chip_id, weight_bytes, chip.usable_weight_bytes)
                 )
+            if (
+                chip.max_experts is not None and
+                resident_experts[chip_id] > chip.max_experts
+            ):
+                raise ValidationError(
+                    "chip %s expert-count exceeded: %d > %d" %
+                    (
+                        chip_id,
+                        resident_experts[chip_id],
+                        chip.max_experts,
+                    )
+                )
             usage[chip_id] = CapacityUsage(
-                chip_id, weight_bytes, chip.usable_weight_bytes
+                chip_id,
+                weight_bytes,
+                chip.usable_weight_bytes,
+                resident_experts[chip_id],
+                chip.max_experts,
             )
 
         self._expert_map = MappingProxyType(expert_map)
@@ -160,4 +180,3 @@ class ReplicaPlan:
                  replica_id, replica.expert)
             )
         return replica
-

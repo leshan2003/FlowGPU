@@ -55,6 +55,7 @@ class NodeSweepSpec:
     chip_provenance: Provenance
     runtime_reserve_fraction: float = 0.15
     fixed_reserved_bytes: int = 0
+    chip_max_experts: Optional[int] = None
     ingress_modes: Tuple[str, ...] = ("distributed", "concentrated")
     concentrated_ingress_count: int = 1
 
@@ -82,6 +83,8 @@ class NodeSweepSpec:
             )
         if self.fixed_reserved_bytes < 0:
             raise ValidationError("fixed_reserved_bytes cannot be negative")
+        if self.chip_max_experts is not None and self.chip_max_experts <= 0:
+            raise ValidationError("chip_max_experts must be positive")
         if not modes or len(set(modes)) != len(modes):
             raise ValidationError(
                 "ingress_modes must be non-empty and unique"
@@ -430,6 +433,8 @@ def build_node_count_sweep(
                 runtime_reserve_fraction=spec.runtime_reserve_fraction,
                 fixed_reserved_bytes=spec.fixed_reserved_bytes,
                 provenance=spec.chip_provenance,
+                role="brain_sram",
+                max_experts=spec.chip_max_experts,
             )
             for node_index in range(node_count)
             for chip_index in range(spec.chips_per_node)

@@ -32,14 +32,16 @@ from .layer_engine import (LayerCriticalPath, MoELayerEngine, MoELayerResult,
                            ReplicaExecution)
 from .network_model import (Flow, FlowResult, SerializedPathScheduler,
                             estimate_unloaded)
+from .model_geometry import ModelExpertGeometry, build_model_expert_geometry
 from .multicast import (MulticastResult, MulticastTree,
                         build_multicast_tree, simulate_multicast)
 from .oracle import (OracleGapReport, OracleResult, audit_oracle_gap,
                      small_replica_oracle)
-from .placement import (capacity_ratio, coactivation_clustered, ingress_local,
-                        joint_greedy, layer_packed, node_load_replicated,
-                        popularity_replicated, primary_coactivation_cut,
-                        unique_balanced)
+from .placement import (capacity_ratio, coactivation_clustered,
+                        full_hyperedge_cut, hyperedge_clustered,
+                        ingress_local, joint_greedy, layer_packed,
+                        node_load_replicated, popularity_replicated,
+                        primary_coactivation_cut, unique_balanced)
 from .replicas import CapacityUsage, ReplicaPlan
 from .results import (RESULT_SCHEMA_VERSION,
                       write_comparison_result_bundle,
@@ -48,6 +50,9 @@ from .results import (RESULT_SCHEMA_VERSION,
                       write_serving_sweep_bundle,
                       write_tiered_sweep_bundle,
                       write_uncertainty_bundle)
+from .refresh import (MigrationCopy, MigrationPlan, MigrationTiming,
+                      PlacementVersion, ReplicaRemoval, VersionedPlacement,
+                      build_migration_plan, estimate_migration_timing)
 from .runner import (FIXED_WINDOW_STRATEGIES, FixedWindowComparison,
                      FixedWindowStrategyResult,
                      NodeSweepComparisonResult, NodeSweepMetricPoint,
@@ -63,11 +68,18 @@ from .runner import (FIXED_WINDOW_STRATEGIES, FixedWindowComparison,
 from .routing import (RoutingSummary, RoutingTrace, generate_uniform_trace,
                       generate_weighted_trace, load_routing_trace_jsonl,
                       zipf_expert_weights)
-from .research import (PlanExecution, TaskAwareTrace,
+from .research import (BStageExecution, BStageLayout, PlanExecution,
+                       TaskAwareTrace, TaskPhase,
                        adaptive_replica_share,
+                       build_b_stage_layout,
                        build_hbm_fallback_plan,
+                       build_h_exclusive_plan,
+                       build_marginal_event_plan,
+                       build_plan_dispatcher,
+                       execute_b_stage_layer,
                        execute_hbm_fallback_plan,
                        generate_task_community_trace,
+                       generate_ordered_task_trace,
                        hybrid_replica_plan, migration_bytes,
                        plan_replica_locations)
 from .schema import (Assignment, ChipSpec, Confidence, ExpertKey, ExpertSpec,
@@ -85,6 +97,9 @@ from .serving import (AdmissionPolicy, ContinuousBatchingSimulator,
                       generate_poisson_requests, load_decode_request_trace)
 from .topology import (ClusterTopology, Endpoint, LinkProfile, LinkSpec, Route,
                        Topology, UnreachableError, build_hierarchical_cluster)
+from .statistics import (BlockBootstrapCI, DriftDecision,
+                         HysteresisDriftDetector, normalized_l1,
+                         paired_block_bootstrap_ci, required_paired_blocks)
 from .tiering import make_gpu_tier_chip, tiered_expert_plan
 from .validation import validate_layer_result
 
@@ -92,6 +107,8 @@ __all__ = [
     "AdmissionPolicy", "AnalyticExpertKernel", "Assignment",
     "AssignmentBinding",
     "BenchmarkArtifact", "CalibratedLinkFit", "CapacityUsage", "ChipSpec",
+    "BlockBootstrapCI", "DriftDecision", "HysteresisDriftDetector",
+    "BStageExecution", "BStageLayout",
     "ChipPowerProfile", "ClusterTopology", "Confidence",
     "ConfidenceInterval",
     "ContinuousBatchingSimulator",
@@ -107,10 +124,14 @@ __all__ = [
     "KernelPrediction", "KernelSample", "LayerCriticalPath",
     "LinkProfile", "LinkSpec", "MoELayerEngine", "MoELayerResult",
     "MulticastResult", "MulticastTree", "NetworkCalibrationSet",
+    "ModelExpertGeometry",
+    "MigrationCopy", "MigrationPlan", "MigrationTiming",
     "NetworkFitKey", "NodeSweepCase", "NodeSweepSpec", "OracleGapReport",
     "NodeSweepComparisonResult", "NodeSweepMetricPoint", "OracleResult",
     "Provenance", "RESULT_SCHEMA_VERSION", "ReplicaBatch",
+    "PlacementVersion", "ReplicaRemoval", "VersionedPlacement",
     "PlanExecution", "TaskAwareTrace",
+    "TaskPhase",
     "adaptive_replica_share",
     "ReplicaExecution", "ReplicaPlan", "ReplicaSpec",
     "RequestServingResult", "Route", "RouteChoice",
@@ -128,10 +149,17 @@ __all__ = [
     "account_system_energy", "audit_oracle_gap", "build_case_trace_pair",
     "build_hierarchical_cluster",
     "build_hbm_fallback_plan",
+    "build_b_stage_layout", "build_h_exclusive_plan",
+    "build_marginal_event_plan",
+    "build_plan_dispatcher",
+    "execute_b_stage_layer",
     "build_kernel_calibration",
     "build_multicast_tree", "build_network_calibration",
+    "build_model_expert_geometry",
+    "build_migration_plan", "estimate_migration_timing",
     "build_node_count_sweep", "capacity_ratio",
     "aggregate_serving_results", "coactivation_clustered",
+    "full_hyperedge_cut", "hyperedge_clustered",
     "compare_fast_detailed_direction", "evaluate_slo_capacity",
     "confidence_interval",
     "classify_capacity_regime",
@@ -139,6 +167,7 @@ __all__ = [
     "generate_uniform_trace", "ingress_local",
     "generate_weighted_trace",
     "generate_task_community_trace",
+    "generate_ordered_task_trace",
     "execute_hbm_fallback_plan",
     "hybrid_replica_plan",
     "joint_greedy", "layer_packed", "load_benchmark_artifact",
@@ -146,6 +175,7 @@ __all__ = [
     "load_routing_trace_jsonl",
     "migration_bytes",
     "node_load_replicated", "popularity_replicated",
+    "normalized_l1", "paired_block_bootstrap_ci", "required_paired_blocks",
     "make_gpu_tier_chip", "tiered_expert_plan",
     "primary_coactivation_cut", "profile_demand", "simulate_flows",
     "plan_replica_locations",

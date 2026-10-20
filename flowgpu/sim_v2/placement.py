@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import itertools
 import math
+from collections import defaultdict
 from typing import Callable, Dict, Iterable, Mapping, Optional
 
 from .demand import DemandProfile
@@ -549,6 +550,212 @@ def primary_coactivation_cut(
             continue
         cut += weight * max(0, len(set(known)) - 1)
     return cut
+
+
+def _hyperedge_cut_vector(
+    plan: ReplicaPlan,
+    demand: DemandProfile,
+):
+    chip_locations = {}
+    node_locations = {}
+    for replica in plan.replicas:
+        if not replica.is_primary:
+            continue
+        chip_locations[replica.expert] = replica.chip_id
+        node_locations[replica.expert] = plan.chip(
+            replica.chip_id
+        ).node_id
+    chip_cut = 0
+    node_cut = 0
+    for hyperedge, weight in demand.coactivation.items():
+        if not all(key in chip_locations for key in hyperedge):
+            continue
+        chip_cut += weight * (
+            len({chip_locations[key] for key in hyperedge}) - 1
+        )
+        node_cut += weight * (
+            len({node_locations[key] for key in hyperedge}) - 1
+        )
+    return node_cut, chip_cut
+
+
+def full_hyperedge_cut(
+    plan: ReplicaPlan,
+    demand: DemandProfile,
+    node_weight: float = 1.0,
+    chip_weight: float = 0.25,
+) -> float:
+    """Weighted full-hyperedge objective; unlike pair expansion, each
+    hyperedge is charged once for its realized node/chip fanout."""
+
+    if node_weight < 0 or chip_weight < 0:
+        raise ValidationError("hyperedge cut weights cannot be negative")
+    node_cut, chip_cut = _hyperedge_cut_vector(plan, demand)
+    return node_weight * node_cut + chip_weight * chip_cut
+
+
+def hyperedge_clustered(
+    experts: Iterable[ExpertSpec],
+    chips: Iterable[ChipSpec],
+    demand: DemandProfile,
+    node_weight: float = 1.0,
+    chip_weight: float = 0.25,
+    load_weight: float = 0.05,
+    max_passes: int = 4,
+) -> ReplicaPlan:
+    """Greedily improve a balanced placement on the full-hyperedge cut.
+
+    The baseline point is ``unique_balanced``. Each move must remain
+    capacity/C-feasible, must not increase the busiest-chip predicted load,
+    and must strictly reduce a lexicographic cut-plus-load objective.
+    Hyperedges are charged by realized fanout rather than expanded pairs.
+    """
+
+    expert_list = tuple(experts)
+    chip_list = tuple(chips)
+    if not expert_list or not chip_list:
+        raise ValidationError("hyperedge_clustered needs experts and chips")
+    if max_passes < 0:
+        raise ValidationError("max_passes cannot be negative")
+    if load_weight < 0 or not math.isfinite(load_weight):
+        raise ValidationError("load_weight must be finite and non-negative")
+
+    expected = {
+        expert.key: float(demand.global_for(expert.key))
+        for expert in expert_list
+    }
+    current = unique_balanced(expert_list, chip_list, expected)
+    if not demand.coactivation:
+        return ReplicaPlan(
+            expert_list, chip_list, current.replicas,
+            "full-hyperedge-clustered",
+        )
+
+    chip_load = {chip.chip_id: 0.0 for chip in chip_list}
+    for replica in current.replicas:
+        chip_load[replica.chip_id] += expected[replica.expert]
+    baseline_max_load = max(chip_load.values(), default=0.0)
+    edges_by_expert = defaultdict(list)
+    for hyperedge, weight in demand.coactivation.items():
+        for key in hyperedge:
+            edges_by_expert[key].append((hyperedge, weight))
+
+    def node_cut_for_edges(location, edges):
+        total = 0
+        for hyperedge, weight in edges:
+            if all(key in location for key in hyperedge):
+                total += weight * (
+                    len({location[key] for key in hyperedge}) - 1
+                )
+        return total
+
+    def chip_cut_for_edges(chip_location, edges):
+        total = 0
+        for hyperedge, weight in edges:
+            if all(key in chip_location for key in hyperedge):
+                total += weight * (
+                    len({chip_location[key] for key in hyperedge}) - 1
+                )
+        return total
+
+    for _ in range(max_passes):
+        locations = {
+            replica.expert: replica.chip_id
+            for replica in current.replicas if replica.is_primary
+        }
+        node_locations = {
+            key: current.chip(chip_id).node_id
+            for key, chip_id in locations.items()
+        }
+        used_bytes = {
+            chip_id: usage.weight_bytes
+            for chip_id, usage in current.capacity_usage.items()
+        }
+        counts = {
+            chip_id: usage.resident_experts
+            for chip_id, usage in current.capacity_usage.items()
+        }
+        best = None
+        for expert in sorted(expert_list, key=lambda value: value.key):
+            source = locations[expert.key]
+            edges = edges_by_expert.get(expert.key, ())
+            old_node = node_cut_for_edges(node_locations, edges)
+            old_chip = chip_cut_for_edges(locations, edges)
+            for target in sorted(chip_list, key=lambda value: value.chip_id):
+                if target.chip_id == source:
+                    continue
+                if (
+                    used_bytes[target.chip_id] + expert.weight_bytes >
+                    target.usable_weight_bytes
+                ):
+                    continue
+                if (
+                    target.max_experts is not None and
+                    counts[target.chip_id] + 1 > target.max_experts
+                ):
+                    continue
+                node_locations[expert.key] = target.node_id
+                locations[expert.key] = target.chip_id
+                new_node = node_cut_for_edges(node_locations, edges)
+                new_chip = chip_cut_for_edges(locations, edges)
+                node_locations[expert.key] = current.chip(source).node_id
+                locations[expert.key] = source
+                cut_delta = (
+                    node_weight * (new_node - old_node) +
+                    chip_weight * (new_chip - old_chip)
+                )
+                old_source_load = chip_load[source]
+                old_target_load = chip_load[target.chip_id]
+                new_source_load = old_source_load - expected[expert.key]
+                new_target_load = old_target_load + expected[expert.key]
+                if new_target_load > baseline_max_load + 1e-12:
+                    continue
+                load_delta = load_weight * (
+                    new_source_load * new_source_load +
+                    new_target_load * new_target_load -
+                    old_source_load * old_source_load -
+                    old_target_load * old_target_load
+                )
+                objective_delta = cut_delta + load_delta
+                candidate_key = (
+                    objective_delta,
+                    expert.key,
+                    source,
+                    target.chip_id,
+                )
+                if objective_delta < -1e-12 and (
+                    best is None or candidate_key < best[0]
+                ):
+                    best = (
+                        candidate_key, expert, source, target,
+                        cut_delta, load_delta,
+                        new_source_load, new_target_load,
+                    )
+        if best is None:
+            break
+        _, expert, source, target, cut_delta, load_delta, src_load, dst_load = best
+        moved = []
+        for replica in current.replicas:
+            if replica.is_primary and replica.expert == expert.key:
+                moved.append(ReplicaSpec(
+                    _replica_id(expert.key),
+                    expert.key,
+                    target.chip_id,
+                    True,
+                ))
+            else:
+                moved.append(replica)
+        candidate = ReplicaPlan(
+            expert_list, chip_list, moved, "full-hyperedge-clustered"
+        )
+        current = candidate
+        chip_load[source] = src_load
+        chip_load[target.chip_id] = dst_load
+
+    return ReplicaPlan(
+        expert_list, chip_list, current.replicas,
+        "full-hyperedge-clustered",
+    )
 
 
 def joint_greedy(

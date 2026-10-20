@@ -278,6 +278,7 @@ def load_routing_trace_jsonl(
         "request_id", "token_id", "step", "layer_id",
         "home_node", "experts", "gate_weights",
     }
+    optional = {"task_family", "stage", "timestamp_s", "window"}
 
     def strict_int(value, field, line_number):
         if not isinstance(value, int) or isinstance(value, bool):
@@ -299,7 +300,7 @@ def load_routing_trace_jsonl(
                         line_number
                     )
                 missing = required - set(item)
-                unknown = set(item) - required
+                unknown = set(item) - required - optional
                 if missing:
                     raise ValidationError(
                         "routing trace line %d missing %s" %
@@ -325,6 +326,23 @@ def load_routing_trace_jsonl(
                         raise ValidationError(
                             "routing trace gate weights must be numeric"
                         )
+                for field_name in ("task_family", "stage", "window"):
+                    value = item.get(field_name)
+                    if value is not None and (
+                        not isinstance(value, str) or not value.strip()
+                    ):
+                        raise ValidationError(
+                            "routing trace field %s must be a non-empty string" %
+                            field_name
+                        )
+                timestamp_s = item.get("timestamp_s")
+                if timestamp_s is not None and (
+                    not isinstance(timestamp_s, (int, float)) or
+                    isinstance(timestamp_s, bool)
+                ):
+                    raise ValidationError(
+                        "routing trace field timestamp_s must be numeric"
+                    )
                 records.append(RoutingRecord(
                     request_id=strict_int(
                         item["request_id"], "request_id", line_number
@@ -346,6 +364,13 @@ def load_routing_trace_jsonl(
                     gate_weights=tuple(
                         float(value) for value in item["gate_weights"]
                     ),
+                    task_family=item.get("task_family"),
+                    stage=item.get("stage"),
+                    timestamp_s=(
+                        float(timestamp_s)
+                        if timestamp_s is not None else None
+                    ),
+                    window=item.get("window"),
                 ))
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
         if isinstance(exc, ValidationError):

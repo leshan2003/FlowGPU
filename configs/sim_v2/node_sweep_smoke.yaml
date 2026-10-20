@@ -10,6 +10,7 @@ chip:
   sram_capacity_bytes: 200000000
   runtime_reserve_fraction: 0.15
   fixed_reserved_bytes: 0
+  max_experts: 8
   provenance:
     confidence: projected
     source: synthetic smoke-test chip; not KA200
