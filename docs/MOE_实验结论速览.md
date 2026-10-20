@@ -49,6 +49,31 @@ GPU-only 的 SLO goodput
 
 它不是“每个 token 的延迟一定降低了 3.3%”，也不是“类脑整机比 GPU 快 3.3%”。
 
+## “场景”到底是什么意思
+
+本文中的“场景”表示：
+
+```text
+使用哪个模型
++ 测试了模型的前几层
++ 专家访问有多集中
+```
+
+它不是 node 数、batch 数或类脑副本数。那些是另一组实验变量。
+
+| 表中场景 | 模型和层数 | 专家访问分布 |
+|---|---|---|
+| Mixtral Zipf 0.5 | 完整 32 层 | 比较平均，少数专家只略热 |
+| Mixtral Zipf 1.3 | 完整 32 层 | 中等偏斜 |
+| Mixtral Zipf 2.0 | 完整 32 层 | 明显偏斜，少数专家非常热 |
+| Qwen 四层 | 前 4 个 MoE 层 | Zipf 1.3 |
+| DeepSeek 四层 | 前 4 个 MoE 层 | Zipf 1.3 |
+| gpt-oss 四层 | 前 4 个 MoE 层 | Zipf 1.3 |
+
+Zipf 越小，专家访问越平均；Zipf 越大，访问越集中在少数专家。
+Node × batch 表和 C 扫描表使用的都是 Mixtral Zipf 1.3；表中每一行改变的是
+node、batch 或 C，而不是模型场景。
+
 ## 实验完成了吗
 
 计划内的仿真实验已经完成：
@@ -59,8 +84,8 @@ GPU-only 的 SLO goodput
 - 6 个关键场景，每个 20 个 paired seeds
 - HBM overlay、类脑独占、Brain DRAM staging
 - 副本策略、聚类、迁移和版本切换
-- 138 个测试通过
-- 34 个最终结果目录，源码哈希差异为 0
+- 140 个测试通过
+- 35 个最终结果目录，源码哈希差异为 0
 
 尚未完成的是：
 
@@ -207,7 +232,30 @@ H-exclusive 表示：
 - 其他专家只放 GPU；
 - 不再保留另一层 fallback。
 
-结果是收益依赖模型和 workload，部分场景置信区间跨过 1。
+20-seed SLO 请求吞吐结果：
+
+| 场景 | H-exclusive 相对 GPU-only |
+|---|---:|
+| Mixtral Zipf 0.5 | 1.025× |
+| Mixtral Zipf 1.3 | 1.015× |
+| Mixtral Zipf 2.0 | 1.022× |
+| Qwen 四层 | 1.026× |
+| DeepSeek 四层 | 1.007× |
+| gpt-oss 四层 | 1.041× |
+
+其中只有 Mixtral Zipf 0.5 和 gpt-oss 四层的 95% CI 下界大于 1；其余场景
+不能确认性能改善，但也没有足够证据证明会稳定退化。
+
+还需要区分三个不同的“类脑模式”：
+
+1. H-exclusive：热专家在 SRAM，冷专家仍在 GPU/HBM；
+2. B-stage：全部专家在类脑 DRAM，热子集 staging 到 SRAM；
+3. “全部专家常驻 SRAM”：本轮没有执行完整模型的该模式。
+
+因此，本轮既没有证明“全部权重都放类脑更好”，也没有证明“更差”。
+当前能确认的只是：选择性 SRAM 副本最稳定；H-exclusive 只有条件性收益；
+B-stage 只完成了单层 grouped staging 语义实验，不是完整模型性能实验。
+
 因此当前最稳妥的选择仍是：
 
 ```text
@@ -236,30 +284,80 @@ Node × batch 实验单独测试了全部 9 个组合：
 增加 node 会带来更多远端通信和调度开销；增加 batch 会改变排队、分组计算和副本负载。
 因此必须同时比较吞吐、P99、SLO 和 node efficiency。
 
-### 8. C=1 没有额外串行负担
+### 8. C 实验具体测了什么
 
 在相同 64 copies / 64 chips 资源下：
 
 - C=1：总完成时间加速约 `1.275×`；
 - C=2 及以上：总完成时间加速约 `1.262×`。
 
-C=1 没有退化，说明“每 chip 只放一个专家”本身不会增加串行负担。
-在当前 workload 下，C≥2 之后每 chip 专家数不是主瓶颈。
+进一步检查 5 个 seed 的实际布局：
 
-### 9. 聚类目前没有证明收益
+| C | 使用多少个类脑 chip | 每 chip 最多专家数 | 与 C=2 的布局 |
+|---:|---:|---:|---|
+| 1 | 64 | 1 | 不同 |
+| 2 | 42–48 | 2 | 基准 |
+| 4 | 42–48 | 2 | 完全相同 |
+| 8 | 42–48 | 2 | 完全相同 |
+| 14 | 42–48 | 2 | 完全相同 |
 
-在相同副本数、C=1、相同 node 和相同 workload 下：
+所以在当前 workload 中：
 
-- unique placement：`19.2007 µs`
-- pair clustering：`19.2007 µs`
-- full-hyperedge clustering：`19.2007 µs`
+- planner 实际最多只把 2 个专家放在同一个 chip；
+- C=4/8/14 根本没有成为活跃约束；
+- C=1 使用 64 个 chips，C≥2 使用 42–48 个 chips，二者布局不同；
+- C=1 没有出现额外串行退化，反而略快，但不能外推为所有 workload 都如此。
 
-结论：
+### 9. 聚类实验具体测了什么
 
-- 聚类路径不会额外增加时间；
-- 当前合成 trace 没有产生明显的 node 通信差异；
-- 尚不能证明聚类有效；
-- 也不能据此否定真实 trace 中的聚类收益。
+最初 Stage 0 的微基准使用：
+
+```text
+8 experts、2 nodes×4 chips、C=1、12 tokens
+```
+
+后来审计发现，三种方法在这个微基准中实际生成了完全相同的 chip 布局，
+因此 completion 都是 `19.2007 µs`。这只能证明路径可执行，不能证明聚类好坏。
+
+为此新增了有区分度的 C=1 压力实验：
+
+```text
+3 nodes × 4 chips
+9 experts
+3 个互斥的 3-expert hyperedge
+30 tokens
+每个 node 只访问自己的 community
+固定硬件、副本数、C=1 和 token 数
+只改变 expert 到 community 的映射
+```
+
+在 community 与 home node 完全对齐时：
+
+| 策略 | Node cut | 本地执行比例 | Completion |
+|---|---:|---:|---:|
+| unique-balanced | 40 | 55.6% | 20.951 µs |
+| pair-clustered | 40 | 55.6% | 20.951 µs |
+| full-hyperedge | 0 | 100% | 16.151 µs |
+
+此例中 full-hyperedge 的完成时间加速为 `1.297×`。
+
+但在 20 个随机 community 映射中：
+
+- pair-clustered 在 `20/20` 个案例中与 unique-balanced 布局完全相同；
+- full-hyperedge 把平均 node cut 从 `32.38` 降到 `9.52`；
+- 但平均完成时间加速只有 `1.015×`；
+- 20 个案例中只有 1 个明显改善；11 个有小于 `0.002%` 的细微下降，其余基本不变；
+- 原因是当前 full-hyperedge planner 优化 node fanout，却没有把每个 request
+  的 home-node affinity 直接放进目标函数；只把专家聚到一起，不代表聚到了
+  正确的 node。
+
+因此当前准确结论是：
+
+> 聚类机制在一个 node-affinity 对齐的受控案例中能产生明确收益；
+> 但当前通用聚类器还不能在随机社区映射下稳定把收益转化为完成时间改善。
+
+详细数据：
+[`moe_2026_c1_cluster_stress_v2`](../experiments/moe_2026_c1_cluster_stress_v2/)
 
 ### 10. GPU 和类脑可以并行，但粒度有限
 

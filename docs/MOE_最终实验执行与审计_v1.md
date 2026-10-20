@@ -19,13 +19,14 @@
 | Node × batch | 1/2/4 nodes × 1/2/4 request batch | 9 points | `matrix_final_v8_*` |
 | C isolation | 64 copies/64 chips、32 copies/16 chips | 9 points | `cscan*_final_v8_*` |
 | 20-seed boundary | 6 workload/model boundary points | 120 paired seed runs | `boundary20_v8_*` |
+| C=1 clustering diagnostic | aligned case + 20 community permutations | 1 bundle | `c1_cluster_stress_v2` |
 
-合计 34 个 canonical bundle。34 个 bundle 的 `manifest.json` 均覆盖 runner、
+合计 35 个 canonical bundle。35 个 bundle 的 `manifest.json` 均覆盖 runner、
 `flowgpu/units.py` 和全部 31 个 `flowgpu/sim_v2/*.py` 文件；
 逐文件 SHA-256 审计结果为：
 
 ```text
-BUNDLES=34
+BUNDLES=35
 SOURCE_HASH_MISMATCH=0
 MISSING_MIGRATION_RUNTIME=0
 ```
@@ -34,7 +35,7 @@ MISSING_MIGRATION_RUNTIME=0
 
 ```text
 python -m pytest tests -q
-138 passed
+140 passed
 
 python -m compileall -q flowgpu scripts
 PASS
@@ -294,19 +295,77 @@ C 永远无影响：当每 chip 实际候选数超过 C，或 task trace 产生�
 
 ## 8. 共激活聚类与 H/B
 
-C=1 固定资源微基准中，unique、pair、full-hyperedge 的 completion 都是
-`19.2007 us`，没有观察到额外开销，也没有观察到可利用的收益。
+### 8.1 三种层级模式的边界
 
-这说明：
+必须区分：
 
-- full-hyperedge plumbing 和 cut 计算可执行；
-- 当前 synthetic community 没有提供足够强的 node-fanout 差异；
-- 当前结果不能证明聚类优于 unique placement；
-- 也不能否定真实 router trace 中的聚类收益。
+- M1：全部专家在 Brain DRAM，hot 子集在 Brain SRAM，全部计算由 Brain 完成；
+- M2：hot 专家只在 Brain SRAM，其余专家只在 GPU/HBM，不做跨层 fallback；
+- M3：全部专家保留 HBM primary，hot 专家另加 Brain SRAM 副本，并允许
+  GPU/Brain 按 assignment 并行执行。
 
-当前正收益主要来自 coverage/overlay，而不是聚类。下一轮若要加强机制证据，
-应优先引入 task-family conditioned community、node-affinity stress 和真实
-hyperedge block bootstrap。
+当前结果只支持：
+
+- M3 overlay 相对于 GPU-only 稳定为正；
+- M2 H-exclusive 的 SLO goodput 结果为 Mixtral 0.5 `1.025×`、
+  Mixtral 1.3 `1.015×`、Mixtral 2.0 `1.022×`、Qwen四层 `1.026×`、
+  DeepSeek四层 `1.007×`、gpt-oss四层 `1.041×`；只有部分 CI 下界大于 1；
+- M1 只完成单层 grouped DRAM staging 语义实验，没有完整模型 serving。
+
+因此当前没有完整实验证明“全部专家都放类脑”更好或更差。M3 对 M2 的理论
+支配关系也尚未验证，因为它依赖 GPU 未饱和、HBM 容量充足和调度器有效。
+
+### 8.2 聚类
+
+原 Stage 0 C=1 固定资源微基准中，unique、pair、full-hyperedge 的 completion
+都是 `19.2007 us`。后续布局审计发现，三者实际生成了完全相同的 chip 布局，
+因此该微基准只是 plumbing gate，不能用于判断聚类收益或损失。
+
+有区分度的 C=1 压力实验固定：
+
+```text
+3 nodes × 4 chips
+9 experts
+3 个互斥三专家 hyperedge
+C = 1
+30 tokens
+```
+
+community 与 home node 对齐时：
+
+| 策略 | Node cut | 本地比例 | Completion |
+|---|---:|---:|---:|
+| unique-balanced | 40 | 55.6% | 20.951 us |
+| pair-clustered | 40 | 55.6% | 20.951 us |
+| full-hyperedge | 0 | 100% | 16.151 us |
+
+该案例 full-hyperedge 完成时间加速为 `1.297×`。
+
+在 20 个随机 community 映射中：
+
+- pair 在 `20/20` 个案例中与 unique 布局相同；
+- full-hyperedge 平均 node cut 从 `32.38` 降到 `9.52`；
+- full-hyperedge 平均 completion 加速只有 `1.015×`；
+- 只有 1/20 个案例明显改善；11 个案例有小于 `0.002%` 的细微下降，
+  其余基本不变。
+
+原因是当前 full-hyperedge objective 缺少 explicit home-node affinity：
+
+```text
+降低 hyperedge node fanout
+≠
+把 hyperedge 放到请求真正来源的 node
+```
+
+因此当前结论是：
+
+- 聚类机制在受控对齐案例中确实有效；
+- 当前 pair 聚类不能稳定改变布局；
+- 当前 full-hyperedge 聚类会改善 cut，但不能稳定转化为 completion 收益；
+- 在加入 home-aware、load-aware 目标和完整对比矩阵前，不能声称聚类有效。
+
+重验证计划见
+[`MOE_聚类与层级调度重验证计划_v1.md`](MOE_聚类与层级调度重验证计划_v1.md)。
 
 ## 9. 刷新与迁移共流
 

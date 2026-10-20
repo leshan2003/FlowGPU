@@ -18,10 +18,10 @@ Routing:       paper-constrained synthetic task/community trace
 Kernel:        projected hardware-relative curve
 ```
 
-最终 34 个 canonical bundle 的源码哈希均为零差异。当前测试：
+最终 35 个 canonical bundle 的源码哈希均为零差异。当前测试：
 
 ```text
-138 passed
+140 passed
 COMPILEALL_OK
 ```
 
