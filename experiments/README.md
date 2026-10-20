@@ -134,3 +134,14 @@ python scripts/run_moe_screen.py `
 当前结果使用 paper-constrained synthetic routing generator 和 projected/
 estimated hardware。它不包含真实 request-ordered router trace、KA200
 kernel/link/power 实测或可信 TCO 输入，因此不能把结果表述为真机结论。
+
+## Archived checkpoints
+
+287 个旧开发目录已移到：
+
+```text
+experiments/archive/legacy_2026/
+experiments/archive/tracked_legacy_2026/
+```
+
+顶层现在只保留 46 个 canonical bundle。本 README 中列出的目录均未移动。

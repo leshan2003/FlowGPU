@@ -51,6 +51,7 @@ experiments/moe_2026_m1_*/
 !experiments/moe_2026_m1_full_hot16_v1/
 !experiments/moe_2026_m1_full_hot24_v1/
 !experiments/moe_2026_m1_full_hot24_highbatch_v1/
+experiments/archive/
 
 # OS
 .DS_Store

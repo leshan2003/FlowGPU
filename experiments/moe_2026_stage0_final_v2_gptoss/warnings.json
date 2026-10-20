@@ -1,6 +1,0 @@
-[
-  "projected hardware curves; not KA200 measurements",
-  "synthetic request-ordered traces; not a real router trace",
-  "Stage 0 checks semantics and plumbing, not final performance",
-  "B-stage is grouped full-expert staging, not block streaming"
-]

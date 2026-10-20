@@ -1,3 +1,0 @@
-suite,policy,nodes,capacity_experts_per_chip,runs,speedup_mean,speedup_low95,speedup_high95,conclusion
-seed_sensitivity,coverage-first,8,4,3,2.0780963982857728,1.8123958478287672,2.3437969487427783,supported
-seed_sensitivity,joint-marginal,8,4,3,1.6429925289640117,1.370520906529792,1.9154641513982313,supported
