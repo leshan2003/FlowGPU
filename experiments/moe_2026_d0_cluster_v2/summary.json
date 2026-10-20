@@ -1,0 +1,39 @@
+{
+  "batches": [
+    1,
+    4,
+    16
+  ],
+  "c_values": [
+    1,
+    2,
+    4
+  ],
+  "claim_boundary": "D0 synthetic/projected clustering screen; not real trace or measured-hardware evidence",
+  "controlled_boundary": "same GPU plan, hot set, effective copy count, trace, node and C within a compared cell; only Brain placement changes",
+  "copy_budget": 24,
+  "dispatch_mode": "D0-shared",
+  "dispatch_policy": "brain-first",
+  "dtype": "fp8",
+  "kind": "moe-d0-clustering",
+  "layer_limit": 0,
+  "model": "mixtral_8x7b",
+  "nodes": [
+    1,
+    2,
+    4
+  ],
+  "schema_version": 1,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "strategies": [
+    "unique",
+    "pair",
+    "full-hyperedge"
+  ]
+}

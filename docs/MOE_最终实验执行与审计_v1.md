@@ -20,15 +20,17 @@
 | C isolation | 64 copies/64 chips、32 copies/16 chips | 9 points | `cscan*_final_v9_*` |
 | 20-seed boundary | 6 workload/model boundary points | 120 paired seed runs | `boundary20_v9_*` |
 | C=1 clustering diagnostic | aligned + six home permutations + 20 community partitions | 1 bundle | `c1_cluster_stress_v5` |
-| D0/D1 full matrix | Mixtral 32 layers, 3 nodes × 3 batches × 5 seeds | 1 bundle | `d0_matrix_v5` |
-| D0/D1 high-batch screen | Mixtral 4 layers, batch 64, 10 seeds | 1 bundle | `d0_highbatch_v5` |
+| D0/D1 full matrix | Mixtral 32 layers, 3 nodes × 3 batches × 5 seeds | 1 bundle | `d0_matrix_v6` |
+| D0/D1 high-batch screen | Mixtral 4 layers, batch 64, 10 seeds | 1 bundle | `d0_highbatch_v6` |
+| D0 C grid | C=1/2/4, 3 nodes × 3 batches × 5 seeds | 3 bundles | `d0_matrix_c*_v2` |
+| D0 clustering grid | 3 algorithms × C × nodes × batches | 1 bundle | `d0_cluster_v2` |
 
-合计 37 个 canonical bundle。37 个 bundle 的 `manifest.json` 均覆盖 runner、
+合计 41 个 canonical bundle。41 个 bundle 的 `manifest.json` 均覆盖 runner、
 `flowgpu/units.py` 和全部 31 个 `flowgpu/sim_v2/*.py` 文件；
 逐文件 SHA-256 审计结果为：
 
 ```text
-BUNDLES=37
+BUNDLES=41
 SOURCE_HASH_MISMATCH=0
 MISSING_MIGRATION_RUNTIME=0
 ```
@@ -336,6 +338,9 @@ C 永远无影响：当每 chip 实际候选数超过 C，或 task trace 产生�
 成立。完整数据见
 [`MOE_D0_D1_执行结果_v1.md`](MOE_D0_D1_执行结果_v1.md)。
 
+D0 下的 C × node × batch 和聚类结果见
+[`MOE_D0_C与聚类结果_v1.md`](MOE_D0_C与聚类结果_v1.md)。
+
 ### 8.2 聚类
 
 原 Stage 0 C=1 固定资源微基准中，unique、pair、full-hyperedge 的 completion
@@ -492,6 +497,13 @@ experiments/moe_2026_matrix_final_v9_*/
 experiments/moe_2026_cscan_final_v9_*/
 experiments/moe_2026_cscan32_final_v9_*/
 experiments/moe_2026_boundary20_v9_*/
+experiments/moe_2026_c1_cluster_stress_v5/
+experiments/moe_2026_d0_matrix_v6/
+experiments/moe_2026_d0_highbatch_v6/
+experiments/moe_2026_d0_matrix_c1_v2/
+experiments/moe_2026_d0_matrix_c2_v2/
+experiments/moe_2026_d0_matrix_c4_v2/
+experiments/moe_2026_d0_cluster_v2/
 ```
 
 `v11`、`v7` 及更早目录保留作审计或开发检查点，不作为最终引用。

@@ -90,6 +90,24 @@ GPU → expert node → GPU
 - 低/中 batch 下 eager parallel 仍会变差，`brain-first` 与 M2 等价；
 - 高 batch 结果目前只覆盖前 4 个 MoE 层。
 
+随后补充的有效 C 网格使用 32-copy budget：
+
+- 1 node：C=1/2/4 分别覆盖 8/16/24 个 hot experts；
+- 2 nodes：C=1 覆盖 16 个，C=2/4 都覆盖 24 个且布局相同；
+- 4 nodes：三种 C 都能覆盖 24 个，C 不活跃；
+- C 的收益来自有效 hot coverage，而不是每 chip 专家数本身的串行速度；
+- 所有结果仍来自 synthetic workload。
+
+D0 聚类网格结果：
+
+- full-hyperedge 可以降低多 node 下的 node cut；
+- completion 没有稳定改善，CI 在多数点跨 1；
+- pair clustering 在多 node、较高 batch 下明显退化；
+- 当前 D0 synthetic workload 未显示聚类端到端收益。
+
+详见
+[`MOE_D0_C与聚类结果_v1.md`](MOE_D0_C与聚类结果_v1.md)。
+
 ### Q1.2 home node 有什么潜在优势
 
 home node 只有在真实系统确实存在 request-affine 状态时才有意义。典型优势：

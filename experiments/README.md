@@ -50,10 +50,17 @@ batch 表示同时 admitted 的 request 数。九个点均已生成；旧版本�
 
 ## D0 / D1 dispatch
 
-- `moe_2026_d0_matrix_v5`：Mixtral 32 层、5 seeds、1/2/4 nodes、
+- `moe_2026_d0_matrix_v6`：Mixtral 32 层、5 seeds、1/2/4 nodes、
   batch 1/4/16，比较 D0-shared、D1-shared、M2/M3 和多种 scheduler；
-- `moe_2026_d0_highbatch_v5`：Mixtral 前 4 个 MoE 层、10 seeds、
+- `moe_2026_d0_highbatch_v6`：Mixtral 前 4 个 MoE 层、10 seeds、
   2 nodes、batch 64 的高 batch 专项 screen。
+
+## D0 C and clustering
+
+- `moe_2026_d0_matrix_c{1,2,4}_v2`：32-copy budget、Mixtral 32 层、
+  5 seeds、1/2/4 nodes、batch 1/4/16；
+- `moe_2026_d0_cluster_v2`：相同 D0/C/node/batch 边界下比较
+  unique、pair 和 full-hyperedge。
 
 D0-per-GPU 没有进入 canonical 结果。当前每个专家只有一份 GPU 副本时，
 无法公平表示“16 个独立 GPU 入口各自持有专家副本”，需要另建

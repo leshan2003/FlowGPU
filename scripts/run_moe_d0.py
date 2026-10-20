@@ -7,6 +7,7 @@ import csv
 import json
 import statistics
 import sys
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -199,19 +200,16 @@ def run_seed(args, seed):
                     m2_plan,
                     gpu_only_plan,
                 )
-                plan_runs = (
+                plan_runs = [
                     ("GPU-only", gpu_only_plan, "earliest_finish"),
                     (
                         "M2-tier-exclusive",
                         m2_plan,
                         "earliest_finish",
                     ),
-                    ("M3-overlay", overlay_plan, "earliest_finish"),
-                    ("M3-overlay", overlay_plan, "least_loaded"),
-                    ("M3-overlay", overlay_plan, "nearest"),
-                    ("M3-overlay", overlay_plan, "brain-first"),
-                    ("M3-overlay", overlay_plan, "split"),
-                )
+                ]
+                for policy in args.policies:
+                    plan_runs.append(("M3-overlay", overlay_plan, policy))
                 execution_by_plan = {}
                 for name, plan, dispatch_policy in plan_runs:
                     execution_by_plan[(name, dispatch_policy)] = (
@@ -234,6 +232,14 @@ def run_seed(args, seed):
                 ]
                 for name, plan, dispatch_policy in plan_runs:
                     execution = execution_by_plan[(name, dispatch_policy)]
+                    brain_replicas = [
+                        replica
+                        for replica in plan.replicas
+                        if plan.chip(replica.chip_id).role.startswith("brain")
+                    ]
+                    brain_per_chip = Counter(
+                        replica.chip_id for replica in brain_replicas
+                    )
                     gpu_busy = 0.0
                     brain_busy = 0.0
                     for layer in execution.layers:
@@ -290,6 +296,15 @@ def run_seed(args, seed):
                         "gpu_assignments": execution.gpu_assignments,
                         "brain_assignments": execution.brain_assignments,
                         "brain_replicas": execution.brain_replicas,
+                        "used_brain_chips": len(brain_per_chip),
+                        "max_experts_per_brain_chip": max(
+                            brain_per_chip.values(),
+                            default=0,
+                        ),
+                        "unique_brain_experts": len({
+                            replica.expert
+                            for replica in brain_replicas
+                        }),
                         "local_assignment_fraction":
                             execution.local_assignment_fraction,
                         "gpu_assignment_fraction": (
@@ -324,6 +339,10 @@ def main() -> int:
     parser.add_argument("--seeds", default="101,102,103,104,105")
     parser.add_argument("--batches", default="1,2,4")
     parser.add_argument("--nodes", default="1,2,4")
+    parser.add_argument(
+        "--policies",
+        default="earliest_finish,least_loaded,nearest,brain-first,split",
+    )
     parser.add_argument("--zipf-exponent", type=float, default=1.3)
     parser.add_argument("--layer-limit", type=int, default=0)
     parser.add_argument("--gpu-profile", default="h100_sxm")
@@ -340,18 +359,24 @@ def main() -> int:
     seeds = tuple(int(value) for value in args.seeds.split(",") if value)
     batches = tuple(int(value) for value in args.batches.split(",") if value)
     nodes = tuple(int(value) for value in args.nodes.split(",") if value)
+    policies = tuple(
+        value for value in args.policies.split(",") if value
+    )
     if not seeds:
         raise SystemExit("at least one seed is required")
     if not batches:
         raise SystemExit("at least one batch is required")
     if not nodes:
         raise SystemExit("at least one node count is required")
+    if not policies:
+        raise SystemExit("at least one scheduler is required")
     local = argparse.Namespace(**vars(args))
     local.requests = 2
     local.hot_experts = args.copies
     local.replicas = args.copies
     local.batches = batches
     local.nodes = nodes
+    local.policies = policies
     raw = []
     for seed in seeds:
         raw.extend(run_seed(local, seed))
@@ -397,6 +422,15 @@ def main() -> int:
             "scaleout_bytes_mean": statistics.mean(
                 row["scaleout_bytes"] for row in values
             ),
+            "used_brain_chips_mean": statistics.mean(
+                row["used_brain_chips"] for row in values
+            ),
+            "max_experts_per_brain_chip_mean": statistics.mean(
+                row["max_experts_per_brain_chip"] for row in values
+            ),
+            "unique_brain_experts_mean": statistics.mean(
+                row["unique_brain_experts"] for row in values
+            ),
         })
     write_csv(temp / "aggregate.csv", aggregate)
     d0_d1_contrasts = {}
@@ -437,13 +471,7 @@ def main() -> int:
                 }
     m3_m2_contrasts = {}
     for variant in ("D0-shared", "D1-shared"):
-        for dispatch_policy in (
-            "brain-first",
-            "earliest_finish",
-            "least_loaded",
-            "nearest",
-            "split",
-        ):
+        for dispatch_policy in policies:
             m2 = {
                 (row["seed"], row["nodes"], row["batch"]):
                     row["completion_s"]
@@ -488,13 +516,7 @@ def main() -> int:
             "D0-per-gpu requires request-to-GPU placement and full/partitioned "
             "expert replicas; the shared-endpoint experiment cannot represent it"
         ),
-        "policies": [
-            "earliest_finish",
-            "least_loaded",
-            "nearest",
-            "brain-first",
-            "split",
-        ],
+        "policies": list(policies),
         "d0_vs_d1": d0_d1_contrasts,
         "m3_vs_m2": m3_m2_contrasts,
         "claim_boundary": (

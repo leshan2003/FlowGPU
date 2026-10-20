@@ -18,7 +18,7 @@ Routing:       paper-constrained synthetic task/community trace
 Kernel:        projected hardware-relative curve
 ```
 
-最终 37 个 canonical bundle 的源码哈希均为零差异。当前测试：
+最终 41 个 canonical bundle 的源码哈希均为零差异。当前测试：
 
 ```text
 144 passed
@@ -162,8 +162,12 @@ batch 64、2-node、Mixtral 四层 10-seed 专项中：
 - `experiments/moe_2026_cscan_final_v9_c*`
 - `experiments/moe_2026_cscan32_final_v9_c*`
 - `experiments/moe_2026_boundary20_v9_*`
-- `experiments/moe_2026_d0_matrix_v5/`
-- `experiments/moe_2026_d0_highbatch_v5/`
+- `experiments/moe_2026_d0_matrix_v6/`
+- `experiments/moe_2026_d0_highbatch_v6/`
+- `experiments/moe_2026_d0_matrix_c1_v2/`
+- `experiments/moe_2026_d0_matrix_c2_v2/`
+- `experiments/moe_2026_d0_matrix_c4_v2/`
+- `experiments/moe_2026_d0_cluster_v2/`
 
 ## 7. Remaining limitations
 

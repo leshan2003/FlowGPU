@@ -806,7 +806,7 @@ Stage 0 最低语义已通过，当前状态为
 | H-exclusive / B-stage | 最小语义已实现并通过门控 |
 | drift、版本、后台迁移争用 | drift/version 与 flow-level shared bandwidth 已实现；当前仅做前两层代表重放，尚无完整模型 P99 |
 | task/request block bootstrap | 已实现工具，真实 trace 输入仍缺失 |
-| canonical bundle/当前源码一致性 | 37 个最终 bundle 已生成；源码 SHA-256 mismatch = 0 |
+| canonical bundle/当前源码一致性 | 41 个最终 bundle 已生成；源码 SHA-256 mismatch = 0 |
 | Git/回滚保护 | 已初始化并提交基线/Stage 0 |
 
 测试覆盖 Stage 0 语义、矩阵 runner、refresh/version 和 shared migration；
