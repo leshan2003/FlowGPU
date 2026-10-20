@@ -1,0 +1,17 @@
+gate,strategy,mode,completion_s,speedup_vs_gpu,gpu_assignments,brain_assignments,brain_replicas,cut_metric,transfer_bytes,status,slo_goodput_per_s,tpot_p99_s
+G0,gpu-only,G,0.005842500000000007,1.0,3712,0,0,0.0,0,ok,0.0,0.0
+G-overlay,coverage-first,G,0.005770000000000008,1.0125649913344887,3475,237,32,0.0,0,ok,0.0,0.0
+G-overlay,replica-first,G,0.005842500000000007,1.0,3698,14,32,0.0,0,ok,0.0,0.0
+G-overlay,joint-marginal,G,0.005770000000000008,1.0125649913344887,3475,237,32,0.0,0,ok,0.0,0.0
+G-overlay,ranked-0.25,G,0.005779000000000007,1.0109880602180308,3533,179,32,0.0,0,ok,0.0,0.0
+G-overlay,ranked-adaptive,G,0.005781250000000007,1.0105945945945947,3595,117,32,0.0,0,ok,0.0,0.0
+G-overlay,marginal-event,G,0.005814250000000008,1.0048587522036376,3668,44,8,0.0,0,surrogate-proxy,0.0,0.0
+C1-clustering,unique-balanced,G-primary-only,1.320087890625e-05,1.0,0,36,8,12.0,0,same-copy-multiset;event-model-checked,0.0,0.0
+C1-clustering,pair-clustered,G-primary-only,1.320087890625e-05,1.0,0,36,8,12.0,0,same-copy-multiset;event-model-checked,0.0,0.0
+C1-clustering,full-hyperedge,G-primary-only,1.320087890625e-05,1.0,0,36,8,12.0,0,same-copy-multiset;event-model-checked,0.0,0.0
+H-exclusive,h-exclusive,H,0.005536750000000008,1.0,3591,121,16,0.0,0,no-gpu-fallback,0.0,0.0
+B-stage,b-stage,B,0.0019701496470588232,1.0,0,64,16,0.0,1365245952,grouped-miss-staging,0.0,0.0
+refresh,versioned-migration,G,140.0,1.0,0,0,8,0.0,700,"old-request=v0,new-request=v1",0.0,0.0
+serving,gpu-only-serving,G,0.0077060000000000245,1.0,1856,0,0,0.0,0,continuous-batching-gate,259.5380223202691,0.0031773400000000137
+serving,overlay-serving,G,0.007454000000000022,1.033807351757446,1735,121,32,0.0,0,continuous-batching-gate,268.31231553528227,0.003105060000000012
+serving,h-exclusive-serving,H,0.007559000000000023,1.0194470168011645,1794,62,16,0.0,0,continuous-batching-gate,264.58526260087234,0.0031106100000000128

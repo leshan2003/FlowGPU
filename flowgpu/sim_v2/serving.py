@@ -374,6 +374,7 @@ class ContinuousBatchingSimulator:
         router,
         n_layers: int,
         max_batch: int,
+        first_layer: int = 0,
         admission_policy: AdmissionPolicy = None,
         compute_block_windows: Iterable[ResourceBlockWindow] = (),
         chip_power_profiles: Mapping = None,
@@ -382,11 +383,14 @@ class ContinuousBatchingSimulator:
             raise ValidationError(
                 "n_layers and max_batch must be positive"
             )
+        if first_layer < 0:
+            raise ValidationError("first_layer cannot be negative")
         if not hasattr(router, "route"):
             raise ValidationError("serving router must provide route()")
         self.layer_engine = layer_engine
         self.router = router
         self.n_layers = n_layers
+        self.first_layer = first_layer
         self.max_batch = max_batch
         self.admission_policy = admission_policy
         windows = tuple(sorted(
@@ -465,7 +469,8 @@ class ContinuousBatchingSimulator:
                 continue
             active.sort(key=lambda state: state.spec.request_id)
             batch_sizes.append(len(active))
-            for layer_id in range(self.n_layers):
+            for local_layer in range(self.n_layers):
+                layer_id = self.first_layer + local_layer
                 now_s, blocked = self._advance_past_blocks(now_s)
                 prefill_blocked_s += blocked
                 assignments = []

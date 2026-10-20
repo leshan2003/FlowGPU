@@ -19,6 +19,12 @@ eda/work/
 # Run logs (may contain host-specific paths)
 *.log
 results/*.log
+.tmp-stage0-config-v*/
+
+# Superseded Stage 0 development checkpoints; canonical bundles are listed
+# explicitly in docs/MOE_STAGE0_执行审计.md.
+experiments/moe_2026_stage0_*/
+!experiments/moe_2026_stage0_final_*/
 
 # OS
 .DS_Store

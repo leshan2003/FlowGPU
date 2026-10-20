@@ -6,6 +6,7 @@
 > 适用范围：`FlowGPU-main` 中的 MoE 专家分层、复制、聚类和刷新研究。  
 > 本文取代 `MOE_研究计划_v1_冻结版.md` 作为后续实现和自动实验的唯一设计入口。v1 保留为审计历史。
 > 当前启动门控和代码证据见
+> [`MOE_STAGE0_执行审计.md`](MOE_STAGE0_执行审计.md)。Stage 0 执行前快照见
 > [`MOE_实验启动门控审计_v2.md`](MOE_实验启动门控审计_v2.md)。
 
 ## 0. 结论先行
@@ -751,9 +752,9 @@ secondary/exploratory，CI 不得被包装成确认性结论。
 
 ### 11.4 自动修改代码前的工程保护
 
-当前目录没有 `.git`。在进行数十小时自动改写前，必须：
+当前目录已建立 Git 基线；继续自动改写时仍必须：
 
-1. 初始化版本控制或创建只读快照；
+1. 每个阶段开始前确认 clean worktree 或显式保存用户改动；
 2. 为 canonical bundle 写入源码、配置、trace 和模型 config 的 SHA-256；
 3. 结果目录只允许新建，不覆盖；
 4. 自动实验遇到测试失败、守恒失败、registry provenance 缺失或结果目录冲突时立即停止；
@@ -763,11 +764,11 @@ secondary/exploratory，CI 不得被包装成确认性结论。
 
 启动最终实验前，以下全部必须通过：
 
-- [ ] 文档和代码统一使用 HBM fallback 语义；
-- [ ] G/H/B 三种模式的副本、显式 fallback、DRAM 和失败路径无歧义；
-- [ ] `C=1` clustering 有 no-worse guard 和固定资源实验；
-- [ ] full-hyperedge placement/evaluation 目标一致；
-- [ ] marginal-event 连续规划不再依赖固定 hot fraction；
+- [x] 文档和代码统一使用 HBM fallback 语义；
+- [x] G/H/B 三种模式的副本、显式 fallback、DRAM 和失败路径无歧义；
+- [x] `C=1` clustering 有 no-worse guard 和固定资源实验；
+- [x] full-hyperedge placement/evaluation 目标一致；
+- [x] marginal-event 连续规划不再依赖固定 hot fraction；
 - [ ] 迁移与 serving 共享资源且 SLO 可见；
 - [ ] 所有 decisive 参数有 provenance；
 - [ ] current source 能重建其声称的 canonical bundle；
@@ -790,24 +791,25 @@ trace-driven KA200-measured evidence
 
 ### 当前门控快照（2026-10-20）
 
-当前状态为 **NO-GO**，不能启动 Stage 1–5 的最终 sweep：
+Stage 0 最低语义已通过，当前状态为 **Stage 1 screening GO / final sweep NO-GO**：
 
 | 检查项 | 当前状态 |
 |---|---|
-| 现有单元/回归测试 | 113 passed，compileall 通过 |
-| HBM fallback | G 模式部分实现 |
-| 显式 C、异构 expert 容量 | 未实现 |
-| marginal-event 连续规划 | 未实现；当前是 fixed-share/代理策略 |
-| full-hyperedge clustering + guard | 未实现 |
-| C=1 固定资源实验 | 未实现/未测试 |
-| Mixtral/Qwen/gpt-oss 统一模型驱动 | 未实现；runner 仍固定 DeepSeek expert shape |
-| H-exclusive / B-stage | 未实现 |
-| drift、版本、后台迁移争用 | 未实现 |
-| task/request block bootstrap | 未实现 |
-| canonical bundle/当前源码一致性 | 不满足 |
-| Git/回滚保护 | 不存在 |
+| 现有单元/回归测试 | 132 passed，compileall 通过 |
+| HBM fallback | G 模式已实现并有事件模型门控 |
+| 显式 C、异构 expert 容量 | 已实现并通过测试 |
+| marginal-event 连续规划 | surrogate 与 event callback 已实现；尚需完整网格 |
+| full-hyperedge clustering + guard | 已实现并通过 C=1 门控 |
+| C=1 固定资源实验 | 已实现并通过微基准 |
+| Mixtral/Qwen/gpt-oss 统一模型驱动 | 已实现 |
+| H-exclusive / B-stage | 最小语义已实现并通过门控 |
+| drift、版本、后台迁移争用 | drift/version semantics 已实现；serving 争用尚未整合 |
+| task/request block bootstrap | 已实现工具，真实 trace 输入仍缺失 |
+| canonical bundle/当前源码一致性 | Stage 0 bundles 已建立；最终实验 bundle 尚未生成 |
+| Git/回滚保护 | 已初始化并提交基线/Stage 0 |
 
-测试通过仅说明当前旧功能稳定，不覆盖上述红项。
+测试通过只覆盖 Stage 0 语义；不覆盖真实 trace、KA200 校准、migration-serving
+共流、正式功效分析和最终成本结论。
 
 ## 13. 冻结决定
 

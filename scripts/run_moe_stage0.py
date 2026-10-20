@@ -105,7 +105,7 @@ def make_brain_chips(
     capacity_bytes: int,
     max_experts: int,
     count_per_node: int,
-    reserve: float = 0.10,
+    reserve: float = 0.0,
 ) -> tuple:
     provenance = projected_provenance(
         "projected brain SRAM profile; not measured"
@@ -747,14 +747,11 @@ def run_serving_gate(args):
             geometry.expert_weight_bytes
         ),
     )
-    router = OffsetWeightedRouter(
-        WeightedServingRouter(
-            zipf_expert_weights(geometry.n_experts, 1.2),
-            geometry.top_k,
-            cluster.ingress_nodes,
-            args.seed + 31,
-        ),
-        geometry.first_moe_layer,
+    router = WeightedServingRouter(
+        zipf_expert_weights(geometry.n_experts, 1.2),
+        geometry.top_k,
+        cluster.ingress_nodes,
+        args.seed + 31,
     )
     requests = tuple(
         DecodeRequest(index, index * 0.0005, 2)
@@ -779,6 +776,7 @@ def run_serving_gate(args):
             router,
             geometry.n_moe_layers,
             max_batch=max(2, args.requests),
+            first_layer=geometry.first_moe_layer,
             admission_policy=AdmissionPolicy(
                 max_outstanding_requests=max(2, args.requests)
             ),

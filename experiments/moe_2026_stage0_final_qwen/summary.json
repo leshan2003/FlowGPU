@@ -1,0 +1,57 @@
+{
+  "c1": {
+    "c_max": 1,
+    "copy_multiset": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "pair_cut": 24
+  },
+  "gate_status": "semantic-smoke-only",
+  "geometry": {
+    "copy_budget": 32,
+    "evaluation_tokens": 4,
+    "geometry": {
+      "dtype": "fp8",
+      "expert_weight_bytes": 18874368,
+      "first_moe_layer": 0,
+      "model_name": "qwen3_235b_a22b",
+      "n_experts": 128,
+      "n_layers": 94,
+      "n_moe_layers": 94,
+      "n_shared_experts": 0,
+      "non_moe_weight_bytes": 7947927552,
+      "routed_expert_weight_bytes": 227096395776,
+      "router_weight_bytes": 49283072,
+      "shared_expert_weight_bytes": 0,
+      "top_k": 8,
+      "total_weight_bytes": 235093606400
+    },
+    "placement_tokens": 4
+  },
+  "h_b": {
+    "b_first_layer_assignments": 64,
+    "b_hot_experts": 16,
+    "h_hot_experts": 16
+  },
+  "refresh": {
+    "drift_l1": 1.0,
+    "drift_triggered": true,
+    "migration_bytes": 700,
+    "migration_ops": 7,
+    "version_ready": true
+  },
+  "rows": 16,
+  "serving": {
+    "output_tokens": 4,
+    "requests": 2,
+    "slo_tpot_s": 0.1,
+    "slo_ttft_s": 0.1
+  }
+}

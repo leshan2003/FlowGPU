@@ -1,0 +1,11 @@
+{
+  "c_max": 4,
+  "claim_boundary": "Stage 0 semantic/mechanism gate; projected hardware and synthetic routing; not a final performance claim",
+  "copy_budget": 32,
+  "dtype": "mxfp4",
+  "hot_experts": 16,
+  "model": "gpt_oss_120b",
+  "requests_per_phase": 2,
+  "seed": 401,
+  "tokens_per_request": 4
+}
