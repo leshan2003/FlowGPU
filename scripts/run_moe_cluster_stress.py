@@ -12,6 +12,7 @@ import argparse
 import csv
 import hashlib
 import json
+import itertools
 import random
 import statistics
 import sys
@@ -69,7 +70,7 @@ def plan_fingerprint(plan) -> str:
     return hashlib.sha256(repr(locations).encode("utf-8")).hexdigest()
 
 
-def run_case(seed: int, permutation: bool):
+def run_case(seed: int, scenario: str, home_order=(0, 1, 2)):
     provenance = projected_provenance("C=1 clustering stress")
     brain_profile = load_hardware_profile("lynxi_hp300_proj")
     bridge_profile = load_fabric_profile("pcie5_x16")
@@ -84,7 +85,7 @@ def run_case(seed: int, permutation: bool):
     )
     gpu = make_gpu_chips(profile=gpu_profile)
     expert_ids = list(range(9))
-    if permutation:
+    if scenario == "community-permutation":
         random.Random(seed).shuffle(expert_ids)
         communities = (
             tuple(expert_ids[0:3]),
@@ -95,6 +96,8 @@ def run_case(seed: int, permutation: bool):
         # Interleaved communities match the three home nodes but conflict with
         # the load-balanced key order, so clustering has a real move to make.
         communities = ((0, 3, 6), (1, 4, 7), (2, 5, 8))
+    if scenario == "aligned":
+        home_order = (0, 1, 2)
     experts = tuple(
         ExpertSpec(ExpertKey(0, expert_id), 100, provenance)
         for expert_id in range(9)
@@ -107,7 +110,7 @@ def run_case(seed: int, permutation: bool):
             token_id=token,
             step=token,
             layer_id=0,
-            home_node=cluster.ingress_nodes[community],
+            home_node=cluster.ingress_nodes[home_order[community]],
             experts=communities[community],
             gate_weights=(1 / 3,) * 3,
             task_family="community%d" % community,
@@ -145,7 +148,7 @@ def run_case(seed: int, permutation: bool):
         if baseline_completion is None:
             baseline_completion = execution.completion_s
         rows.append({
-            "case": "aligned" if not permutation else "permutation",
+            "case": scenario,
             "seed": seed,
             "strategy": strategy,
             "completion_s": execution.completion_s,
@@ -177,45 +180,70 @@ def main() -> int:
         raise SystemExit("temporary output directory already exists: %s" % temp)
     temp.mkdir(parents=True)
 
-    rows = run_case(-1, permutation=False)
+    rows = run_case(-1, "aligned")
     for seed in range(args.permutations):
-        rows.extend(run_case(seed, permutation=True))
+        rows.extend(run_case(
+            seed,
+            "community-permutation",
+        ))
+    for index, home_order in enumerate(itertools.permutations(range(3))):
+        rows.extend(run_case(
+            index,
+            "home-permutation",
+            home_order=home_order,
+        ))
     write_csv(temp / "raw.csv", rows)
 
     aggregate = []
-    for strategy in ("unique-balanced", "pair-clustered", "full-hyperedge"):
-        selected = [row for row in rows if row["strategy"] == strategy]
-        speeds = [row["speedup_vs_unique"] for row in selected]
-        aggregate.append({
-            "strategy": strategy,
-            "runs": len(selected),
-            "speedup_mean": statistics.mean(speeds),
-            "speedup_min": min(speeds),
-            "speedup_max": max(speeds),
-            "completion_mean_s": statistics.mean(
-                row["completion_s"] for row in selected
-            ),
-            "node_cut_mean": statistics.mean(
-                row["node_cut"] for row in selected
-            ),
-            "local_fraction_mean": statistics.mean(
-                row["local_assignment_fraction"]
-                for row in selected
-            ),
-        })
+    for case in (
+        "aligned",
+        "home-permutation",
+        "community-permutation",
+    ):
+        for strategy in (
+            "unique-balanced",
+            "pair-clustered",
+            "full-hyperedge",
+        ):
+            selected = [
+                row for row in rows
+                if row["case"] == case and row["strategy"] == strategy
+            ]
+            speeds = [row["speedup_vs_unique"] for row in selected]
+            aggregate.append({
+                "case": case,
+                "strategy": strategy,
+                "runs": len(selected),
+                "speedup_mean": statistics.mean(speeds),
+                "speedup_min": min(speeds),
+                "speedup_max": max(speeds),
+                "completion_mean_s": statistics.mean(
+                    row["completion_s"] for row in selected
+                ),
+                "node_cut_mean": statistics.mean(
+                    row["node_cut"] for row in selected
+                ),
+                "local_fraction_mean": statistics.mean(
+                    row["local_assignment_fraction"]
+                    for row in selected
+                ),
+            })
     write_csv(temp / "aggregate.csv", aggregate)
 
     unique_rows = [
         row for row in rows
-        if row["case"] == "permutation" and row["strategy"] == "unique-balanced"
+        if row["case"] == "community-permutation" and
+        row["strategy"] == "unique-balanced"
     ]
     pair_rows = [
         row for row in rows
-        if row["case"] == "permutation" and row["strategy"] == "pair-clustered"
+        if row["case"] == "community-permutation" and
+        row["strategy"] == "pair-clustered"
     ]
     full_rows = [
         row for row in rows
-        if row["case"] == "permutation" and row["strategy"] == "full-hyperedge"
+        if row["case"] == "community-permutation" and
+        row["strategy"] == "full-hyperedge"
     ]
     pair_identical = sum(
         left["plan_fingerprint"] == right["plan_fingerprint"]
@@ -240,6 +268,16 @@ def main() -> int:
         }
         for row in rows if row["case"] == "aligned"
     }
+    home_rows = [
+        row for row in rows
+        if row["case"] == "home-permutation" and
+        row["strategy"] == "full-hyperedge"
+    ]
+    home_unique = [
+        row for row in rows
+        if row["case"] == "home-permutation" and
+        row["strategy"] == "unique-balanced"
+    ]
     full_speeds = [row["speedup_vs_unique"] for row in full_rows]
     summary = {
         "schema_version": 1,
@@ -255,11 +293,31 @@ def main() -> int:
             "hidden_bytes": 1,
         },
         "varied_variable": (
-            "expert-to-community permutation; alignment case is the identity "
-            "permutation with home nodes matching communities"
+            "three separated stress families: aligned communities, six "
+            "community-to-home-node permutations with fixed communities, "
+            "and twenty random expert-to-community partitions"
         ),
         "baseline": "unique-balanced with identical C=1 resources and trace",
         "aligned": aligned,
+        "home_permutations": len(home_rows),
+        "home_full_node_cut": sorted({
+            row["node_cut"] for row in home_rows
+        }),
+        "home_full_local_fraction": sorted({
+            row["local_assignment_fraction"] for row in home_rows
+        }),
+        "home_full_speedup_mean": statistics.mean(
+            row["speedup_vs_unique"] for row in home_rows
+        ),
+        "home_full_speedup_min": min(
+            row["speedup_vs_unique"] for row in home_rows
+        ),
+        "home_full_speedup_max": max(
+            row["speedup_vs_unique"] for row in home_rows
+        ),
+        "home_unique_local_fraction": sorted({
+            row["local_assignment_fraction"] for row in home_unique
+        }),
         "permutations": args.permutations,
         "pair_identical_to_unique": pair_identical,
         "full_improved_cases": full_improved,

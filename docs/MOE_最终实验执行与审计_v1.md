@@ -19,7 +19,7 @@
 | Node × batch | 1/2/4 nodes × 1/2/4 request batch | 9 points | `matrix_final_v8_*` |
 | C isolation | 64 copies/64 chips、32 copies/16 chips | 9 points | `cscan*_final_v8_*` |
 | 20-seed boundary | 6 workload/model boundary points | 120 paired seed runs | `boundary20_v8_*` |
-| C=1 clustering diagnostic | aligned case + 20 community permutations | 1 bundle | `c1_cluster_stress_v2` |
+| C=1 clustering diagnostic | aligned + six home permutations + 20 community partitions | 1 bundle | `c1_cluster_stress_v4` |
 
 合计 35 个 canonical bundle。35 个 bundle 的 `manifest.json` 均覆盖 runner、
 `flowgpu/units.py` 和全部 31 个 `flowgpu/sim_v2/*.py` 文件；
@@ -348,6 +348,17 @@ community 与 home node 对齐时：
 - full-hyperedge 平均 completion 加速只有 `1.015×`；
 - 只有 1/20 个案例明显改善；11 个案例有小于 `0.002%` 的细微下降，
   其余基本不变。
+
+更干净的 home-affinity 隔离实验保持三个 hyperedge 完全相同，只排列 6 种
+community→home-node 对应关系：
+
+- full-hyperedge 在 6 种情况下的 node cut 都为 0；
+- 本地执行比例出现 `100% / 33.3% / 0%`；
+- 只有完全对齐的那一种达到 `1.297×`；
+- 其余 5 种 completion 基本不变。
+
+这证明：同社区专家放在一起只减少社区内部 fanout；若请求来自别的 node，
+仍然会发生 home-to-placement 跨 node 通信。
 
 原因是当前 full-hyperedge objective 缺少 explicit home-node affinity：
 

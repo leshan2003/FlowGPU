@@ -42,8 +42,8 @@ batch 表示同时 admitted 的 request 数。九个点均已生成；旧版本�
 
 ## C=1 clustering stress
 
-- `moe_2026_c1_cluster_stress_v2`：固定 3 nodes × 4 chips、9 experts、C=1，
-  只改变 expert-to-community 映射，比较 unique/pair/full-hyperedge。
+- `moe_2026_c1_cluster_stress_v4`：固定 3 nodes × 4 chips、9 experts、C=1，
+  分开测试对齐、home-node 排列和 expert-to-community 映射。
 
 该实验用于修正原 Stage 0 聚类微基准的退化对照。重验证计划见
 [`docs/MOE_聚类与层级调度重验证计划_v1.md`](../docs/MOE_聚类与层级调度重验证计划_v1.md)。

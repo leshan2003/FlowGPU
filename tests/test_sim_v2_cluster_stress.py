@@ -11,7 +11,7 @@ from run_moe_cluster_stress import run_case  # noqa: E402
 
 
 def test_aligned_c1_cluster_case_exposes_real_mechanism_gap():
-    rows = run_case(-1, permutation=False)
+    rows = run_case(-1, "aligned")
     by_strategy = {row["strategy"]: row for row in rows}
 
     assert by_strategy["unique-balanced"]["plan_fingerprint"] == (
@@ -24,8 +24,8 @@ def test_aligned_c1_cluster_case_exposes_real_mechanism_gap():
 
 
 def test_permuted_case_is_deterministic():
-    first = run_case(7, permutation=True)
-    second = run_case(7, permutation=True)
+    first = run_case(7, "community-permutation")
+    second = run_case(7, "community-permutation")
     assert [
         (row["strategy"], row["plan_fingerprint"], row["completion_s"])
         for row in first

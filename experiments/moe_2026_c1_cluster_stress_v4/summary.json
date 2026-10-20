@@ -1,0 +1,64 @@
+{
+  "aligned": {
+    "full-hyperedge": {
+      "completion_s": 1.6151171875e-05,
+      "full_hyperedge_cut": 15.0,
+      "local_assignment_fraction": 1.0,
+      "node_cut": 0,
+      "speedup_vs_unique": 1.2971920574648705
+    },
+    "pair-clustered": {
+      "completion_s": 2.0951171875e-05,
+      "full_hyperedge_cut": 55.0,
+      "local_assignment_fraction": 0.5555555555555556,
+      "node_cut": 40,
+      "speedup_vs_unique": 1.0
+    },
+    "unique-balanced": {
+      "completion_s": 2.0951171875e-05,
+      "full_hyperedge_cut": 55.0,
+      "local_assignment_fraction": 0.5555555555555556,
+      "node_cut": 40,
+      "speedup_vs_unique": 1.0
+    }
+  },
+  "baseline": "unique-balanced with identical C=1 resources and trace",
+  "claim_boundary": "controlled C=1 clustering stress with synthetic routing and projected hardware; not a full-model performance claim",
+  "controlled_variables": {
+    "c_max": 1,
+    "chips_per_node": 4,
+    "evaluation_tokens": 30,
+    "expert_weight_bytes": 100,
+    "experts": 9,
+    "hidden_bytes": 1,
+    "hyperedge_size": 3,
+    "nodes": 3
+  },
+  "full_improved_cases": 1,
+  "full_speedup_max": 1.2971920574648705,
+  "full_speedup_mean": 1.014849348948787,
+  "full_speedup_min": 0.9999813565009882,
+  "full_worse_cases": 11,
+  "home_full_local_fraction": [
+    0.0,
+    0.3333333333333333,
+    1.0
+  ],
+  "home_full_node_cut": [
+    0
+  ],
+  "home_full_speedup_max": 1.2971920574648705,
+  "home_full_speedup_mean": 1.049516473328302,
+  "home_full_speedup_min": 0.9999813565009882,
+  "home_permutations": 6,
+  "home_unique_local_fraction": [
+    0.2222222222222222,
+    0.3333333333333333,
+    0.5555555555555556
+  ],
+  "kind": "moe-c1-clustering-stress",
+  "pair_identical_to_unique": 20,
+  "permutations": 20,
+  "schema_version": 1,
+  "varied_variable": "three separated stress families: aligned communities, six community-to-home-node permutations with fixed communities, and twenty random expert-to-community partitions"
+}

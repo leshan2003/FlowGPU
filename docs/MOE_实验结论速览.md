@@ -326,10 +326,14 @@ Node × batch 实验单独测试了全部 9 个组合：
 9 experts
 3 个互斥的 3-expert hyperedge
 30 tokens
-每个 node 只访问自己的 community
 固定硬件、副本数、C=1 和 token 数
-只改变 expert 到 community 的映射
 ```
+
+实验分为三类，不能混为一谈：
+
+1. aligned：三个社区固定，并分别由对应 node 发起请求；
+2. home permutation：共激活社区固定，只改变三个社区由哪个 node 发起；
+3. community permutation：把 expert 重新分成三个同等大小的社区。
 
 在 community 与 home node 完全对齐时：
 
@@ -341,7 +345,19 @@ Node × batch 实验单独测试了全部 9 个组合：
 
 此例中 full-hyperedge 的完成时间加速为 `1.297×`。
 
-但在 20 个随机 community 映射中：
+固定相同社区、只排列 6 种 home-node 对应关系时：
+
+- full-hyperedge 的 node cut 在 6 种情况下都为 0；
+- 但本地执行比例分别出现 `100% / 33.3% / 0%` 三种结果；
+- 只有 home node 正好对齐的那一种达到 `1.297×`；
+- 其余 5 种 completion 基本不变。
+
+这说明：
+
+> “三个专家放在同一个 node”只消除了它们彼此之间的 fanout；
+> 如果请求来自另一个 node，所有请求仍然要跨 node。
+
+在 20 个随机 community 划分中：
 
 - pair-clustered 在 `20/20` 个案例中与 unique-balanced 布局完全相同；
 - full-hyperedge 把平均 node cut 从 `32.38` 降到 `9.52`；
@@ -353,11 +369,12 @@ Node × batch 实验单独测试了全部 9 个组合：
 
 因此当前准确结论是：
 
-> 聚类机制在一个 node-affinity 对齐的受控案例中能产生明确收益；
-> 但当前通用聚类器还不能在随机社区映射下稳定把收益转化为完成时间改善。
+> 聚类机制在“同层共激活”且“社区靠近请求来源”同时成立时能产生明确收益；
+> 仅把共激活专家放在一起、但忽略 home node 时，node cut 的降低不会稳定转化为
+> completion 改善。
 
 详细数据：
-[`moe_2026_c1_cluster_stress_v2`](../experiments/moe_2026_c1_cluster_stress_v2/)
+[`moe_2026_c1_cluster_stress_v4`](../experiments/moe_2026_c1_cluster_stress_v4/)
 
 ### 10. GPU 和类脑可以并行，但粒度有限
 

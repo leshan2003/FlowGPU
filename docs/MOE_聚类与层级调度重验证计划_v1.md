@@ -198,6 +198,16 @@ full-hyperedge 在该案例为 `1.297×`。
 - 只有 1/20 明显改善；11 个案例有小于 `0.002%` 的细微下降，
   其余基本不变。
 
+固定相同 hyperedge、只排列 6 种 community→home-node 对应关系时：
+
+- full-hyperedge 的 node cut 在全部 6 种情况下都是 0；
+- 本地比例出现 `100% / 33.3% / 0%`；
+- 只有完全对齐时 completion 达到 `1.297×`；
+- 其余 5 种基本不变。
+
+因此当前压力实验直接表明：降低 community 内部 node fanout 不等于降低
+request-home 到专家副本的通信。
+
 审计结论：
 
 - 聚类机制本身有明确潜力；

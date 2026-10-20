@@ -37,7 +37,7 @@ experiments/moe_2026_cscan32_*/
 experiments/moe_2026_boundary*/
 !experiments/moe_2026_boundary20_v8_*/
 experiments/moe_2026_c1_cluster_stress_*/
-!experiments/moe_2026_c1_cluster_stress_v2/
+!experiments/moe_2026_c1_cluster_stress_v4/
 
 # OS
 .DS_Store
