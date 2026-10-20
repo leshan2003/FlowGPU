@@ -45,6 +45,12 @@ experiments/moe_2026_d0_*/
 !experiments/moe_2026_d0_matrix_c2_v3/
 !experiments/moe_2026_d0_matrix_c4_v3/
 !experiments/moe_2026_d0_cluster_v3/
+!experiments/moe_2026_d0_pergpu_v1/
+experiments/moe_2026_m1_*/
+!experiments/moe_2026_m1_full_v1/
+!experiments/moe_2026_m1_full_hot16_v1/
+!experiments/moe_2026_m1_full_hot24_v1/
+!experiments/moe_2026_m1_full_hot24_highbatch_v1/
 
 # OS
 .DS_Store

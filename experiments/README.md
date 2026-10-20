@@ -1,5 +1,8 @@
 # MoE experiment bundles
 
+文档入口：
+[`docs/MOE_文件与结果索引.md`](../docs/MOE_文件与结果索引.md)。
+
 > **最终 canonical 版本（2026-10-20）：**
 > Stage 0 为 `v13`，下游 screen/matrix/C/20-seed 为 `v9`。
 > 证据边界：synthetic workload + projected/estimated hardware。
@@ -65,6 +68,21 @@ batch 表示同时 admitted 的 request 数。九个点均已生成；旧版本�
 D0-per-GPU 没有进入 canonical 结果。当前每个专家只有一份 GPU 副本时，
 无法公平表示“16 个独立 GPU 入口各自持有专家副本”，需要另建
 request-to-GPU placement 和 full/partitioned GPU replicas。
+
+Valid owner-GPU follow-up:
+
+- `moe_2026_d0_pergpu_v1`：4 个 owner GPU，每个 GPU 持有全部 Mixtral experts；
+  比较 shared-minimal、shared-replicated 和 per-GPU ingress。
+
+## M1 full-model B-stage
+
+- `moe_2026_m1_full_v1`：hot=8，batch 1/4；
+- `moe_2026_m1_full_hot16_v1`：hot=16，batch 1/4；
+- `moe_2026_m1_full_hot24_v1`：hot=24，batch 1/4；
+- `moe_2026_m1_full_hot24_highbatch_v1`：hot=24，batch 16/64。
+
+结果解释：
+[`docs/MOE_M1与D0_PerGPU结果_v1.md`](../docs/MOE_M1与D0_PerGPU结果_v1.md)。
 
 Heavy D0 sweeps can be sharded across seed workers:
 

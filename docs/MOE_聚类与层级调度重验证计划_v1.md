@@ -78,8 +78,9 @@ GPU → expert node → GPU
 - D2：foundation 支持，但未进入本轮 MoE canonical matrix；
 - D0-shared：已实现实际 event flow，并完成 Mixtral 全模型
   `1/2/4 nodes × batch 1/4/16 × 5 seeds` 对照；
-- D0-per-GPU：当前一份 GPU expert 副本无法服务多个独立 GPU ingress，
-  该尝试无效，需重建 request-to-GPU placement 后再测。
+- D0-per-GPU：已用 owner-GPU + 每 GPU 全 expert 副本完成 Mixtral 验证；
+  分散 ingress 有少量收益，但 request-owner 绑定会造成负载不均，
+  shared-minimal 仍更优。
 
 当前 D0 初步结果：
 
@@ -89,6 +90,11 @@ GPU → expert node → GPU
 - 同条件下 M3 `earliest_finish` 比 M2 快约 8.2%（D0）和 11.6%（D1）；
 - 低/中 batch 下 eager parallel 仍会变差，`brain-first` 与 M2 等价；
 - 高 batch 结果目前只覆盖前 4 个 MoE 层。
+
+M1 全模型 B-stage 也已执行：在 projected HP300 profile 下，
+完整 32 层 Mixtral 的 M1 比 GPU-only 慢约 `32×–52×`（batch 1/4），
+batch 64、hot=24 时仍慢约 `6.4×`。这是 mode-only hardware frontier，
+不代表相同成本或功耗下的硬件优劣。
 
 随后补充的有效 C 网格使用 32-copy budget：
 

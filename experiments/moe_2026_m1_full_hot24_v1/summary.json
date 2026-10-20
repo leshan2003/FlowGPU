@@ -1,0 +1,22 @@
+{
+  "batches": [
+    1,
+    4
+  ],
+  "brain_nodes_min": 1,
+  "c_max": 4,
+  "claim_boundary": "M1 full-model grouped B-stage with synthetic routing and projected hardware; no GPU fallback",
+  "dtype": "fp8",
+  "hot_experts": 24,
+  "kind": "moe-m1-full",
+  "layer_limit": 0,
+  "model": "mixtral_8x7b",
+  "schema_version": 1,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ]
+}

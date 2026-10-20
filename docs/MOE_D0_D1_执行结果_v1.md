@@ -208,22 +208,31 @@ M3 不是所有 node/batch 下都自动优于 M2；
 当前 scheduler 仍可能导致 M3 退化。
 ```
 
-## 6. D0-per-GPU 为什么没有结果
+## 6. D0-per-GPU 后续结果
 
-当前尝试过 16 个 GPU endpoint，但发现模型不成立：
+合法的 owner-GPU 模型已经完成：
 
-- 每个专家只有一份 GPU 副本；
-- 请求却来自 16 个 GPU ingress；
-- 远端 GPU 副本没有有效数据路径；
-- 因此该配置会把“无效路由”混入结果。
+```text
+4 个 GPU
+每个 GPU 保存全部 Mixtral experts
+每个 request 绑定一个 owner GPU
+每个 GPU 有独立 bridge endpoint
+```
 
-后续 D0-per-GPU 必须采用以下之一：
+与 shared-replicated 相比：
 
-1. 每个 GPU 保存全部/分区后的专家副本，并绑定 request owner；
-2. 为每个专家在请求可能到达的 GPU 上建立明确副本；
-3. 使用真实的 GPU rank/request affinity trace。
+- batch 1：per-GPU `1.062×`，shared-replicated `1.060×`；
+- batch 4：per-GPU `1.051×`，shared-replicated `1.039×`；
+- batch 16：两者约 `1.047×`。
 
-在完成之前，D0-per-GPU 结论为空，不能引用。
+但 shared-minimal 在三个 batch 中都更高，说明：
+
+- 分散 GPU ingress 有少量收益；
+- request-to-GPU 固定绑定会带来负载不均；
+- HBM busy fraction 高不等于 completion 更快。
+
+详见
+[`MOE_M1与D0_PerGPU结果_v1.md`](MOE_M1与D0_PerGPU结果_v1.md)。
 
 ## 7. 结论等级
 

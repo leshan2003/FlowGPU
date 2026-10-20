@@ -16,7 +16,7 @@ synthetic/projected 仿真实验，只限制证据等级。
 
 ```text
 python -m pytest tests -q
-144 passed
+146 passed
 
 python -m compileall -q flowgpu scripts
 COMPILEALL_OK

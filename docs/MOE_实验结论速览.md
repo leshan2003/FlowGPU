@@ -84,8 +84,8 @@ node、batch 或 C，而不是模型场景。
 - 6 个关键场景，每个 20 个 paired seeds
 - HBM overlay、类脑独占、Brain DRAM staging
 - 副本策略、聚类、迁移和版本切换
-- 144 个测试通过
-- 41 个最终结果目录，源码哈希差异为 0
+- 146 个测试通过
+- 46 个最终结果目录，源码哈希差异为 0
 
 尚未完成的是：
 
@@ -443,6 +443,9 @@ Mixtral 完整 32 层、5 seeds、`1/2/4 nodes × batch 1/4/16`：
 D0 下 C 与聚类网格：
 [`MOE_D0_C与聚类结果_v1.md`](MOE_D0_C与聚类结果_v1.md)
 
+M1 全模型与合法 D0-per-GPU：
+[`MOE_M1与D0_PerGPU结果_v1.md`](MOE_M1与D0_PerGPU结果_v1.md)
+
 ### 11. GPU 和类脑可以并行，但粒度有限
 
 在 HBM overlay 模式下：
@@ -495,6 +498,38 @@ Brain 专家位置：
 
 详细结果：
 [`MOE_D0_C与聚类结果_v1.md`](MOE_D0_C与聚类结果_v1.md)
+
+### 13. M1 全类脑与 D0-per-GPU
+
+完整 32 层 Mixtral 的 M1：
+
+```text
+全部 experts 在 Brain DRAM
+hot experts 在 Brain SRAM
+不启用 GPU fallback
+```
+
+相对 GPU-only：
+
+- batch 1：约 `0.019×–0.020×`；
+- batch 4：约 `0.029×–0.031×`；
+- batch 64、hot=24：约 `0.157×`。
+
+也就是说，在 projected HP300 profile 和 grouped full-expert staging 下，
+M1 仍比 GPU-only 慢约 `6.4×–52×`。提高 hot coverage 和 batch 有改善，
+但没有逆转。
+
+这是增加不同硬件的 mode-only 比较，不代表相同成本或功耗下的结论。
+
+合法 D0-per-GPU 使用 4 个 owner GPU，每个 GPU 保存全部 experts：
+
+- per-GPU 相对 shared-replicated 有少量收益；
+- 但 shared-minimal 在 batch 1/4/16 都更好；
+- request 固定绑定 GPU 会降低全局负载均衡能力；
+- GPU busy fraction 高不等于 completion 更快。
+
+详见
+[`MOE_M1与D0_PerGPU结果_v1.md`](MOE_M1与D0_PerGPU结果_v1.md)。
 
 ## 刷新实验做到什么程度
 

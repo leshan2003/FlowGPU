@@ -1,0 +1,29 @@
+{
+  "batches": [
+    1,
+    4,
+    16
+  ],
+  "brain_nodes": 2,
+  "c_max": 2,
+  "claim_boundary": "D0 synthetic/projected per-GPU ownership test; Mixtral only",
+  "copies": 8,
+  "dtype": "fp8",
+  "gpus": 4,
+  "kind": "moe-d0-per-gpu",
+  "layer_limit": 0,
+  "model": "mixtral_8x7b",
+  "schema_version": 1,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "variant_semantics": {
+    "D0-per-gpu": "one ingress endpoint per GPU; request owner GPU has all experts",
+    "D0-shared-minimal": "one GPU ingress endpoint; one GPU copy per expert",
+    "D0-shared-replicated": "one GPU ingress endpoint; all experts replicated on every GPU"
+  }
+}

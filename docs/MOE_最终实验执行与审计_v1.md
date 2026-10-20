@@ -24,13 +24,15 @@
 | D0/D1 high-batch screen | Mixtral 4 layers, batch 64, 10 seeds | 1 bundle | `d0_highbatch_v7` |
 | D0 C grid | C=1/2/4, 3 nodes × 3 batches × 5 seeds | 3 bundles | `d0_matrix_c*_v3` |
 | D0 clustering grid | 3 algorithms × C × nodes × batches | 1 bundle | `d0_cluster_v3` |
+| D0 per-GPU | owner-GPU full experts vs shared ingress | 1 bundle | `d0_pergpu_v1` |
+| M1 full B-stage | Mixtral 32 layers, hot 8/16/24 and high batch | 4 bundles | `m1_full_*` |
 
-合计 41 个 canonical bundle。41 个 bundle 的 `manifest.json` 均覆盖 runner、
+合计 46 个 canonical bundle。46 个 bundle 的 `manifest.json` 均覆盖 runner、
 `flowgpu/units.py` 和全部 31 个 `flowgpu/sim_v2/*.py` 文件；
 逐文件 SHA-256 审计结果为：
 
 ```text
-BUNDLES=41
+BUNDLES=46
 SOURCE_HASH_MISMATCH=0
 MISSING_MIGRATION_RUNTIME=0
 ```
@@ -39,7 +41,7 @@ MISSING_MIGRATION_RUNTIME=0
 
 ```text
 python -m pytest tests -q
-144 passed
+146 passed
 
 python -m compileall -q flowgpu scripts
 PASS
@@ -504,6 +506,11 @@ experiments/moe_2026_d0_matrix_c1_v3/
 experiments/moe_2026_d0_matrix_c2_v3/
 experiments/moe_2026_d0_matrix_c4_v3/
 experiments/moe_2026_d0_cluster_v3/
+experiments/moe_2026_d0_pergpu_v1/
+experiments/moe_2026_m1_full_v1/
+experiments/moe_2026_m1_full_hot16_v1/
+experiments/moe_2026_m1_full_hot24_v1/
+experiments/moe_2026_m1_full_hot24_highbatch_v1/
 ```
 
 `v11`、`v7` 及更早目录保留作审计或开发检查点，不作为最终引用。
