@@ -11,7 +11,7 @@
 
 ```text
 python -m pytest tests -q
-132 passed
+133 passed
 
 python -m compileall -q flowgpu scripts
 COMPILEALL_OK
@@ -67,10 +67,10 @@ first-MoE-layer 模型上不再出现 key mismatch。
 
 当前源码对应的门控 bundles：
 
-- `experiments/moe_2026_stage0_final_mixtral/`；
-- `experiments/moe_2026_stage0_final_deepseek/`；
-- `experiments/moe_2026_stage0_final_qwen/`；
-- `experiments/moe_2026_stage0_final_gptoss/`。
+- `experiments/moe_2026_stage0_final_v2_mixtral/`；
+- `experiments/moe_2026_stage0_final_v2_deepseek/`；
+- `experiments/moe_2026_stage0_final_v2_qwen/`；
+- `experiments/moe_2026_stage0_final_v2_gptoss/`。
 
 每个 bundle 包含：
 

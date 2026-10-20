@@ -9,13 +9,25 @@
 
 当前源码对应的语义/机制门控结果：
 
-- `moe_2026_stage0_final_mixtral`：Mixtral-8x7B；
-- `moe_2026_stage0_final_deepseek`：DeepSeek-V3；
-- `moe_2026_stage0_final_qwen`：Qwen3-235B-A22B；
-- `moe_2026_stage0_final_gptoss`：gpt-oss-120B。
+- `moe_2026_stage0_final_v2_mixtral`：Mixtral-8x7B；
+- `moe_2026_stage0_final_v2_deepseek`：DeepSeek-V3；
+- `moe_2026_stage0_final_v2_qwen`：Qwen3-235B-A22B；
+- `moe_2026_stage0_final_v2_gptoss`：gpt-oss-120B。
 
 这些 bundle 验证模型驱动几何、显式 C、C=1、H/B 模式、版本迁移和小规模 serving，
 不是最终性能结论。更早的 Stage 0 开发检查点已被忽略。
+
+Stage 1 fast-screen bundles：
+
+- `moe_2026_screen_final_v2_mixtral_zipf05`；
+- `moe_2026_screen_final_v2_mixtral`；
+- `moe_2026_screen_final_v2_mixtral_zipf20`；
+- `moe_2026_screen_final_v2_gptoss4`（4-layer）。
+- `moe_2026_screen_qwen_v2`（前 4 个 MoE 层）；
+- `moe_2026_screen_deepseek_v2`（前 4 个 MoE 层）。
+
+解释见
+[`docs/MOE_STAGE1_SCREEN_RESULTS.md`](../docs/MOE_STAGE1_SCREEN_RESULTS.md)。
 
 ## Canonical result
 

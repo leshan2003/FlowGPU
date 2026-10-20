@@ -1,0 +1,13 @@
+{
+  "c_max": 4,
+  "claim_boundary": "Stage 0 semantic/mechanism gate; projected hardware and synthetic routing; not a final performance claim",
+  "copy_budget": 32,
+  "dtype": "fp8",
+  "hot_experts": 16,
+  "layer_limit": 0,
+  "model": "deepseek_v3",
+  "requests_per_phase": 2,
+  "seed": 211,
+  "tokens_per_request": 4,
+  "zipf_exponent": 1.3
+}

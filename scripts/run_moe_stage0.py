@@ -195,6 +195,7 @@ def task_trace(
     seed: int,
     split: str,
     first_layer: int = 0,
+    zipf_exponent: float = 1.3,
 ):
     return generate_ordered_task_trace(
         tokens_per_request=tokens_per_request,
@@ -211,7 +212,7 @@ def task_trace(
         community_count=8,
         community_strength=1.2,
         node_affinity_strength=0.2,
-        zipf_exponent=1.3,
+        zipf_exponent=zipf_exponent,
         first_layer=first_layer,
     )
 
@@ -222,6 +223,29 @@ def effective_dtype(args):
     if args.model == "gpt_oss_120b":
         return "mxfp4"
     return "fp8"
+
+
+def model_case(args):
+    geometry = build_model_expert_geometry(
+        args.model, dtype=effective_dtype(args)
+    )
+    experts = geometry.routed_experts(derived_provenance(
+        "%s expert geometry from local public config" %
+        geometry.model_name
+    ))
+    layer_limit = int(getattr(args, "layer_limit", 0) or 0)
+    if layer_limit < 0:
+        raise ValidationError("layer_limit cannot be negative")
+    if layer_limit and layer_limit < geometry.n_moe_layers:
+        last_layer = geometry.first_moe_layer + layer_limit
+        experts = tuple(
+            expert for expert in experts
+            if expert.key.layer_id < last_layer
+        )
+        used_layers = layer_limit
+    else:
+        used_layers = geometry.n_moe_layers
+    return geometry, experts, used_layers
 
 
 @dataclass(frozen=True)
@@ -253,13 +277,7 @@ class OffsetWeightedRouter:
 
 
 def run_gate(args, temp: Path):
-    geometry = build_model_expert_geometry(
-        args.model, dtype=effective_dtype(args)
-    )
-    experts = geometry.routed_experts(derived_provenance(
-        "%s expert geometry from local public config" %
-        geometry.model_name
-    ))
+    geometry, experts, used_layers = model_case(args)
     home_nodes = make_cluster(2, 8).ingress_nodes
     placement_tokens = max(2, args.tokens)
     evaluation_tokens = placement_tokens
@@ -268,26 +286,28 @@ def run_gate(args, temp: Path):
         (TaskPhase("placement", max(1, args.requests), {
             "code": 0.6, "math": 0.4,
         }),),
-        geometry.n_moe_layers,
+        used_layers,
         geometry.n_experts,
         geometry.top_k,
         home_nodes,
         args.seed,
         "placement",
         geometry.first_moe_layer,
+        getattr(args, "zipf_exponent", 1.3),
     )
     evaluation = task_trace(
         evaluation_tokens,
         (TaskPhase("evaluation", max(1, args.requests), {
             "code": 0.4, "math": 0.6,
         }),),
-        geometry.n_moe_layers,
+        used_layers,
         geometry.n_experts,
         geometry.top_k,
         home_nodes,
         args.seed + 1,
         "evaluation",
         geometry.first_moe_layer,
+        getattr(args, "zipf_exponent", 1.3),
     )
     demand = profile_demand(placement.trace)
     cluster = make_cluster(2, 8)
@@ -368,6 +388,7 @@ def run_gate(args, temp: Path):
         ))
     return rows, {
         "geometry": asdict(geometry),
+        "used_moe_layers": used_layers,
         "placement_tokens": placement_tokens,
         "evaluation_tokens": evaluation_tokens,
         "copy_budget": copy_budget,
@@ -479,12 +500,7 @@ def replace_record(record, split=None):
 
 
 def run_h_b_gate(args):
-    geometry = build_model_expert_geometry(
-        args.model, dtype=effective_dtype(args)
-    )
-    experts = geometry.routed_experts(derived_provenance(
-        "H/B model geometry"
-    ))
+    geometry, experts, used_layers = model_case(args)
     dram_capacity_bytes = 64_000_000_000
     brain_nodes = max(
         2,
@@ -506,26 +522,28 @@ def run_h_b_gate(args):
         (TaskPhase("hb", max(1, args.requests), {
             "code": 0.6, "math": 0.4,
         }),),
-        geometry.n_moe_layers,
+        used_layers,
         geometry.n_experts,
         geometry.top_k,
         cluster.ingress_nodes,
         args.seed + 20,
         "placement",
         geometry.first_moe_layer,
+        getattr(args, "zipf_exponent", 1.3),
     )
     evaluation = task_trace(
         max(2, args.tokens),
         (TaskPhase("hb", max(1, args.requests), {
             "code": 0.6, "math": 0.4,
         }),),
-        geometry.n_moe_layers,
+        used_layers,
         geometry.n_experts,
         geometry.top_k,
         cluster.ingress_nodes,
         args.seed + 21,
         "evaluation",
         geometry.first_moe_layer,
+        getattr(args, "zipf_exponent", 1.3),
     )
     demand = profile_demand(planning.trace)
     kernels = make_kernels(experts, gpu, brain, geometry.dtype)
@@ -694,12 +712,7 @@ def run_refresh_gate(args):
 
 
 def run_serving_gate(args):
-    geometry = build_model_expert_geometry(
-        args.model, dtype=effective_dtype(args)
-    )
-    experts = geometry.routed_experts(derived_provenance(
-        "serving model geometry"
-    ))
+    geometry, experts, used_layers = model_case(args)
     cluster = make_cluster(2, 8)
     gpu = make_gpu_chips()
     brain = make_brain_chips(
@@ -713,13 +726,14 @@ def run_serving_gate(args):
         (TaskPhase("serving-placement", max(1, args.requests), {
             "code": 0.5, "math": 0.5,
         }),),
-        geometry.n_moe_layers,
+        used_layers,
         geometry.n_experts,
         geometry.top_k,
         cluster.ingress_nodes,
         args.seed + 30,
         "placement",
         geometry.first_moe_layer,
+        getattr(args, "zipf_exponent", 1.3),
     )
     demand = profile_demand(planning.trace)
     kernels = make_kernels(experts, gpu, brain, geometry.dtype)
@@ -774,7 +788,7 @@ def run_serving_gate(args):
         simulator = ContinuousBatchingSimulator(
             MoELayerEngine(dispatcher=dispatcher),
             router,
-            geometry.n_moe_layers,
+            used_layers,
             max_batch=max(2, args.requests),
             first_layer=geometry.first_moe_layer,
             admission_policy=AdmissionPolicy(
@@ -881,6 +895,8 @@ def main() -> int:
     parser.add_argument("--replicas", type=int, default=16)
     parser.add_argument("--hot-experts", type=int, default=8)
     parser.add_argument("--seed", type=int, default=101)
+    parser.add_argument("--zipf-exponent", type=float, default=1.3)
+    parser.add_argument("--layer-limit", type=int, default=0)
     args = parser.parse_args()
     output = Path(args.output).resolve()
     if output.exists():
@@ -934,6 +950,8 @@ def main() -> int:
         "copy_budget": args.replicas,
         "hot_experts": args.hot_experts,
         "seed": args.seed,
+        "zipf_exponent": args.zipf_exponent,
+        "layer_limit": args.layer_limit,
         "claim_boundary": (
             "Stage 0 semantic/mechanism gate; projected hardware and "
             "synthetic routing; not a final performance claim"

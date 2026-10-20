@@ -1,0 +1,13 @@
+{
+  "c_max": 2,
+  "claim_boundary": "Stage 0 semantic/mechanism gate; projected hardware and synthetic routing; not a final performance claim",
+  "copy_budget": 16,
+  "dtype": "fp8",
+  "hot_experts": 8,
+  "layer_limit": 0,
+  "model": "mixtral_8x7b",
+  "requests_per_phase": 2,
+  "seed": 101,
+  "tokens_per_request": 4,
+  "zipf_exponent": 1.3
+}
